@@ -469,14 +469,14 @@ export default function EnergyProToolkit() {
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold">Energy Pro Toolkit</h1>
       <Tabs defaultValue="convert">
-            <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
-              <TabsTrigger value="converter" className="flex-shrink-0">Converter</TabsTrigger>
-              <TabsTrigger value="gasflow" className="flex-shrink-0">Gas Flow</TabsTrigger>
-              <TabsTrigger value="ranges" className="flex-shrink-0">Typical Ranges</TabsTrigger>
-              <TabsTrigger value="rates" className="flex-shrink-0">Rates</TabsTrigger>
-              <TabsTrigger value="load" className="flex-shrink-0">Load Estimator</TabsTrigger>
-              <TabsTrigger value="tests" className="flex-shrink-0">Tests</TabsTrigger>
-            </TabsList>
+        <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
+          <TabsTrigger value="converter" className="flex-shrink-0">Converter</TabsTrigger>
+          <TabsTrigger value="gasflow" className="flex-shrink-0">Gas Flow</TabsTrigger>
+          <TabsTrigger value="ranges" className="flex-shrink-0">Typical Ranges</TabsTrigger>
+          <TabsTrigger value="rates" className="flex-shrink-0">Rates</TabsTrigger>
+          <TabsTrigger value="load" className="flex-shrink-0">Load Estimator</TabsTrigger>
+          <TabsTrigger value="tests" className="flex-shrink-0">Tests</TabsTrigger>
+        </TabsList>
         <TabsContent value="convert"><PowerConverter /><ReferenceTable /></TabsContent>
         <TabsContent value="gas"><GasSizing /></TabsContent>
         <TabsContent value="ranges"><ApplianceRanges /></TabsContent>
