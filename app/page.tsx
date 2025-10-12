@@ -160,14 +160,13 @@ function Converter() {
     const mlb_per_hr = RATE_UNITS.has(unit) ? btuh / BTU_PER_MLB : NaN;
     const therm_per_hr = btuh / BTU_PER_THERM;
     const dth_per_hr = btuh / BTU_PER_DTH;
-    const mmbtu_per_hr = btuh / 1_000_000;
     const cfh = btuh / (HHV * 1_000);
 
     const totalCF = cfh * hrs;
     const totalMCF = totalCF / 1_000;
     const totalTherms = therm_per_hr * hrs;
     const totalDTH = dth_per_hr * hrs;
-    const totalMMBTU = mmbtu_per_hr * hrs;
+    const totalMMBTU = (btuh / 1_000_000) * hrs;
     const totalMLB = (btuh / BTU_PER_MLB) * hrs;
     const totalKWh = kW * hrs;
 
@@ -180,7 +179,6 @@ function Converter() {
       cfh,
       therm_per_hr,
       dth_per_hr,
-      mmbtu_per_hr,
       totalMCF,
       totalTherms,
       totalDTH,
@@ -277,25 +275,15 @@ function Converter() {
       <Card>
         <CardContent className="mt-4">
           <h3 className="text-lg font-semibold border-b pb-2">Instantaneous Demand</h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             <Readout label="BTU/hr" value={fmt0(calc.btuh)} />
             <Readout label="kW" value={fmt0(calc.kW)} />
             <Readout label="Tons" value={fmt0(calc.tons)} />
             <Readout label="HP" value={fmt0(calc.hp)} />
-            {RATE_UNITS.has(unit) && <Readout label="MLB/hr" value={fmt0(calc.mlb_per_hr)} />}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Equivalent Energy Rate */}
-      <Card>
-        <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">Equivalent Energy Rate (per hour)</h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-4">
             <Readout label="CFH" value={fmt0(calc.cfh)} />
             <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
             <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
-            <Readout label="MMBTU/hr" value={fmt0(calc.mmbtu_per_hr)} />
+            {RATE_UNITS.has(unit) && <Readout label="MLB/hr" value={fmt0(calc.mlb_per_hr)} />}
           </div>
         </CardContent>
       </Card>
