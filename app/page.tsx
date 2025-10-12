@@ -74,42 +74,35 @@ const formatEfficiency = (value: number) => value.toFixed(2);
 
 const RANGE_ROWS = [
   {
-    segment: "Residential — Tight Envelope",
-    heating: "18 – 28",
-    cooling: "10 – 16",
-    notes: "Energy Star homes, high-efficiency equipment, limited infiltration.",
+    segment: "Residential",
+    range: "30,000 – 120,000 BTU/hr",
+    notes: "Single-family homes and low-rise multifamily with conventional comfort systems.",
   },
   {
-    segment: "Residential — Typical",
-    heating: "25 – 35",
-    cooling: "15 – 22",
-    notes: "Detached single-family or row homes built 1980–2010 with standard insulation.",
+    segment: "Commercial",
+    range: "120,000 – 1,200,000 BTU/hr",
+    notes: "Mid-size offices, retail pads, and schools served by packaged rooftops or split systems.",
   },
   {
-    segment: "Multifamily / Small Commercial",
-    heating: "30 – 45",
-    cooling: "18 – 28",
-    notes: "Garden apartments, small offices, retail bays with mixed occupancy.",
-  },
-  {
-    segment: "Commercial — High Ventilation",
-    heating: "40 – 60",
-    cooling: "22 – 32",
-    notes: "Restaurants, fitness centers, or spaces with elevated air changes.",
-  },
-  {
-    segment: "Industrial / Warehouse",
-    heating: "15 – 25",
-    cooling: "8 – 14",
-    notes: "High-bay storage, light manufacturing with intermittent occupancy.",
-  },
-  {
-    segment: "Process / Heavy Industrial",
-    heating: "60 – 90",
-    cooling: "28 – 40",
-    notes: "Process loads, make-up air, or high-infiltration industrial facilities.",
+    segment: "Industrial",
+    range: "1,000,000 – 5,000,000+ BTU/hr",
+    notes: "Warehouses, production floors, or make-up air units with process-driven loads.",
   },
 ] as const;
+
+const LOAD_SCENARIOS = [
+  { key: "tight", label: "Tight / New" },
+  { key: "average", label: "Average (2000s)" },
+  { key: "leaky", label: "Older / Leaky" },
+] as const;
+
+type LoadScenarioKey = (typeof LOAD_SCENARIOS)[number]["key"];
+
+const LOAD_FACTORS: Record<LoadScenarioKey, { heat: number; cool: number }> = {
+  tight: { heat: 25, cool: 15 },
+  average: { heat: 30, cool: 20 },
+  leaky: { heat: 40, cool: 28 },
+};
 
 type ConversionContext = { hhv: number };
 
@@ -210,14 +203,13 @@ function Converter() {
     const mlb_per_hr = RATE_UNITS.has(unit) ? btuh / BTU_PER_MLB : NaN;
     const therm_per_hr = btuh / BTU_PER_THERM;
     const dth_per_hr = btuh / BTU_PER_DTH;
-    const mmbtu_per_hr = btuh / 1_000_000;
     const cfh = btuh / (HHV * 1_000);
 
     const totalCF = cfh * hrs;
     const totalMCF = totalCF / 1_000;
     const totalTherms = therm_per_hr * hrs;
     const totalDTH = dth_per_hr * hrs;
-    const totalMMBTU = mmbtu_per_hr * hrs;
+    const totalMMBTU = (btuh / 1_000_000) * hrs;
     const totalMLB = (btuh / BTU_PER_MLB) * hrs;
     const totalKWh = kW * hrs;
 
@@ -230,7 +222,6 @@ function Converter() {
       cfh,
       therm_per_hr,
       dth_per_hr,
-      mmbtu_per_hr,
       totalMCF,
       totalTherms,
       totalDTH,
@@ -327,25 +318,15 @@ function Converter() {
       <Card>
         <CardContent className="mt-4">
           <h3 className="text-lg font-semibold border-b pb-2">Instantaneous Demand</h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             <Readout label="BTU/hr" value={fmt0(calc.btuh)} />
             <Readout label="kW" value={fmt0(calc.kW)} />
             <Readout label="Tons" value={fmt0(calc.tons)} />
             <Readout label="HP" value={fmt0(calc.hp)} />
-            {RATE_UNITS.has(unit) && <Readout label="MLB/hr" value={fmt0(calc.mlb_per_hr)} />}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Equivalent Energy Rate */}
-      <Card>
-        <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">Equivalent Energy Rate (per hour)</h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-4">
             <Readout label="CFH" value={fmt0(calc.cfh)} />
             <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
             <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
-            <Readout label="MMBTU/hr" value={fmt0(calc.mmbtu_per_hr)} />
+            {RATE_UNITS.has(unit) && <Readout label="MLB/hr" value={fmt0(calc.mlb_per_hr)} />}
           </div>
         </CardContent>
       </Card>
@@ -389,10 +370,10 @@ function TypicalRangesTable() {
       <Card>
         <CardContent className="mt-4 space-y-4">
           <div>
-            <h3 className="text-lg font-semibold">Rule-of-Thumb Load Density</h3>
+            <h3 className="text-lg font-semibold">Typical Load Size Bands</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Heating and cooling factors shown in BTU/ft²-hour. Use them as starting points and
-              refine with actual audits or design calculations when available.
+              Representative peak BTU/hr ranges for common building types. Treat these as quick
+              gut-checks alongside detailed load calculations or measured demand data.
             </p>
           </div>
 
@@ -401,8 +382,7 @@ function TypicalRangesTable() {
               <thead>
                 <tr className="bg-muted/50 text-left">
                   <th className="px-3 py-2 font-medium">Segment</th>
-                  <th className="px-3 py-2 font-medium">Heating (BTU/ft²·hr)</th>
-                  <th className="px-3 py-2 font-medium">Cooling (BTU/ft²·hr)</th>
+                  <th className="px-3 py-2 font-medium">Typical BTU/hr Range</th>
                   <th className="px-3 py-2 font-medium">Notes</th>
                 </tr>
               </thead>
@@ -410,8 +390,7 @@ function TypicalRangesTable() {
                 {RANGE_ROWS.map((row) => (
                   <tr key={row.segment} className="border-b last:border-0 border-border/60">
                     <td className="px-3 py-2 align-top font-medium text-foreground">{row.segment}</td>
-                    <td className="px-3 py-2 align-top font-mono">{row.heating}</td>
-                    <td className="px-3 py-2 align-top font-mono">{row.cooling}</td>
+                    <td className="px-3 py-2 align-top font-mono">{row.range}</td>
                     <td className="px-3 py-2 align-top text-muted-foreground">{row.notes}</td>
                   </tr>
                 ))}
@@ -420,8 +399,8 @@ function TypicalRangesTable() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Tip: Multiply the factor by square footage to get an approximate peak BTU/hr load, or
-            convert to tons by dividing the cooling value by 12,000.
+            Tip: Compare your calculated peak load or installed capacity to these bands to sanity
+            check sizing before committing to equipment selections.
           </p>
         </CardContent>
       </Card>
@@ -434,7 +413,7 @@ function TypicalRangesTable() {
 // -----------------------------
 function LoadEstimator() {
   const [sqft, setSqft] = useState("2000");
-  const [vintage, setVintage] = useState("average");
+  const [vintage, setVintage] = useState<LoadScenarioKey>("average");
   const [heatOverride, setHeatOverride] = useState("");
   const [coolOverride, setCoolOverride] = useState("");
   const [isSmallScreen, setIsSmallScreen] = useState(false);
@@ -459,31 +438,36 @@ function LoadEstimator() {
     return () => media.removeListener(listener);
   }, []);
 
-  const factors = {
-    tight: { heat: 25, cool: 15 },
-    average: { heat: 30, cool: 20 },
-    leaky: { heat: 40, cool: 28 },
-  } as const;
-
-  const f = factors[vintage as keyof typeof factors] || factors.average;
+  const f = LOAD_FACTORS[vintage] || LOAD_FACTORS.average;
 
   const heatingFactor = heatOverride ? num(heatOverride) : f.heat;
   const coolingFactor = coolOverride ? num(coolOverride) : f.cool;
 
+  const area = useMemo(() => Math.max(num(sqft), 0), [sqft]);
+
   const out = useMemo(() => {
-    const area = Math.max(num(sqft), 0);
     const heat = area * heatingFactor;
     const cool = area * coolingFactor;
     const tons = cool / BTU_PER_TON;
     const mbh = heat / 1000;
     return { heat, cool, tons, mbh };
-  }, [sqft, heatingFactor, coolingFactor]);
+  }, [area, heatingFactor, coolingFactor]);
 
-  const chartData = [
-    { name: "Tight / New", Heating: 25, Cooling: 15 },
-    { name: "Average (2000s)", Heating: 30, Cooling: 20 },
-    { name: "Older / Leaky", Heating: 40, Cooling: 28 },
-  ];
+  const chartData = useMemo(
+    () =>
+      LOAD_SCENARIOS.map(({ key, label }) => {
+        const defaults = LOAD_FACTORS[key];
+        const heatFactorForScenario = key === vintage ? heatingFactor : defaults.heat;
+        const coolFactorForScenario = key === vintage ? coolingFactor : defaults.cool;
+
+        return {
+          name: label,
+          heating: area * heatFactorForScenario,
+          cooling: area * coolFactorForScenario,
+        };
+      }),
+    [area, coolingFactor, heatingFactor, vintage]
+  );
 
   const axisFontSize = isSmallScreen ? 10 : 12;
   const legendWrapperStyle = useMemo(
@@ -502,14 +486,16 @@ function LoadEstimator() {
           </div>
           <div>
             <Label>Building Condition</Label>
-            <Select value={vintage} onValueChange={setVintage}>
+            <Select value={vintage} onValueChange={(value) => setVintage(value as LoadScenarioKey)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="tight">Tight / New</SelectItem>
-                <SelectItem value="average">Average (2000s)</SelectItem>
-                <SelectItem value="leaky">Older / Leaky</SelectItem>
+                {LOAD_SCENARIOS.map(({ key, label }) => (
+                  <SelectItem key={key} value={key}>
+                    {label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -518,45 +504,6 @@ function LoadEstimator() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Chart */}
-      <Card>
-        <CardContent className="mt-4">
-          <h3 className="text-base font-semibold border-b pb-2 sm:text-lg">
-            Heating & Cooling Factors (BTU/ft²)
-          </h3>
-          <div className="mt-4 w-full h-56 sm:h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={chartData}
-                margin={{ top: isSmallScreen ? 6 : 10, right: isSmallScreen ? 12 : 30, left: 0, bottom: isSmallScreen ? 24 : 8 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
-                <XAxis dataKey="name" tick={{ fill: "#888", fontSize: axisFontSize }} interval={0} angle={isSmallScreen ? -25 : 0} dy={isSmallScreen ? 10 : 0} textAnchor={isSmallScreen ? "end" : "middle"} />
-                <YAxis tick={{ fill: "#888", fontSize: axisFontSize }} />
-                <RechartTooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(20,20,20,0.9)",
-                    border: "1px solid rgba(80,80,80,0.5)",
-                    borderRadius: "8px",
-                    color: "white",
-                    fontSize: "12px",
-                  }}
-                />
-                <Legend
-                  wrapperStyle={legendWrapperStyle}
-                  verticalAlign={isSmallScreen ? "bottom" : "top"}
-                  height={isSmallScreen ? 36 : undefined}
-                  iconType="circle"
-                />
-                <Bar dataKey="Heating" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Cooling" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Override Inputs */}
       <Card>
         <CardContent className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -592,6 +539,55 @@ function LoadEstimator() {
           <Readout label="Heating (MBH)" value={fmt0(out.mbh)} />
           <Readout label="Cooling (BTU/hr)" value={fmt0(out.cool)} />
           <Readout label="Cooling (Tons)" value={fmt0(out.tons)} />
+        </CardContent>
+      </Card>
+
+      {/* Chart */}
+      <Card>
+        <CardContent className="mt-4 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Modeled Load by Building Condition</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Each bar shows the total heating and cooling load in BTU/hr for the modeled square
+              footage using the default multipliers or your overrides for the selected condition.
+            </p>
+          </div>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 10, right: 24, left: 0, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                <XAxis dataKey="name" tick={{ fill: "#888" }} interval={0} height={40} />
+                <YAxis
+                  tick={{ fill: "#888" }}
+                  tickFormatter={(value) => fmt0(Number(value))}
+                  label={{
+                    value: "Load (BTU/hr)",
+                    angle: -90,
+                    position: "insideLeft",
+                    offset: -5,
+                    style: { fill: "#888", textAnchor: "middle" },
+                  }}
+                />
+                <RechartTooltip
+                  formatter={(value: string | number, name: string) => [
+                    `${fmt0(Number(value))} BTU/hr`,
+                    name,
+                  ]}
+                  labelStyle={{ color: "white" }}
+                  contentStyle={{
+                    backgroundColor: "rgba(20,20,20,0.9)",
+                    border: "1px solid rgba(80,80,80,0.5)",
+                    borderRadius: "8px",
+                    color: "white",
+                    fontSize: "12px",
+                  }}
+                />
+                <Legend wrapperStyle={{ color: "#888" }} />
+                <Bar dataKey="heating" name="Heating Load" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="cooling" name="Cooling Load" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </div>
