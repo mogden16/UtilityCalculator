@@ -40,6 +40,20 @@ const fmtCurrency = (n: number) =>
     ? `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     : "–";
 const num = (v: string | number) => (typeof v === "number" ? v : Number(String(v).replace(/[,\s]/g, "")) || 0);
+const formatEmissions = (pounds: number) => {
+  if (!isFinite(pounds)) {
+    return "–";
+  }
+  const value = Math.max(pounds, 0);
+  if (value < 1e-6) {
+    return "0 lb";
+  }
+  if (value >= 2000) {
+    const tons = value / 2000;
+    return `${tons.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} tons`;
+  }
+  return `${value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} lb`;
+};
 
 const RATE_UNITS = new Set(["BTU/hr", "kW", "Ton", "HP", "Therm/hr", "DTH/hr", "Steam MLB/hr"]);
 
@@ -55,20 +69,74 @@ const LABEL_OPTIONS = [
   "Other Custom",
 ] as const;
 
+type FuelOptionKey = "naturalGas" | "propane" | "distillateOil" | "gridElectricity";
+
 const PRESET_SOURCE_METADATA: Record<
   (typeof LABEL_OPTIONS)[number],
-  { defaultEfficiency?: number }
+  { defaultEfficiency?: number; defaultFuel?: FuelOptionKey }
 > = {
-  "Natural Gas Furnace": { defaultEfficiency: 0.9 },
-  "Propane Furnace": { defaultEfficiency: 0.9 },
-  "Electric Resistance": { defaultEfficiency: 1 },
-  "Air-Source Heat Pump": { defaultEfficiency: 2.8 },
-  "Ground-Source Heat Pump": { defaultEfficiency: 3.5 },
-  "Fuel Oil Boiler": { defaultEfficiency: 0.87 },
-  "Steam Boiler": { defaultEfficiency: 0.8 },
-  "District Steam": { defaultEfficiency: 0.82 },
+  "Natural Gas Furnace": { defaultEfficiency: 0.9, defaultFuel: "naturalGas" },
+  "Propane Furnace": { defaultEfficiency: 0.9, defaultFuel: "propane" },
+  "Electric Resistance": { defaultEfficiency: 1, defaultFuel: "gridElectricity" },
+  "Air-Source Heat Pump": { defaultEfficiency: 2.8, defaultFuel: "gridElectricity" },
+  "Ground-Source Heat Pump": { defaultEfficiency: 3.5, defaultFuel: "gridElectricity" },
+  "Fuel Oil Boiler": { defaultEfficiency: 0.87, defaultFuel: "distillateOil" },
+  "Steam Boiler": { defaultEfficiency: 0.8, defaultFuel: "naturalGas" },
+  "District Steam": { defaultEfficiency: 0.82, defaultFuel: "naturalGas" },
   "Other Custom": {},
 };
+
+type FuelOption = {
+  key: FuelOptionKey;
+  label: string;
+  description: string;
+  co2eLbPerMMBtu: number;
+  noxLbPerMMBtu: number;
+  soxLbPerMMBtu: number;
+};
+
+const FUEL_OPTIONS: FuelOption[] = [
+  {
+    key: "naturalGas",
+    label: "Natural Gas",
+    description: "EPA stationary combustion factors for pipeline-quality natural gas.",
+    // Factors sourced from EPA AP-42 Table 1.4-1 and GHG Inventory (CO2, CH4, N2O, NOx, SO2).
+    co2eLbPerMMBtu: 117.12,
+    noxLbPerMMBtu: 0.092,
+    soxLbPerMMBtu: 0.0006,
+  },
+  {
+    key: "propane",
+    label: "Propane / LPG",
+    description: "EPA AP-42 LPG combustion factors for commercial boilers.",
+    co2eLbPerMMBtu: 138.71,
+    noxLbPerMMBtu: 0.142,
+    soxLbPerMMBtu: 0.0006,
+  },
+  {
+    key: "distillateOil",
+    label: "Fuel Oil No. 2",
+    description: "EPA AP-42 distillate oil factors (assumes 0.5% sulfur by weight).",
+    co2eLbPerMMBtu: 163.53,
+    noxLbPerMMBtu: 0.146,
+    soxLbPerMMBtu: 0.518,
+  },
+  {
+    key: "gridElectricity",
+    label: "Electricity (On-site)",
+    description: "On-site electric equipment has no combustion emissions at the meter.",
+    co2eLbPerMMBtu: 0,
+    noxLbPerMMBtu: 0,
+    soxLbPerMMBtu: 0,
+  },
+];
+
+const FUEL_OPTION_MAP = Object.fromEntries(FUEL_OPTIONS.map((option) => [option.key, option])) as Record<
+  FuelOptionKey,
+  FuelOption
+>;
+
+const DEFAULT_FUEL: FuelOptionKey = FUEL_OPTIONS[0]?.key ?? "naturalGas";
 
 const formatEfficiency = (value: number) => value.toFixed(2);
 
@@ -599,6 +667,7 @@ type RateSourceState = {
   rate: string;
   rateUnit: EnergyUnit;
   efficiency: string;
+  fuel: FuelOptionKey;
 };
 
 type EnergySummary = {
@@ -609,6 +678,12 @@ type EnergySummary = {
   totalCost: number;
   efficiency: number;
   costPerDelivered: number;
+  fuel: FuelOption;
+  emissions: {
+    co2eLb: number;
+    noxLb: number;
+    soxLb: number;
+  };
 };
 
 function computeEnergySummary(
@@ -640,6 +715,11 @@ function computeEnergySummary(
   const totalCost = ratePerMMBtu * inputMMBtu;
   const costPerDelivered = deliveredMMBtu > 0 ? totalCost / deliveredMMBtu : 0;
 
+  const fuel = FUEL_OPTION_MAP[source.fuel] ?? FUEL_OPTION_MAP.naturalGas;
+  const co2eLb = fuel.co2eLbPerMMBtu * inputMMBtu;
+  const noxLb = fuel.noxLbPerMMBtu * inputMMBtu;
+  const soxLb = fuel.soxLbPerMMBtu * inputMMBtu;
+
   return {
     name: source.name.trim() || "Source",
     ratePerMMBtu,
@@ -648,6 +728,12 @@ function computeEnergySummary(
     totalCost,
     efficiency,
     costPerDelivered,
+    fuel,
+    emissions: {
+      co2eLb,
+      noxLb,
+      soxLb,
+    },
   };
 }
 
@@ -674,7 +760,8 @@ function SourceLabelSelect({
               presetDefaults?.defaultEfficiency != null
                 ? formatEfficiency(presetDefaults.defaultEfficiency)
                 : state.efficiency;
-            onChange({ ...state, name: value, efficiency: nextEfficiency });
+            const nextFuel = presetDefaults?.defaultFuel ?? state.fuel ?? DEFAULT_FUEL;
+            onChange({ ...state, name: value, efficiency: nextEfficiency, fuel: nextFuel });
           }
         }}
       >
@@ -710,6 +797,9 @@ function RateSourceCard({
   state: RateSourceState;
   onChange: (next: RateSourceState) => void;
 }) {
+  const selectedFuelKey = state.fuel ?? DEFAULT_FUEL;
+  const selectedFuel = FUEL_OPTION_MAP[selectedFuelKey] ?? FUEL_OPTION_MAP[DEFAULT_FUEL];
+
   return (
     <Card>
       <CardContent className="mt-4 space-y-4">
@@ -764,6 +854,26 @@ function RateSourceCard({
             typical efficiencies for each technology, but you can override them.
           </p>
         </div>
+
+        <div>
+          <Label>Emissions Profile</Label>
+          <Select
+            value={selectedFuelKey}
+            onValueChange={(value) => onChange({ ...state, fuel: value as FuelOptionKey })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FUEL_OPTIONS.map((option) => (
+                <SelectItem key={option.key} value={option.key}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground mt-1">{selectedFuel.description}</p>
+        </div>
       </CardContent>
     </Card>
   );
@@ -778,12 +888,14 @@ function EnergyComparison() {
     rate: "1.20",
     rateUnit: "therm",
     efficiency: formatEfficiency(PRESET_SOURCE_METADATA["Natural Gas Furnace"].defaultEfficiency ?? 0.9),
+    fuel: PRESET_SOURCE_METADATA["Natural Gas Furnace"].defaultFuel ?? DEFAULT_FUEL,
   });
   const [sourceB, setSourceB] = useState<RateSourceState>({
     name: "Electric Resistance",
     rate: "0.18",
     rateUnit: "kwh",
     efficiency: formatEfficiency(PRESET_SOURCE_METADATA["Electric Resistance"].defaultEfficiency ?? 1),
+    fuel: PRESET_SOURCE_METADATA["Electric Resistance"].defaultFuel ?? DEFAULT_FUEL,
   });
 
   const context = useMemo(() => {
@@ -914,6 +1026,48 @@ function EnergyComparison() {
               {savingsMessage}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="mt-4 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Emissions Impact</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Emissions are based on input energy and EPA stationary combustion factors for CO₂e, NOₓ,
+              and SOₓ.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-muted/50 text-left">
+                  <th className="px-3 py-2 font-medium">Source</th>
+                  <th className="px-3 py-2 font-medium">Fuel</th>
+                  <th className="px-3 py-2 font-medium">CO₂e</th>
+                  <th className="px-3 py-2 font-medium">NOₓ</th>
+                  <th className="px-3 py-2 font-medium">SOₓ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[summaryA, summaryB].map((row) => (
+                  <tr key={row.name} className="border-b last:border-0 border-border/60">
+                    <td className="px-3 py-2 align-top font-medium text-foreground">{row.name}</td>
+                    <td className="px-3 py-2 align-top text-muted-foreground">{row.fuel.label}</td>
+                    <td className="px-3 py-2 align-top font-mono">{formatEmissions(row.emissions.co2eLb)}</td>
+                    <td className="px-3 py-2 align-top font-mono">{formatEmissions(row.emissions.noxLb)}</td>
+                    <td className="px-3 py-2 align-top font-mono">{formatEmissions(row.emissions.soxLb)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            CO₂e includes CO₂, CH₄, and N₂O using 100-year global warming potentials. NOₓ and SOₓ are
+            shown in pounds or tons emitted at the site.
+          </p>
         </CardContent>
       </Card>
     </div>
