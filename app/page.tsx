@@ -82,6 +82,20 @@ const RANGE_ROWS = [
   },
 ] as const;
 
+const LOAD_SCENARIOS = [
+  { key: "tight", label: "Tight / New" },
+  { key: "average", label: "Average (2000s)" },
+  { key: "leaky", label: "Older / Leaky" },
+] as const;
+
+type LoadScenarioKey = (typeof LOAD_SCENARIOS)[number]["key"];
+
+const LOAD_FACTORS: Record<LoadScenarioKey, { heat: number; cool: number }> = {
+  tight: { heat: 25, cool: 15 },
+  average: { heat: 30, cool: 20 },
+  leaky: { heat: 40, cool: 28 },
+};
+
 type ConversionContext = { hhv: number };
 
 const ENERGY_UNITS = {
@@ -405,35 +419,40 @@ function TypicalRangesTable() {
 // -----------------------------
 function LoadEstimator() {
   const [sqft, setSqft] = useState("2000");
-  const [vintage, setVintage] = useState("average");
+  const [vintage, setVintage] = useState<LoadScenarioKey>("average");
   const [heatOverride, setHeatOverride] = useState("");
   const [coolOverride, setCoolOverride] = useState("");
 
-  const factors = {
-    tight: { heat: 25, cool: 15 },
-    average: { heat: 30, cool: 20 },
-    leaky: { heat: 40, cool: 28 },
-  } as const;
-
-  const f = factors[vintage as keyof typeof factors] || factors.average;
+  const f = LOAD_FACTORS[vintage] || LOAD_FACTORS.average;
 
   const heatingFactor = heatOverride ? num(heatOverride) : f.heat;
   const coolingFactor = coolOverride ? num(coolOverride) : f.cool;
 
+  const area = useMemo(() => Math.max(num(sqft), 0), [sqft]);
+
   const out = useMemo(() => {
-    const area = Math.max(num(sqft), 0);
     const heat = area * heatingFactor;
     const cool = area * coolingFactor;
     const tons = cool / BTU_PER_TON;
     const mbh = heat / 1000;
     return { heat, cool, tons, mbh };
-  }, [sqft, heatingFactor, coolingFactor]);
+  }, [area, heatingFactor, coolingFactor]);
 
-  const chartData = [
-    { name: "Tight / New", Heating: 25, Cooling: 15 },
-    { name: "Average (2000s)", Heating: 30, Cooling: 20 },
-    { name: "Older / Leaky", Heating: 40, Cooling: 28 },
-  ];
+  const chartData = useMemo(
+    () =>
+      LOAD_SCENARIOS.map(({ key, label }) => {
+        const defaults = LOAD_FACTORS[key];
+        const heatFactorForScenario = key === vintage ? heatingFactor : defaults.heat;
+        const coolFactorForScenario = key === vintage ? coolingFactor : defaults.cool;
+
+        return {
+          name: label,
+          heating: area * heatFactorForScenario,
+          cooling: area * coolFactorForScenario,
+        };
+      }),
+    [area, coolingFactor, heatingFactor, vintage]
+  );
 
   return (
     <div className="space-y-6">
@@ -446,14 +465,16 @@ function LoadEstimator() {
           </div>
           <div>
             <Label>Building Condition</Label>
-            <Select value={vintage} onValueChange={setVintage}>
+            <Select value={vintage} onValueChange={(value) => setVintage(value as LoadScenarioKey)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="tight">Tight / New</SelectItem>
-                <SelectItem value="average">Average (2000s)</SelectItem>
-                <SelectItem value="leaky">Older / Leaky</SelectItem>
+                {LOAD_SCENARIOS.map(({ key, label }) => (
+                  <SelectItem key={key} value={key}>
+                    {label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -462,37 +483,6 @@ function LoadEstimator() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Chart */}
-      <Card>
-        <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">
-            Heating & Cooling Factors (BTU/ft²)
-          </h3>
-          <div className="h-64 w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
-                <XAxis dataKey="name" tick={{ fill: "#888" }} />
-                <YAxis tick={{ fill: "#888" }} />
-                <RechartTooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(20,20,20,0.9)",
-                    border: "1px solid rgba(80,80,80,0.5)",
-                    borderRadius: "8px",
-                    color: "white",
-                    fontSize: "12px",
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="Heating" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Cooling" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Override Inputs */}
       <Card>
         <CardContent className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -528,6 +518,55 @@ function LoadEstimator() {
           <Readout label="Heating (MBH)" value={fmt0(out.mbh)} />
           <Readout label="Cooling (BTU/hr)" value={fmt0(out.cool)} />
           <Readout label="Cooling (Tons)" value={fmt0(out.tons)} />
+        </CardContent>
+      </Card>
+
+      {/* Chart */}
+      <Card>
+        <CardContent className="mt-4 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Modeled Load by Building Condition</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Each bar shows the total heating and cooling load in BTU/hr for the modeled square
+              footage using the default multipliers or your overrides for the selected condition.
+            </p>
+          </div>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 10, right: 24, left: 0, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                <XAxis dataKey="name" tick={{ fill: "#888" }} interval={0} height={40} />
+                <YAxis
+                  tick={{ fill: "#888" }}
+                  tickFormatter={(value) => fmt0(Number(value))}
+                  label={{
+                    value: "Load (BTU/hr)",
+                    angle: -90,
+                    position: "insideLeft",
+                    offset: -5,
+                    style: { fill: "#888", textAnchor: "middle" },
+                  }}
+                />
+                <RechartTooltip
+                  formatter={(value: string | number, name: string) => [
+                    `${fmt0(Number(value))} BTU/hr`,
+                    name,
+                  ]}
+                  labelStyle={{ color: "white" }}
+                  contentStyle={{
+                    backgroundColor: "rgba(20,20,20,0.9)",
+                    border: "1px solid rgba(80,80,80,0.5)",
+                    borderRadius: "8px",
+                    color: "white",
+                    fontSize: "12px",
+                  }}
+                />
+                <Legend wrapperStyle={{ color: "#888" }} />
+                <Bar dataKey="heating" name="Heating Load" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="cooling" name="Cooling Load" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </div>
