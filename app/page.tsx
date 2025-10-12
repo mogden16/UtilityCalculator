@@ -7,6 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartTooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 // -----------------------------
 // Helpers & constants
@@ -16,63 +27,75 @@ const BTU_PER_TON = 12000;
 const BTU_PER_HP = 2544.4336;
 const BTU_PER_THERM = 100000;
 const BTU_PER_DTH = 1_000_000;
-const BTU_PER_MLB = 1_000_000; // per your spec: 1 MLB = 1.0 MMBTU = 1,000,000 BTU
+const BTU_PER_MLB = 1_000_000;
 const DEFAULT_HHV_MBTU_PER_MCF = 1.035;
 
-const fmt0 = (n: number) => {
-  if (!isFinite(n)) return "–";
-  const rounded = Math.round(n);
-  return rounded.toLocaleString();
-};
+const fmt0 = (n: number) => (isFinite(n) ? Math.round(n).toLocaleString() : "–");
+const num = (v: string | number) => (typeof v === "number" ? v : Number(String(v).replace(/[,\s]/g, "")) || 0);
 
-const num = (v: string | number) => {
-  if (typeof v === "number") return v;
-  return Number(String(v).replace(/[,\s]/g, "")) || 0;
-};
-
-// rate-type inputs (where MLB/hr derived should be shown)
-const RATE_UNITS = new Set(["BTU/hr", "kW", "Ton", "HP", "Therm/hr", "DTH/hr", "MLB/hr"]);
+const RATE_UNITS = new Set(["BTU/hr", "kW", "Ton", "HP", "Therm/hr", "DTH/hr", "Steam MLB/hr"]);
 
 // -----------------------------
-// Converter (v3)
+// Converter
 // -----------------------------
 function Converter() {
-  const [val, setVal] = useState<string>("9000000");
-  const [unit, setUnit] = useState<string>("BTU/hr");
-  const [hhv, setHhv] = useState<string>(String(DEFAULT_HHV_MBTU_PER_MCF));
-  const [hours, setHours] = useState<string>("500");
+  const [val, setVal] = useState("9000000");
+  const [unit, setUnit] = useState("BTU/hr");
+  const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
+  const [hours, setHours] = useState("500");
 
   const calc = useMemo(() => {
     const value = num(val);
-    const HHV = num(hhv); // MBTU/MCF
+    const HHV = num(hhv);
     const hrs = Math.max(num(hours), 0);
 
-    // Convert input to BTU/hr
     let btuh = value;
     switch (unit) {
-      case "kW": btuh = value * BTU_PER_KW; break;
-      case "Ton": btuh = value * BTU_PER_TON; break;
-      case "HP": btuh = value * BTU_PER_HP; break;
-      case "Therm/hr": btuh = value * BTU_PER_THERM; break;
-      case "DTH/hr": btuh = value * BTU_PER_DTH; break;
-      case "MLB/hr": btuh = value * BTU_PER_MLB; break;
-      // BTU/hr default
+      case "kW":
+        btuh = value * BTU_PER_KW;
+        break;
+      case "Ton":
+        btuh = value * BTU_PER_TON;
+        break;
+      case "HP":
+        btuh = value * BTU_PER_HP;
+        break;
+      case "Therm/hr":
+        btuh = value * BTU_PER_THERM;
+        break;
+      case "DTH/hr":
+        btuh = value * BTU_PER_DTH;
+        break;
+      case "Steam MLB/hr":
+        btuh = value * BTU_PER_MLB;
+        break;
     }
 
-    // Instantaneous demand
+    // Auto-classification
+    let category = "Unknown";
+    let colorClass = "text-muted-foreground";
+    if (btuh < 300000) {
+      category = "Residential";
+      colorClass = "text-green-500";
+    } else if (btuh < 3000000) {
+      category = "Commercial";
+      colorClass = "text-yellow-500";
+    } else {
+      category = "Industrial";
+      colorClass = "text-red-500";
+    }
+
     const kW = btuh / BTU_PER_KW;
     const tons = btuh / BTU_PER_TON;
     const hp = btuh / BTU_PER_HP;
     const mlb_per_hr = RATE_UNITS.has(unit) ? btuh / BTU_PER_MLB : NaN;
-
-    // Equivalent energy rates (per hour)
     const therm_per_hr = btuh / BTU_PER_THERM;
     const dth_per_hr = btuh / BTU_PER_DTH;
     const mmbtu_per_hr = btuh / 1_000_000;
-    const cfh = btuh / (HHV * 1_000); // BTU/hr ÷ (MBTU/MCF × 1000 BTU/CF)
+    const cfh = btuh / (HHV * 1_000);
 
-    // Totals over time (quantity)
     const totalCF = cfh * hrs;
+    const totalMCF = totalCF / 1_000;
     const totalTherms = therm_per_hr * hrs;
     const totalDTH = dth_per_hr * hrs;
     const totalMMBTU = mmbtu_per_hr * hrs;
@@ -80,9 +103,23 @@ function Converter() {
     const totalKWh = kW * hrs;
 
     return {
-      btuh, kW, tons, hp, mlb_per_hr,
-      cfh, therm_per_hr, dth_per_hr, mmbtu_per_hr,
-      totalCF, totalTherms, totalDTH, totalMMBTU, totalMLB, totalKWh,
+      btuh,
+      kW,
+      tons,
+      hp,
+      mlb_per_hr,
+      cfh,
+      therm_per_hr,
+      dth_per_hr,
+      mmbtu_per_hr,
+      totalMCF,
+      totalTherms,
+      totalDTH,
+      totalMMBTU,
+      totalMLB,
+      totalKWh,
+      category,
+      colorClass,
     };
   }, [val, unit, hhv, hours]);
 
@@ -91,20 +128,18 @@ function Converter() {
       {/* Inputs */}
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3 items-end">
             <div>
-              <Label htmlFor="value">Value</Label>
-              <Input
-                id="value"
-                inputMode="decimal"
-                value={val}
-                onChange={(e) => setVal(e.target.value)}
-              />
+              <Label>Value</Label>
+              <Input value={val} onChange={(e) => setVal(e.target.value)} />
             </div>
+
             <div>
               <Label>Unit</Label>
               <Select value={unit} onValueChange={setUnit}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="BTU/hr">BTU/hr (Demand)</SelectItem>
                   <SelectItem value="kW">kW (Demand)</SelectItem>
@@ -116,40 +151,56 @@ function Converter() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Auto Classification */}
+            <div className="flex items-end justify-end">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="text-right cursor-help">
+                      <div className="text-xs text-muted-foreground">Application Type</div>
+                      <div className={`font-medium ${calc.colorClass}`}>{calc.category}</div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs text-xs leading-relaxed">
+                    <div className="font-semibold mb-1 text-foreground">Classification thresholds</div>
+                    <ul className="list-disc list-inside text-muted-foreground">
+                      <li>Residential — &lt; 300,000 BTU/hr</li>
+                      <li>Commercial — 300,000 to 3,000,000 BTU/hr</li>
+                      <li>Industrial — &gt; 3,000,000 BTU/hr</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
 
           {/* Advanced Options */}
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="advanced">
-              <AccordionTrigger>Advanced options</AccordionTrigger>
-              <AccordionContent>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label title="Higher Heating Value for natural gas">Gas HHV (MBTU/MCF)</Label>
-                    <Input
-                      inputMode="decimal"
-                      value={hhv}
-                      onChange={(e) => setHhv(e.target.value)}
-                    />
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Default {DEFAULT_HHV_MBTU_PER_MCF} ≈ 1,035 BTU/CF
-                    </p>
+          <div className="border-t border-border pt-4">
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="advanced">
+                <AccordionTrigger>Advanced options</AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label>Gas HHV (MBTU/MCF)</Label>
+                      <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Default {DEFAULT_HHV_MBTU_PER_MCF} ≈ 1,035 BTU/CF
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Hours of operation</Label>
+                      <Input value={hours} onChange={(e) => setHours(e.target.value)} />
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Totals below use this duration.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <Label title="Used to compute total energy usage (rate × hours)">Hours of operation</Label>
-                    <Input
-                      inputMode="numeric"
-                      value={hours}
-                      onChange={(e) => setHours(e.target.value)}
-                    />
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Totals below use this duration.
-                    </p>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
         </CardContent>
       </Card>
 
@@ -158,42 +209,42 @@ function Converter() {
         <CardContent className="mt-4">
           <h3 className="text-lg font-semibold border-b pb-2">Instantaneous Demand</h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            <Readout label="BTU/hr" value={fmt0(calc.btuh)} hint="Rate of heat flow (power)" />
-            <Readout label="kW" value={fmt0(calc.kW)} hint="Electrical demand" />
-            <Readout label="Tons" value={fmt0(calc.tons)} hint="12,000 BTU/hr per ton" />
-            <Readout label="HP" value={fmt0(calc.hp)} hint="Mechanical horsepower" />
-            {RATE_UNITS.has(unit) && (
-              <Readout label="MLB/hr" value={fmt0(calc.mlb_per_hr)} hint="Steam flow rate (1 MLB/hr = 1 MMBTU/hr)" />
-            )}
+            <Readout label="BTU/hr" value={fmt0(calc.btuh)} />
+            <Readout label="kW" value={fmt0(calc.kW)} />
+            <Readout label="Tons" value={fmt0(calc.tons)} />
+            <Readout label="HP" value={fmt0(calc.hp)} />
+            {RATE_UNITS.has(unit) && <Readout label="MLB/hr" value={fmt0(calc.mlb_per_hr)} />}
           </div>
         </CardContent>
       </Card>
 
-      {/* Equivalent Energy Rate (per hour) */}
+      {/* Equivalent Energy Rate */}
       <Card>
         <CardContent className="mt-4">
           <h3 className="text-lg font-semibold border-b pb-2">Equivalent Energy Rate (per hour)</h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-4">
-            <Readout label="CFH" value={fmt0(calc.cfh)} hint="Cubic feet per hour (gas)" />
-            <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} hint="100,000 BTU per Therm" />
-            <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} hint="Decatherm per hour" />
-            <Readout label="MMBTU/hr" value={fmt0(calc.mmbtu_per_hr)} hint="Million BTU per hour" />
+            <Readout label="CFH" value={fmt0(calc.cfh)} />
+            <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
+            <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
+            <Readout label="MMBTU/hr" value={fmt0(calc.mmbtu_per_hr)} />
           </div>
         </CardContent>
       </Card>
 
-      {/* Total Energy (Quantity over time) */}
+      {/* Total Energy */}
       <Card>
         <CardContent className="mt-4">
           <h3 className="text-lg font-semibold border-b pb-2">Total Energy (Quantity over time)</h3>
-          <p className="text-xs text-muted-foreground mt-1">Computed as hourly rate × hours of operation.</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Computed as hourly rate × hours of operation.
+          </p>
           <div className="mt-3 grid gap-3 sm:grid-cols-6">
-            <Readout label="Total CF" value={fmt0(calc.totalCF)} hint="Cubic feet of gas" />
-            <Readout label="Therms" value={fmt0(calc.totalTherms)} hint="Total therms used" />
-            <Readout label="DTH" value={fmt0(calc.totalDTH)} hint="Total decatherms" />
-            <Readout label="MMBTU" value={fmt0(calc.totalMMBTU)} hint="Total million BTU" />
-            <Readout label="kWh" value={fmt0(calc.totalKWh)} hint="Total kilowatt-hours" />
-            <Readout label="MLB" value={fmt0(calc.totalMLB)} hint="Total thousand pounds of steam" />
+            <Readout label="MCF" value={fmt0(calc.totalMCF)} />
+            <Readout label="Therms" value={fmt0(calc.totalTherms)} />
+            <Readout label="DTH" value={fmt0(calc.totalDTH)} />
+            <Readout label="MMBTU" value={fmt0(calc.totalMMBTU)} />
+            <Readout label="kWh" value={fmt0(calc.totalKWh)} />
+            <Readout label="MLB" value={fmt0(calc.totalMLB)} />
           </div>
         </CardContent>
       </Card>
@@ -201,161 +252,137 @@ function Converter() {
   );
 }
 
-function Readout({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Readout({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded border p-3">
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 font-mono text-lg bg-muted/30 rounded px-2 py-1" title={hint}>{value}</div>
+      <div className="mt-1 font-mono text-lg bg-muted/30 rounded px-2 py-1">{value}</div>
     </div>
   );
 }
 
 // -----------------------------
-// Gas Flow & Sizing (restored)
-// -----------------------------
-function GasFlow() {
-  const [btuh, setBtuh] = useState<string>("9000000");
-  const [hhv, setHhv] = useState<string>(String(DEFAULT_HHV_MBTU_PER_MCF));
-  const [hours, setHours] = useState<string>("24");
-
-  const out = useMemo(() => {
-    const Q = num(btuh);
-    const HHV = num(hhv);
-    const hrs = Math.max(num(hours), 0);
-    const cfh = Q / (HHV * 1000);
-    const mmbtuh = Q / 1_000_000;
-    const totalCF = cfh * hrs;
-    return { cfh, mmbtuh, totalCF };
-  }, [btuh, hhv, hours]);
-
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardContent className="mt-4 grid gap-4 sm:grid-cols-3">
-          <div>
-            <Label>Input Load (BTU/hr)</Label>
-            <Input value={btuh} onChange={(e) => setBtuh(e.target.value)} />
-          </div>
-          <div>
-            <Label>Gas HHV (MBTU/MCF)</Label>
-            <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
-            <p className="text-xs text-muted-foreground mt-1">Default {DEFAULT_HHV_MBTU_PER_MCF}</p>
-          </div>
-          <div>
-            <Label>Run Hours</Label>
-            <Input value={hours} onChange={(e) => setHours(e.target.value)} />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="mt-4 grid gap-3 sm:grid-cols-3">
-          <Readout label="CFH" value={fmt0(out.cfh)} hint="Cubic feet per hour" />
-          <Readout label="MMBTU/hr" value={fmt0(out.mmbtuh)} hint="Million BTU per hour" />
-          <Readout label="Total CF" value={fmt0(out.totalCF)} hint="Total cubic feet over run hours" />
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// -----------------------------
-// Typical Ranges (restored)
-// -----------------------------
-const archetypes = [
-  { key: "res_furnace", name: "Residential furnace", range: [40000, 120000], note: "80–98% AFUE" },
-  { key: "res_boiler", name: "Residential boiler", range: [60000, 200000], note: "Hydronic" },
-  { key: "tankless_wh", name: "Tankless water heater", range: [150000, 199000], note: "Condensing" },
-  { key: "rtu", name: "Commercial RTU", range: [150000, 1200000], note: "Packaged HVAC" },
-  { key: "comm_boiler_small", name: "Commercial boiler (small)", range: [500000, 2000000], note: "Schools/small bldgs" },
-  { key: "comm_boiler_med", name: "Commercial boiler (medium)", range: [2000000, 10000000], note: "Hospitals/large bldgs" },
-  { key: "paint_booth", name: "Paint booth MUA", range: [1000000, 5000000], note: "Auto/body" },
-  { key: "industrial_proc", name: "Industrial process heater", range: [10000000, 100000000], note: "Heavy industry" },
-];
-
-function Ranges() {
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {archetypes.map((a) => (
-        <Card key={a.key}>
-          <CardContent className="mt-3">
-            <div className="font-medium">{a.name}</div>
-            <div className="text-sm text-muted-foreground">
-              {fmt0(a.range[0])} – {fmt0(a.range[1])} BTU/hr
-            </div>
-            {a.note && <div className="text-xs text-muted-foreground mt-1">{a.note}</div>}
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-// -----------------------------
-// Rates comparer (restored, simple)
-// -----------------------------
-function Rates() {
-  const [elec, setElec] = useState<string>("0.16"); // $/kWh
-  const [gas, setGas] = useState<string>("13");     // $/MCF
-  const [oil, setOil] = useState<string>("3.75");   // $/gal
-
-  // Very simple reference outputs (no cost/MMBTU calc right now per your preference)
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="mt-4 grid gap-4 sm:grid-cols-3">
-          <div><Label>Electricity ($/kWh)</Label><Input value={elec} onChange={(e) => setElec(e.target.value)} /></div>
-          <div><Label>Natural Gas ($/MCF)</Label><Input value={gas} onChange={(e) => setGas(e.target.value)} /></div>
-          <div><Label>Fuel Oil ($/gal)</Label><Input value={oil} onChange={(e) => setOil(e.target.value)} /></div>
-        </CardContent>
-      </Card>
-      <p className="text-xs text-muted-foreground">Cost normalization ($/MMBTU, $/kWh-equiv) can be added later.</p>
-    </div>
-  );
-}
-
-// -----------------------------
-// Load Estimator (Philadelphia rules of thumb)
+// Load Estimator (with chart)
 // -----------------------------
 function LoadEstimator() {
-  const [sqft, setSqft] = useState<string>("2000");
-  const [vintage, setVintage] = useState<string>("average");
+  const [sqft, setSqft] = useState("2000");
+  const [vintage, setVintage] = useState("average");
+  const [heatOverride, setHeatOverride] = useState("");
+  const [coolOverride, setCoolOverride] = useState("");
+
+  const factors = {
+    tight: { heat: 25, cool: 15 },
+    average: { heat: 30, cool: 20 },
+    leaky: { heat: 40, cool: 28 },
+  } as const;
+
+  const f = factors[vintage as keyof typeof factors] || factors.average;
+
+  const heatingFactor = heatOverride ? num(heatOverride) : f.heat;
+  const coolingFactor = coolOverride ? num(coolOverride) : f.cool;
 
   const out = useMemo(() => {
     const area = Math.max(num(sqft), 0);
-    const factors = {
-      tight: { heat: 25, cool: 15 },
-      average: { heat: 30, cool: 20 },
-      leaky: { heat: 40, cool: 28 },
-    } as const;
-    const f = factors[vintage as keyof typeof factors] || factors.average;
-    const heat = area * f.heat;
-    const cool = area * f.cool;
+    const heat = area * heatingFactor;
+    const cool = area * coolingFactor;
     const tons = cool / BTU_PER_TON;
     const mbh = heat / 1000;
     return { heat, cool, tons, mbh };
-  }, [sqft, vintage]);
+  }, [sqft, heatingFactor, coolingFactor]);
+
+  const chartData = [
+    { name: "Tight / New", Heating: 25, Cooling: 15 },
+    { name: "Average (2000s)", Heating: 30, Cooling: 20 },
+    { name: "Older / Leaky", Heating: 40, Cooling: 28 },
+  ];
 
   return (
     <div className="space-y-6">
+      {/* Inputs */}
       <Card>
         <CardContent className="mt-4 grid gap-4 sm:grid-cols-3">
-          <div><Label>Square Footage</Label><Input value={sqft} onChange={(e) => setSqft(e.target.value)} /></div>
+          <div>
+            <Label>Square Footage</Label>
+            <Input value={sqft} onChange={(e) => setSqft(e.target.value)} />
+          </div>
           <div>
             <Label>Building Condition</Label>
             <Select value={vintage} onValueChange={setVintage}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="tight">New/Tight</SelectItem>
+                <SelectItem value="tight">Tight / New</SelectItem>
                 <SelectItem value="average">Average (2000s)</SelectItem>
-                <SelectItem value="leaky">Older/Leaky</SelectItem>
+                <SelectItem value="leaky">Older / Leaky</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="self-end text-xs text-muted-foreground">Rule-of-thumb for Philadelphia climate.</div>
+          <div className="self-end text-xs text-muted-foreground">
+            Rule-of-thumb for Philadelphia climate.
+          </div>
         </CardContent>
       </Card>
 
+      {/* Chart */}
+      <Card>
+        <CardContent className="mt-4">
+          <h3 className="text-lg font-semibold border-b pb-2">
+            Heating & Cooling Factors (BTU/ft²)
+          </h3>
+          <div className="h-64 w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                <XAxis dataKey="name" tick={{ fill: "#888" }} />
+                <YAxis tick={{ fill: "#888" }} />
+                <RechartTooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(20,20,20,0.9)",
+                    border: "1px solid rgba(80,80,80,0.5)",
+                    borderRadius: "8px",
+                    color: "white",
+                    fontSize: "12px",
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="Heating" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Cooling" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Override Inputs */}
+      <Card>
+        <CardContent className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label>Heating Factor Override (BTU/ft²)</Label>
+            <Input
+              value={heatOverride}
+              onChange={(e) => setHeatOverride(e.target.value)}
+              placeholder={`${f.heat}`}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Default {f.heat} for selected condition.
+            </p>
+          </div>
+          <div>
+            <Label>Cooling Factor Override (BTU/ft²)</Label>
+            <Input
+              value={coolOverride}
+              onChange={(e) => setCoolOverride(e.target.value)}
+              placeholder={`${f.cool}`}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Default {f.cool} for selected condition.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Outputs */}
       <Card>
         <CardContent className="mt-4 grid gap-3 sm:grid-cols-4">
           <Readout label="Heating (BTU/hr)" value={fmt0(out.heat)} />
@@ -369,23 +396,20 @@ function LoadEstimator() {
 }
 
 // -----------------------------
-// Tests (sanity)
+// Tests tab
 // -----------------------------
 function Tests() {
-  // simple display of reference equalities
   return (
-    <Card>
-      <CardContent className="mt-4">
-        <ul className="list-disc pl-6 text-sm">
-          <li>1 ton = 12,000 BTU/hr</li>
-          <li>1 kW = 3,412 BTU/hr</li>
-          <li>1 HP ≈ 2,544 BTU/hr</li>
-          <li>1 Therm = 100,000 BTU</li>
-          <li>1 DTH = 1,000,000 BTU</li>
-          <li>1 MLB = 1,000,000 BTU (rounded)</li>
-        </ul>
-      </CardContent>
-    </Card>
+    <div className="space-y-2 text-sm text-muted-foreground">
+      <ul className="list-disc list-inside">
+        <li>1 ton = 12,000 BTU/hr</li>
+        <li>1 kW = 3,412 BTU/hr</li>
+        <li>1 HP ≈ 2,544 BTU/hr</li>
+        <li>1 Therm = 100,000 BTU</li>
+        <li>1 DTH = 1,000,000 BTU</li>
+        <li>1 MLB = 1,000,000 BTU (rounded)</li>
+      </ul>
+    </div>
   );
 }
 
@@ -397,20 +421,23 @@ export default function EnergyProToolkit() {
     <div className="space-y-6">
       <Tabs defaultValue="converter" className="w-full">
         <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
-          <TabsTrigger value="converter" className="flex-shrink-0">Converter</TabsTrigger>
-          <TabsTrigger value="gasflow" className="flex-shrink-0">Gas Flow</TabsTrigger>
-          <TabsTrigger value="ranges" className="flex-shrink-0">Typical Ranges</TabsTrigger>
-          <TabsTrigger value="rates" className="flex-shrink-0">Rates</TabsTrigger>
-          <TabsTrigger value="load" className="flex-shrink-0">Load Estimator</TabsTrigger>
-          <TabsTrigger value="tests" className="flex-shrink-0">Tests</TabsTrigger>
+          <TabsTrigger value="converter">Converter</TabsTrigger>
+          <TabsTrigger value="load">Load Estimator</TabsTrigger>
+          <TabsTrigger value="gasflow">Gas Flow</TabsTrigger>
+          <TabsTrigger value="ranges">Typical Ranges</TabsTrigger>
+          <TabsTrigger value="rates">Rates</TabsTrigger>
+          <TabsTrigger value="tests">Tests</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="converter"><Converter /></TabsContent>
-        <TabsContent value="gasflow"><GasFlow /></TabsContent>
-        <TabsContent value="ranges"><Ranges /></TabsContent>
-        <TabsContent value="rates"><Rates /></TabsContent>
-        <TabsContent value="load"><LoadEstimator /></TabsContent>
-        <TabsContent value="tests"><Tests /></TabsContent>
+        <TabsContent value="converter">
+          <Converter />
+        </TabsContent>
+        <TabsContent value="load">
+          <LoadEstimator />
+        </TabsContent>
+        <TabsContent value="tests">
+          <Tests />
+        </TabsContent>
       </Tabs>
     </div>
   );
