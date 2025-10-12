@@ -45,40 +45,19 @@ const RATE_UNITS = new Set(["BTU/hr", "kW", "Ton", "HP", "Therm/hr", "DTH/hr", "
 
 const RANGE_ROWS = [
   {
-    segment: "Residential — Tight Envelope",
-    heating: "18 – 28",
-    cooling: "10 – 16",
-    notes: "Energy Star homes, high-efficiency equipment, limited infiltration.",
+    segment: "Residential",
+    range: "30,000 – 120,000 BTU/hr",
+    notes: "Single-family homes and low-rise multifamily with conventional comfort systems.",
   },
   {
-    segment: "Residential — Typical",
-    heating: "25 – 35",
-    cooling: "15 – 22",
-    notes: "Detached single-family or row homes built 1980–2010 with standard insulation.",
+    segment: "Commercial",
+    range: "120,000 – 1,200,000 BTU/hr",
+    notes: "Mid-size offices, retail pads, and schools served by packaged rooftops or split systems.",
   },
   {
-    segment: "Multifamily / Small Commercial",
-    heating: "30 – 45",
-    cooling: "18 – 28",
-    notes: "Garden apartments, small offices, retail bays with mixed occupancy.",
-  },
-  {
-    segment: "Commercial — High Ventilation",
-    heating: "40 – 60",
-    cooling: "22 – 32",
-    notes: "Restaurants, fitness centers, or spaces with elevated air changes.",
-  },
-  {
-    segment: "Industrial / Warehouse",
-    heating: "15 – 25",
-    cooling: "8 – 14",
-    notes: "High-bay storage, light manufacturing with intermittent occupancy.",
-  },
-  {
-    segment: "Process / Heavy Industrial",
-    heating: "60 – 90",
-    cooling: "28 – 40",
-    notes: "Process loads, make-up air, or high-infiltration industrial facilities.",
+    segment: "Industrial",
+    range: "1,000,000 – 5,000,000+ BTU/hr",
+    notes: "Warehouses, production floors, or make-up air units with process-driven loads.",
   },
 ] as const;
 
@@ -360,10 +339,10 @@ function TypicalRangesTable() {
       <Card>
         <CardContent className="mt-4 space-y-4">
           <div>
-            <h3 className="text-lg font-semibold">Rule-of-Thumb Load Density</h3>
+            <h3 className="text-lg font-semibold">Typical Load Size Bands</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Heating and cooling factors shown in BTU/ft²-hour. Use them as starting points and
-              refine with actual audits or design calculations when available.
+              Representative peak BTU/hr ranges for common building types. Treat these as quick
+              gut-checks alongside detailed load calculations or measured demand data.
             </p>
           </div>
 
@@ -372,8 +351,7 @@ function TypicalRangesTable() {
               <thead>
                 <tr className="bg-muted/50 text-left">
                   <th className="px-3 py-2 font-medium">Segment</th>
-                  <th className="px-3 py-2 font-medium">Heating (BTU/ft²·hr)</th>
-                  <th className="px-3 py-2 font-medium">Cooling (BTU/ft²·hr)</th>
+                  <th className="px-3 py-2 font-medium">Typical BTU/hr Range</th>
                   <th className="px-3 py-2 font-medium">Notes</th>
                 </tr>
               </thead>
@@ -381,8 +359,7 @@ function TypicalRangesTable() {
                 {RANGE_ROWS.map((row) => (
                   <tr key={row.segment} className="border-b last:border-0 border-border/60">
                     <td className="px-3 py-2 align-top font-medium text-foreground">{row.segment}</td>
-                    <td className="px-3 py-2 align-top font-mono">{row.heating}</td>
-                    <td className="px-3 py-2 align-top font-mono">{row.cooling}</td>
+                    <td className="px-3 py-2 align-top font-mono">{row.range}</td>
                     <td className="px-3 py-2 align-top text-muted-foreground">{row.notes}</td>
                   </tr>
                 ))}
@@ -391,8 +368,8 @@ function TypicalRangesTable() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Tip: Multiply the factor by square footage to get an approximate peak BTU/hr load, or
-            convert to tons by dividing the cooling value by 12,000.
+            Tip: Compare your calculated peak load or installed capacity to these bands to sanity
+            check sizing before committing to equipment selections.
           </p>
         </CardContent>
       </Card>
