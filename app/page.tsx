@@ -147,7 +147,7 @@ function Converter() {
                   <SelectItem value="HP">HP (Mechanical)</SelectItem>
                   <SelectItem value="Therm/hr">Therm/hr (Energy Rate)</SelectItem>
                   <SelectItem value="DTH/hr">DTH/hr (Energy Rate)</SelectItem>
-                  <SelectItem value="MLB/hr">MLB/hr (Steam Flow Rate)</SelectItem>
+                  <SelectItem value="Steam MLB/hr">MLB/hr (Steam Flow Rate)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
