@@ -31,9 +31,99 @@ const BTU_PER_MLB = 1_000_000;
 const DEFAULT_HHV_MBTU_PER_MCF = 1.035;
 
 const fmt0 = (n: number) => (isFinite(n) ? Math.round(n).toLocaleString() : "–");
+const fmt1 = (n: number) =>
+  isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : "–";
+const fmt2 = (n: number) =>
+  isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "–";
+const fmtCurrency = (n: number) =>
+  isFinite(n)
+    ? `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : "–";
 const num = (v: string | number) => (typeof v === "number" ? v : Number(String(v).replace(/[,\s]/g, "")) || 0);
 
 const RATE_UNITS = new Set(["BTU/hr", "kW", "Ton", "HP", "Therm/hr", "DTH/hr", "Steam MLB/hr"]);
+
+const RANGE_ROWS = [
+  {
+    segment: "Residential — Tight Envelope",
+    heating: "18 – 28",
+    cooling: "10 – 16",
+    notes: "Energy Star homes, high-efficiency equipment, limited infiltration.",
+  },
+  {
+    segment: "Residential — Typical",
+    heating: "25 – 35",
+    cooling: "15 – 22",
+    notes: "Detached single-family or row homes built 1980–2010 with standard insulation.",
+  },
+  {
+    segment: "Multifamily / Small Commercial",
+    heating: "30 – 45",
+    cooling: "18 – 28",
+    notes: "Garden apartments, small offices, retail bays with mixed occupancy.",
+  },
+  {
+    segment: "Commercial — High Ventilation",
+    heating: "40 – 60",
+    cooling: "22 – 32",
+    notes: "Restaurants, fitness centers, or spaces with elevated air changes.",
+  },
+  {
+    segment: "Industrial / Warehouse",
+    heating: "15 – 25",
+    cooling: "8 – 14",
+    notes: "High-bay storage, light manufacturing with intermittent occupancy.",
+  },
+  {
+    segment: "Process / Heavy Industrial",
+    heating: "60 – 90",
+    cooling: "28 – 40",
+    notes: "Process loads, make-up air, or high-infiltration industrial facilities.",
+  },
+] as const;
+
+type ConversionContext = { hhv: number };
+
+const ENERGY_UNITS = {
+  mcf: {
+    label: "MCF",
+    rateLabel: "$/MCF",
+    description: "Thousands of cubic feet of natural gas",
+    toMMBtu: (value: number, ctx: ConversionContext) => value * ctx.hhv,
+  },
+  therm: {
+    label: "Therm",
+    rateLabel: "$/Therm",
+    description: "Therms of natural gas",
+    toMMBtu: (value: number, _ctx: ConversionContext) => value * 0.1,
+  },
+  dth: {
+    label: "Dth",
+    rateLabel: "$/Dth",
+    description: "Dekatherms (1 MMBtu)",
+    toMMBtu: (value: number, _ctx: ConversionContext) => value,
+  },
+  mlb: {
+    label: "MLB",
+    rateLabel: "$/MLB",
+    description: "Thousand pounds of steam",
+    toMMBtu: (value: number, _ctx: ConversionContext) => value,
+  },
+  kwh: {
+    label: "kWh",
+    rateLabel: "$/kWh",
+    description: "Kilowatt-hours of electricity",
+    toMMBtu: (value: number, _ctx: ConversionContext) => (value * BTU_PER_KW) / 1_000_000,
+  },
+} satisfies Record<
+  string,
+  { label: string; rateLabel: string; description: string; toMMBtu: (value: number, ctx: ConversionContext) => number }
+>;
+
+type EnergyUnit = keyof typeof ENERGY_UNITS;
+const ENERGY_UNIT_ENTRIES = Object.entries(ENERGY_UNITS) as Array<
+  [EnergyUnit, (typeof ENERGY_UNITS)[EnergyUnit]]
+>;
 
 // -----------------------------
 // Converter
@@ -147,7 +237,7 @@ function Converter() {
                   <SelectItem value="HP">HP (Mechanical)</SelectItem>
                   <SelectItem value="Therm/hr">Therm/hr (Energy Rate)</SelectItem>
                   <SelectItem value="DTH/hr">DTH/hr (Energy Rate)</SelectItem>
-                  <SelectItem value="MLB/hr">MLB/hr (Steam Flow Rate)</SelectItem>
+                  <SelectItem value="Steam MLB/hr">MLB/hr (Steam Flow Rate)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -257,6 +347,55 @@ function Readout({ label, value }: { label: string; value: string }) {
     <div className="rounded border p-3">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="mt-1 font-mono text-lg bg-muted/30 rounded px-2 py-1">{value}</div>
+    </div>
+  );
+}
+
+// -----------------------------
+// Typical Ranges Table
+// -----------------------------
+function TypicalRangesTable() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardContent className="mt-4 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Rule-of-Thumb Load Density</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Heating and cooling factors shown in BTU/ft²-hour. Use them as starting points and
+              refine with actual audits or design calculations when available.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-muted/50 text-left">
+                  <th className="px-3 py-2 font-medium">Segment</th>
+                  <th className="px-3 py-2 font-medium">Heating (BTU/ft²·hr)</th>
+                  <th className="px-3 py-2 font-medium">Cooling (BTU/ft²·hr)</th>
+                  <th className="px-3 py-2 font-medium">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {RANGE_ROWS.map((row) => (
+                  <tr key={row.segment} className="border-b last:border-0 border-border/60">
+                    <td className="px-3 py-2 align-top font-medium text-foreground">{row.segment}</td>
+                    <td className="px-3 py-2 align-top font-mono">{row.heating}</td>
+                    <td className="px-3 py-2 align-top font-mono">{row.cooling}</td>
+                    <td className="px-3 py-2 align-top text-muted-foreground">{row.notes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Tip: Multiply the factor by square footage to get an approximate peak BTU/hr load, or
+            convert to tons by dividing the cooling value by 12,000.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -395,6 +534,276 @@ function LoadEstimator() {
   );
 }
 
+type RateSourceState = {
+  name: string;
+  rate: string;
+  rateUnit: EnergyUnit;
+  usage: string;
+  usageUnit: EnergyUnit;
+  efficiency: string;
+};
+
+type EnergySummary = {
+  name: string;
+  ratePerMMBtu: number;
+  usageMMBtu: number;
+  deliveredMMBtu: number;
+  totalCost: number;
+  efficiency: number;
+  costPerDelivered: number;
+};
+
+function computeEnergySummary(source: RateSourceState, ctx: ConversionContext): EnergySummary {
+  const rateValue = Math.max(num(source.rate), 0);
+  const usageValue = Math.max(num(source.usage), 0);
+  const unitRate = ENERGY_UNITS[source.rateUnit];
+  const unitUsage = ENERGY_UNITS[source.usageUnit];
+
+  const rateUnitMMBtu = unitRate.toMMBtu(1, ctx);
+  const usageMMBtu = unitUsage.toMMBtu(usageValue, ctx);
+  const ratePerMMBtu = rateUnitMMBtu > 0 ? rateValue / rateUnitMMBtu : 0;
+
+  const rawEfficiency = num(source.efficiency);
+  let efficiency = rawEfficiency;
+  if (rawEfficiency > 1.5) {
+    efficiency = rawEfficiency / 100;
+  }
+  if (!isFinite(efficiency) || efficiency <= 0) {
+    efficiency = 1;
+  }
+
+  const totalCost = ratePerMMBtu * usageMMBtu;
+  const deliveredMMBtu = usageMMBtu * efficiency;
+  const costPerDelivered = deliveredMMBtu > 0 ? totalCost / deliveredMMBtu : 0;
+
+  return {
+    name: source.name.trim() || "Source",
+    ratePerMMBtu,
+    usageMMBtu,
+    deliveredMMBtu,
+    totalCost,
+    efficiency,
+    costPerDelivered,
+  };
+}
+
+function RateSourceCard({
+  title,
+  state,
+  onChange,
+}: {
+  title: string;
+  state: RateSourceState;
+  onChange: (next: RateSourceState) => void;
+}) {
+  return (
+    <Card>
+      <CardContent className="mt-4 space-y-4">
+        <div>
+          <h3 className="text-base font-semibold">{title}</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Enter the delivered nameplate, billing rate, and expected usage for this energy source.
+          </p>
+        </div>
+
+        <div>
+          <Label>Label</Label>
+          <Input value={state.name} onChange={(e) => onChange({ ...state, name: e.target.value })} />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label>Rate</Label>
+            <Input value={state.rate} onChange={(e) => onChange({ ...state, rate: e.target.value })} />
+            <p className="text-xs text-muted-foreground mt-1">Dollar cost per billing unit.</p>
+          </div>
+          <div>
+            <Label>Rate Unit</Label>
+            <Select value={state.rateUnit} onValueChange={(value) => onChange({ ...state, rateUnit: value as EnergyUnit })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ENERGY_UNIT_ENTRIES.map(([key, meta]) => (
+                  <SelectItem key={key} value={key}>
+                    {meta.rateLabel}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              {ENERGY_UNITS[state.rateUnit].description}
+            </p>
+          </div>
+          <div>
+            <Label>Projected Usage</Label>
+            <Input value={state.usage} onChange={(e) => onChange({ ...state, usage: e.target.value })} />
+            <p className="text-xs text-muted-foreground mt-1">Annual or seasonal consumption.</p>
+          </div>
+          <div>
+            <Label>Usage Unit</Label>
+            <Select value={state.usageUnit} onValueChange={(value) => onChange({ ...state, usageUnit: value as EnergyUnit })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ENERGY_UNIT_ENTRIES.map(([key, meta]) => (
+                  <SelectItem key={key} value={key}>
+                    {meta.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">{ENERGY_UNITS[state.usageUnit].description}</p>
+          </div>
+        </div>
+
+        <div>
+          <Label>Delivered Efficiency</Label>
+          <Input
+            value={state.efficiency}
+            onChange={(e) => onChange({ ...state, efficiency: e.target.value })}
+            placeholder="0.90"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Enter as a decimal fraction of delivered energy (e.g., 0.90 = 90%). Values above 1 will
+            be treated as percentages.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EnergyComparison() {
+  const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
+  const [sourceA, setSourceA] = useState<RateSourceState>({
+    name: "Natural Gas",
+    rate: "1.20",
+    rateUnit: "therm",
+    usage: "1200",
+    usageUnit: "therm",
+    efficiency: "0.90",
+  });
+  const [sourceB, setSourceB] = useState<RateSourceState>({
+    name: "Electric Resistance",
+    rate: "0.18",
+    rateUnit: "kwh",
+    usage: "4000",
+    usageUnit: "kwh",
+    efficiency: "1.00",
+  });
+
+  const context = useMemo(() => {
+    const parsed = num(hhv);
+    const fallback = parsed > 0 ? parsed : DEFAULT_HHV_MBTU_PER_MCF;
+    return { hhv: fallback };
+  }, [hhv]);
+
+  const summaryA = useMemo(() => computeEnergySummary(sourceA, context), [sourceA, context]);
+  const summaryB = useMemo(() => computeEnergySummary(sourceB, context), [sourceB, context]);
+
+  const deliveredLoad = Math.max(summaryA.deliveredMMBtu, summaryB.deliveredMMBtu);
+  const hasLoad = deliveredLoad > 0;
+  const normalizedCostA = hasLoad ? summaryA.costPerDelivered * deliveredLoad : 0;
+  const normalizedCostB = hasLoad ? summaryB.costPerDelivered * deliveredLoad : 0;
+  const relative = summaryA.costPerDelivered > 0 ? summaryB.costPerDelivered / summaryA.costPerDelivered : NaN;
+  const savings = normalizedCostB - normalizedCostA;
+
+  let savingsMessage = "";
+  if (hasLoad && isFinite(savings)) {
+    if (Math.abs(savings) < 1e-6) {
+      savingsMessage = "Both options are cost-equivalent for the modeled load.";
+    } else if (savings > 0) {
+      savingsMessage = `${summaryA.name} saves ${fmtCurrency(savings)} versus ${summaryB.name} for ${fmt1(
+        deliveredLoad
+      )} MMBtu delivered.`;
+    } else {
+      savingsMessage = `${summaryB.name} saves ${fmtCurrency(Math.abs(savings))} versus ${summaryA.name} for ${fmt1(
+        deliveredLoad
+      )} MMBtu delivered.`;
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardContent className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label>Gas HHV (MMBtu/MCF)</Label>
+            <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
+            <p className="text-xs text-muted-foreground mt-1">
+              Defaults to {DEFAULT_HHV_MBTU_PER_MCF}. Adjust to match your territory billing factor.
+            </p>
+          </div>
+          <div className="text-xs text-muted-foreground self-end">
+            Costs are normalized to delivered MMBtu so you can compare against alternate fuels or
+            electric heat pumps.
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <RateSourceCard title="Primary Energy" state={sourceA} onChange={setSourceA} />
+        <RateSourceCard title="Comparison Energy" state={sourceB} onChange={setSourceB} />
+      </div>
+
+      <Card>
+        <CardContent className="mt-4 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Cost Summary</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Rate inputs are converted to $/MMBtu and multiplied by the projected usage in matching
+              units. Delivered MMBtu accounts for the efficiency you entered.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-muted/50 text-left">
+                  <th className="px-3 py-2 font-medium">Source</th>
+                  <th className="px-3 py-2 font-medium">Rate ($/MMBtu)</th>
+                  <th className="px-3 py-2 font-medium">Usage (MMBtu)</th>
+                  <th className="px-3 py-2 font-medium">Delivered (MMBtu)</th>
+                  <th className="px-3 py-2 font-medium">Total Cost</th>
+                  <th className="px-3 py-2 font-medium">Cost / Delivered MMBtu</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[summaryA, summaryB].map((row) => (
+                  <tr key={row.name} className="border-b last:border-0 border-border/60">
+                    <td className="px-3 py-2 align-top font-medium text-foreground">{row.name}</td>
+                    <td className="px-3 py-2 align-top font-mono">{fmtCurrency(row.ratePerMMBtu)}</td>
+                    <td className="px-3 py-2 align-top font-mono">{fmt1(row.usageMMBtu)}</td>
+                    <td className="px-3 py-2 align-top font-mono">{fmt1(row.deliveredMMBtu)}</td>
+                    <td className="px-3 py-2 align-top font-mono">{fmtCurrency(row.totalCost)}</td>
+                    <td className="px-3 py-2 align-top font-mono">{fmtCurrency(row.costPerDelivered)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {isFinite(relative) && relative > 0 && (
+            <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-sm">
+              <div className="font-medium text-foreground">
+                {summaryB.name} is {fmt2(relative)}× the delivered cost of {summaryA.name}.
+              </div>
+              {savingsMessage && <div className="text-muted-foreground mt-1">{savingsMessage}</div>}
+            </div>
+          )}
+          {!isFinite(relative) && savingsMessage && (
+            <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-sm text-muted-foreground">
+              {savingsMessage}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // -----------------------------
 // Tests tab
 // -----------------------------
@@ -425,7 +834,7 @@ export default function EnergyProToolkit() {
           <TabsTrigger value="load">Load Estimator</TabsTrigger>
           <TabsTrigger value="gasflow">Gas Flow</TabsTrigger>
           <TabsTrigger value="ranges">Typical Ranges</TabsTrigger>
-          <TabsTrigger value="rates">Rates</TabsTrigger>
+          <TabsTrigger value="rates">Energy Comparison</TabsTrigger>
           <TabsTrigger value="tests">Tests</TabsTrigger>
         </TabsList>
 
@@ -434,6 +843,27 @@ export default function EnergyProToolkit() {
         </TabsContent>
         <TabsContent value="load">
           <LoadEstimator />
+        </TabsContent>
+        <TabsContent value="gasflow">
+          <Card>
+            <CardContent className="mt-4 space-y-3 text-sm text-muted-foreground">
+              <h3 className="text-lg font-semibold text-foreground">Gas Flow Toolkit (in progress)</h3>
+              <p>
+                Use the converter and load estimator to approximate CFH today. Planned updates will
+                add line sizing lookups and pressure drop tools in this tab.
+              </p>
+              <p className="text-xs">
+                Have a specific worksheet you rely on? Drop a note so we can prioritize building it
+                into this experience.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="ranges">
+          <TypicalRangesTable />
+        </TabsContent>
+        <TabsContent value="rates">
+          <EnergyComparison />
         </TabsContent>
         <TabsContent value="tests">
           <Tests />
