@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,35 @@ const fmtCurrency = (n: number) =>
 const num = (v: string | number) => (typeof v === "number" ? v : Number(String(v).replace(/[,\s]/g, "")) || 0);
 
 const RATE_UNITS = new Set(["BTU/hr", "kW", "Ton", "HP", "Therm/hr", "DTH/hr", "Steam MLB/hr"]);
+
+const LABEL_OPTIONS = [
+  "Natural Gas Furnace",
+  "Propane Furnace",
+  "Electric Resistance",
+  "Air-Source Heat Pump",
+  "Ground-Source Heat Pump",
+  "Fuel Oil Boiler",
+  "Steam Boiler",
+  "District Steam",
+  "Other Custom",
+] as const;
+
+const PRESET_SOURCE_METADATA: Record<
+  (typeof LABEL_OPTIONS)[number],
+  { defaultEfficiency?: number }
+> = {
+  "Natural Gas Furnace": { defaultEfficiency: 0.9 },
+  "Propane Furnace": { defaultEfficiency: 0.9 },
+  "Electric Resistance": { defaultEfficiency: 1 },
+  "Air-Source Heat Pump": { defaultEfficiency: 2.8 },
+  "Ground-Source Heat Pump": { defaultEfficiency: 3.5 },
+  "Fuel Oil Boiler": { defaultEfficiency: 0.87 },
+  "Steam Boiler": { defaultEfficiency: 0.8 },
+  "District Steam": { defaultEfficiency: 0.82 },
+  "Other Custom": {},
+};
+
+const formatEfficiency = (value: number) => value.toFixed(2);
 
 const RANGE_ROWS = [
   {
@@ -327,7 +356,7 @@ function Readout({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded border p-3">
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 font-mono text-lg bg-muted/30 rounded px-2 py-1">{value}</div>
+      <div className="mt-1 font-mono text-base bg-muted/30 rounded px-2 py-1 sm:text-lg">{value}</div>
     </div>
   );
 }
@@ -387,6 +416,27 @@ function LoadEstimator() {
   const [vintage, setVintage] = useState<LoadScenarioKey>("average");
   const [heatOverride, setHeatOverride] = useState("");
   const [coolOverride, setCoolOverride] = useState("");
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const media = window.matchMedia("(max-width: 640px)");
+    const update = (event: MediaQueryListEvent | MediaQueryList) => setIsSmallScreen(event.matches);
+
+    update(media);
+    const listener = (event: MediaQueryListEvent) => update(event);
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", listener);
+      return () => media.removeEventListener("change", listener);
+    }
+
+    media.addListener(listener);
+    return () => media.removeListener(listener);
+  }, []);
 
   const f = LOAD_FACTORS[vintage] || LOAD_FACTORS.average;
 
@@ -417,6 +467,12 @@ function LoadEstimator() {
         };
       }),
     [area, coolingFactor, heatingFactor, vintage]
+  );
+
+  const axisFontSize = isSmallScreen ? 10 : 12;
+  const legendWrapperStyle = useMemo(
+    () => ({ fontSize: isSmallScreen ? 11 : 12, paddingTop: isSmallScreen ? 8 : 0 }),
+    [isSmallScreen],
   );
 
   return (
@@ -542,53 +598,107 @@ type RateSourceState = {
   name: string;
   rate: string;
   rateUnit: EnergyUnit;
-  usage: string;
-  usageUnit: EnergyUnit;
   efficiency: string;
 };
 
 type EnergySummary = {
   name: string;
   ratePerMMBtu: number;
-  usageMMBtu: number;
+  inputMMBtu: number;
   deliveredMMBtu: number;
   totalCost: number;
   efficiency: number;
   costPerDelivered: number;
 };
 
-function computeEnergySummary(source: RateSourceState, ctx: ConversionContext): EnergySummary {
+function computeEnergySummary(
+  source: RateSourceState,
+  usageValue: string,
+  usageUnit: EnergyUnit,
+  ctx: ConversionContext,
+): EnergySummary {
   const rateValue = Math.max(num(source.rate), 0);
-  const usageValue = Math.max(num(source.usage), 0);
   const unitRate = ENERGY_UNITS[source.rateUnit];
-  const unitUsage = ENERGY_UNITS[source.usageUnit];
+  const unitUsage = ENERGY_UNITS[usageUnit];
 
   const rateUnitMMBtu = unitRate.toMMBtu(1, ctx);
-  const usageMMBtu = unitUsage.toMMBtu(usageValue, ctx);
+  const loadValue = Math.max(num(usageValue), 0);
+  const loadMMBtu = unitUsage.toMMBtu(loadValue, ctx);
   const ratePerMMBtu = rateUnitMMBtu > 0 ? rateValue / rateUnitMMBtu : 0;
 
   const rawEfficiency = num(source.efficiency);
   let efficiency = rawEfficiency;
-  if (rawEfficiency > 1.5) {
+  if (rawEfficiency > 10) {
     efficiency = rawEfficiency / 100;
   }
   if (!isFinite(efficiency) || efficiency <= 0) {
     efficiency = 1;
   }
 
-  const totalCost = ratePerMMBtu * usageMMBtu;
-  const deliveredMMBtu = usageMMBtu * efficiency;
+  const deliveredMMBtu = loadMMBtu;
+  const inputMMBtu = efficiency > 0 ? loadMMBtu / efficiency : 0;
+  const totalCost = ratePerMMBtu * inputMMBtu;
   const costPerDelivered = deliveredMMBtu > 0 ? totalCost / deliveredMMBtu : 0;
 
   return {
     name: source.name.trim() || "Source",
     ratePerMMBtu,
-    usageMMBtu,
+    inputMMBtu,
     deliveredMMBtu,
     totalCost,
     efficiency,
     costPerDelivered,
   };
+}
+
+function SourceLabelSelect({
+  state,
+  onChange,
+}: {
+  state: RateSourceState;
+  onChange: (next: RateSourceState) => void;
+}) {
+  const labelIsPreset = LABEL_OPTIONS.includes(state.name as (typeof LABEL_OPTIONS)[number]);
+  const selectValue = labelIsPreset ? state.name : "other";
+
+  return (
+    <div className="space-y-2">
+      <Select
+        value={selectValue}
+        onValueChange={(value) => {
+          if (value === "other") {
+            onChange({ ...state, name: labelIsPreset ? "" : state.name });
+          } else {
+            const presetDefaults = PRESET_SOURCE_METADATA[value as (typeof LABEL_OPTIONS)[number]];
+            const nextEfficiency =
+              presetDefaults?.defaultEfficiency != null
+                ? formatEfficiency(presetDefaults.defaultEfficiency)
+                : state.efficiency;
+            onChange({ ...state, name: value, efficiency: nextEfficiency });
+          }
+        }}
+      >
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {LABEL_OPTIONS.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+          <SelectItem value="other">Other</SelectItem>
+        </SelectContent>
+      </Select>
+      {selectValue === "other" && (
+        <Input
+          value={state.name}
+          onChange={(event) => onChange({ ...state, name: event.target.value })}
+          placeholder="Custom label"
+        />
+      )}
+    </div>
+  );
 }
 
 function RateSourceCard({
@@ -606,13 +716,14 @@ function RateSourceCard({
         <div>
           <h3 className="text-base font-semibold">{title}</h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Enter the delivered nameplate, billing rate, and expected usage for this energy source.
+            Select a preset or custom label. Presets preload a typical delivered efficiency that you can
+            adjust after entering the billing rate for this energy source.
           </p>
         </div>
 
         <div>
           <Label>Label</Label>
-          <Input value={state.name} onChange={(e) => onChange({ ...state, name: e.target.value })} />
+          <SourceLabelSelect state={state} onChange={onChange} />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -639,27 +750,6 @@ function RateSourceCard({
               {ENERGY_UNITS[state.rateUnit].description}
             </p>
           </div>
-          <div>
-            <Label>Projected Usage</Label>
-            <Input value={state.usage} onChange={(e) => onChange({ ...state, usage: e.target.value })} />
-            <p className="text-xs text-muted-foreground mt-1">Annual or seasonal consumption.</p>
-          </div>
-          <div>
-            <Label>Usage Unit</Label>
-            <Select value={state.usageUnit} onValueChange={(value) => onChange({ ...state, usageUnit: value as EnergyUnit })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ENERGY_UNIT_ENTRIES.map(([key, meta]) => (
-                  <SelectItem key={key} value={key}>
-                    {meta.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground mt-1">{ENERGY_UNITS[state.usageUnit].description}</p>
-          </div>
         </div>
 
         <div>
@@ -670,8 +760,8 @@ function RateSourceCard({
             placeholder="0.90"
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Enter as a decimal fraction of delivered energy (e.g., 0.90 = 90%). Values above 1 will
-            be treated as percentages.
+            Enter as a decimal fraction, COP, or percentage (e.g., 0.90, 3.20, or 90%). Presets use
+            typical efficiencies for each technology, but you can override them.
           </p>
         </div>
       </CardContent>
@@ -681,21 +771,19 @@ function RateSourceCard({
 
 function EnergyComparison() {
   const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
+  const [usageValue, setUsageValue] = useState("1200");
+  const [usageUnit, setUsageUnit] = useState<EnergyUnit>("therm");
   const [sourceA, setSourceA] = useState<RateSourceState>({
-    name: "Natural Gas",
+    name: "Natural Gas Furnace",
     rate: "1.20",
     rateUnit: "therm",
-    usage: "1200",
-    usageUnit: "therm",
-    efficiency: "0.90",
+    efficiency: formatEfficiency(PRESET_SOURCE_METADATA["Natural Gas Furnace"].defaultEfficiency ?? 0.9),
   });
   const [sourceB, setSourceB] = useState<RateSourceState>({
     name: "Electric Resistance",
     rate: "0.18",
     rateUnit: "kwh",
-    usage: "4000",
-    usageUnit: "kwh",
-    efficiency: "1.00",
+    efficiency: formatEfficiency(PRESET_SOURCE_METADATA["Electric Resistance"].defaultEfficiency ?? 1),
   });
 
   const context = useMemo(() => {
@@ -704,8 +792,14 @@ function EnergyComparison() {
     return { hhv: fallback };
   }, [hhv]);
 
-  const summaryA = useMemo(() => computeEnergySummary(sourceA, context), [sourceA, context]);
-  const summaryB = useMemo(() => computeEnergySummary(sourceB, context), [sourceB, context]);
+  const summaryA = useMemo(
+    () => computeEnergySummary(sourceA, usageValue, usageUnit, context),
+    [sourceA, usageValue, usageUnit, context],
+  );
+  const summaryB = useMemo(
+    () => computeEnergySummary(sourceB, usageValue, usageUnit, context),
+    [sourceB, usageValue, usageUnit, context],
+  );
 
   const deliveredLoad = Math.max(summaryA.deliveredMMBtu, summaryB.deliveredMMBtu);
   const hasLoad = deliveredLoad > 0;
@@ -740,9 +834,27 @@ function EnergyComparison() {
               Defaults to {DEFAULT_HHV_MBTU_PER_MCF}. Adjust to match your territory billing factor.
             </p>
           </div>
-          <div className="text-xs text-muted-foreground self-end">
-            Costs are normalized to delivered MMBtu so you can compare against alternate fuels or
-            electric heat pumps.
+          <div>
+            <Label>Modeled Load</Label>
+            <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+              <Input value={usageValue} onChange={(event) => setUsageValue(event.target.value)} />
+              <Select value={usageUnit} onValueChange={(value) => setUsageUnit(value as EnergyUnit)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENERGY_UNIT_ENTRIES.map(([key, meta]) => (
+                    <SelectItem key={key} value={key}>
+                      {meta.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Enter the shared load to evaluate. Usage is converted to delivered MMBtu for each
+              option.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -757,8 +869,8 @@ function EnergyComparison() {
           <div>
             <h3 className="text-lg font-semibold">Cost Summary</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Rate inputs are converted to $/MMBtu and multiplied by the projected usage in matching
-              units. Delivered MMBtu accounts for the efficiency you entered.
+              Rate inputs are converted to $/MMBtu, scaled to the shared load, and adjusted by each
+              source's delivered efficiency.
             </p>
           </div>
 
@@ -768,8 +880,8 @@ function EnergyComparison() {
                 <tr className="bg-muted/50 text-left">
                   <th className="px-3 py-2 font-medium">Source</th>
                   <th className="px-3 py-2 font-medium">Rate ($/MMBtu)</th>
-                  <th className="px-3 py-2 font-medium">Usage (MMBtu)</th>
-                  <th className="px-3 py-2 font-medium">Delivered (MMBtu)</th>
+                  <th className="px-3 py-2 font-medium">Input Energy (MMBtu)</th>
+                  <th className="px-3 py-2 font-medium">Delivered Load (MMBtu)</th>
                   <th className="px-3 py-2 font-medium">Total Cost</th>
                   <th className="px-3 py-2 font-medium">Cost / Delivered MMBtu</th>
                 </tr>
@@ -779,7 +891,7 @@ function EnergyComparison() {
                   <tr key={row.name} className="border-b last:border-0 border-border/60">
                     <td className="px-3 py-2 align-top font-medium text-foreground">{row.name}</td>
                     <td className="px-3 py-2 align-top font-mono">{fmtCurrency(row.ratePerMMBtu)}</td>
-                    <td className="px-3 py-2 align-top font-mono">{fmt1(row.usageMMBtu)}</td>
+                    <td className="px-3 py-2 align-top font-mono">{fmt1(row.inputMMBtu)}</td>
                     <td className="px-3 py-2 align-top font-mono">{fmt1(row.deliveredMMBtu)}</td>
                     <td className="px-3 py-2 align-top font-mono">{fmtCurrency(row.totalCost)}</td>
                     <td className="px-3 py-2 align-top font-mono">{fmtCurrency(row.costPerDelivered)}</td>
