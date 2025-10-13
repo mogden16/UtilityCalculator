@@ -150,43 +150,55 @@ const ENERGY_UNIT_ENTRIES = Object.entries(ENERGY_UNITS) as Array<
 function Converter() {
   const [val, setVal] = useState("9000000");
   const [unit, setUnit] = useState("BTU/hr");
+  const [inputType, setInputType] = useState<"thermal" | "electrical" | "cooling">("thermal");
   const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
   const [hours, setHours] = useState("500");
+  const [electricalEfficiency, setElectricalEfficiency] = useState("38");
+  const [thermalRecoveryEfficiency, setThermalRecoveryEfficiency] = useState("50");
 
   const calc = useMemo(() => {
     const value = num(val);
     const HHV = num(hhv);
     const hrs = Math.max(num(hours), 0);
+    const electricalEffPct = Math.max(num(electricalEfficiency), 0);
 
-    let btuh = value;
+    let loadBtuh = value;
     switch (unit) {
       case "kW":
-        btuh = value * BTU_PER_KW;
+        loadBtuh = value * BTU_PER_KW;
         break;
       case "Ton":
-        btuh = value * BTU_PER_TON;
+        loadBtuh = value * BTU_PER_TON;
         break;
       case "HP":
-        btuh = value * BTU_PER_HP;
+        loadBtuh = value * BTU_PER_HP;
         break;
       case "Therm/hr":
-        btuh = value * BTU_PER_THERM;
+        loadBtuh = value * BTU_PER_THERM;
         break;
       case "DTH/hr":
-        btuh = value * BTU_PER_DTH;
+        loadBtuh = value * BTU_PER_DTH;
         break;
       case "Steam MLB/hr":
-        btuh = value * BTU_PER_MLB;
+        loadBtuh = value * BTU_PER_MLB;
         break;
     }
+
+    const efficiencyDecimal = electricalEffPct > 0 ? electricalEffPct / 100 : 0;
+    const fuelBtuh =
+      inputType === "electrical"
+        ? efficiencyDecimal > 0
+          ? loadBtuh / efficiencyDecimal
+          : Number.POSITIVE_INFINITY
+        : loadBtuh;
 
     // Auto-classification
     let category = "Unknown";
     let colorClass = "text-muted-foreground";
-    if (btuh < 300000) {
+    if (fuelBtuh < 300000) {
       category = "Residential";
       colorClass = "text-green-500";
-    } else if (btuh < 3000000) {
+    } else if (fuelBtuh < 3000000) {
       category = "Commercial";
       colorClass = "text-yellow-500";
     } else {
@@ -194,24 +206,28 @@ function Converter() {
       colorClass = "text-red-500";
     }
 
-    const kW = btuh / BTU_PER_KW;
-    const tons = btuh / BTU_PER_TON;
-    const hp = btuh / BTU_PER_HP;
-    const mlb_per_hr = RATE_UNITS.has(unit) ? btuh / BTU_PER_MLB : NaN;
-    const therm_per_hr = btuh / BTU_PER_THERM;
-    const dth_per_hr = btuh / BTU_PER_DTH;
-    const cfh = btuh / (HHV * 1_000);
+    const kW = loadBtuh / BTU_PER_KW;
+    const tons = loadBtuh / BTU_PER_TON;
+    const hp = loadBtuh / BTU_PER_HP;
+    const mlb_per_hr = RATE_UNITS.has(unit) ? loadBtuh / BTU_PER_MLB : NaN;
+    const therm_per_hr = fuelBtuh / BTU_PER_THERM;
+    const dth_per_hr = fuelBtuh / BTU_PER_DTH;
+    const cfh = fuelBtuh / (HHV * 1_000);
 
     const totalCF = cfh * hrs;
     const totalMCF = totalCF / 1_000;
     const totalTherms = therm_per_hr * hrs;
     const totalDTH = dth_per_hr * hrs;
-    const totalMMBTU = (btuh / 1_000_000) * hrs;
-    const totalMLB = (btuh / BTU_PER_MLB) * hrs;
+    const totalMMBTU = (fuelBtuh / 1_000_000) * hrs;
+    const totalMLB = (loadBtuh / BTU_PER_MLB) * hrs;
     const totalKWh = kW * hrs;
+    const fuelInputMMBtuHr = fuelBtuh / 1_000_000;
+    const kwPerMcf = isFinite(cfh) && cfh !== 0 ? kW / (cfh / 1_000) : NaN;
 
     return {
-      btuh,
+      loadBtuh,
+      fuelBtuh,
+      fuelInputMMBtuHr,
       kW,
       tons,
       hp,
@@ -225,17 +241,18 @@ function Converter() {
       totalMMBTU,
       totalMLB,
       totalKWh,
+      kwPerMcf,
       category,
       colorClass,
     };
-  }, [val, unit, hhv, hours]);
+  }, [val, unit, hhv, hours, inputType, electricalEfficiency]);
 
   return (
     <div className="space-y-6">
       {/* Inputs */}
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3 items-end">
+          <div className="grid gap-4 sm:grid-cols-4 items-end">
             <div>
               <Label>Value</Label>
               <Input value={val} onChange={(e) => setVal(e.target.value)} />
@@ -259,6 +276,23 @@ function Converter() {
               </Select>
             </div>
 
+            <div>
+              <Label>Input Type</Label>
+              <Select
+                value={inputType}
+                onValueChange={(value) => setInputType(value as "thermal" | "electrical" | "cooling")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="thermal">Thermal Load</SelectItem>
+                  <SelectItem value="electrical">Electrical Output</SelectItem>
+                  <SelectItem value="cooling">Cooling Load</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Auto Classification */}
             <div className="flex items-end justify-end">
               <TooltipProvider>
@@ -267,6 +301,13 @@ function Converter() {
                     <div className="text-right cursor-help">
                       <div className="text-xs text-muted-foreground">Application Type</div>
                       <div className={`font-medium ${calc.colorClass}`}>{calc.category}</div>
+                      {inputType === "electrical" && (
+                        <span
+                          className="mt-1 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary"
+                        >
+                          Electrical Output Mode
+                        </span>
+                      )}
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs text-xs leading-relaxed">
@@ -288,7 +329,7 @@ function Converter() {
               <AccordionItem value="advanced">
                 <AccordionTrigger>Advanced options</AccordionTrigger>
                 <AccordionContent>
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
                       <Label>Gas HHV (MBTU/MCF)</Label>
                       <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
@@ -303,6 +344,18 @@ function Converter() {
                         Totals below use this duration.
                       </p>
                     </div>
+                    <div>
+                      <Label>Electrical Efficiency (%)</Label>
+                      <Input value={electricalEfficiency} onChange={(e) => setElectricalEfficiency(e.target.value)} />
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Used when Input Type is Electrical Output.
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Thermal Recovery Efficiency (%)</Label>
+                      <Input value={thermalRecoveryEfficiency} onChange={(e) => setThermalRecoveryEfficiency(e.target.value)} />
+                      <p className="mt-1 text-xs text-muted-foreground">Placeholder for future CHP logic.</p>
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -316,13 +369,15 @@ function Converter() {
         <CardContent className="mt-4">
           <h3 className="text-lg font-semibold border-b pb-2">Instantaneous Demand</h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-            <Readout label="BTU/hr" value={fmt0(calc.btuh)} />
+            <Readout label="BTU/hr" value={fmt0(calc.loadBtuh)} />
             <Readout label="kW" value={fmt0(calc.kW)} />
             <Readout label="Tons" value={fmt0(calc.tons)} />
             <Readout label="HP" value={fmt0(calc.hp)} />
             <Readout label="CFH" value={fmt0(calc.cfh)} />
             <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
             <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
+            <Readout label="Fuel Input (MMBtu/hr)" value={fmt2(calc.fuelInputMMBtuHr)} />
+            <Readout label="kW per MCF" value={fmt2(calc.kwPerMcf)} />
             {RATE_UNITS.has(unit) && <Readout label="MLB/hr" value={fmt0(calc.mlb_per_hr)} />}
           </div>
         </CardContent>
