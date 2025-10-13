@@ -51,7 +51,10 @@ const fmtCurrency = (n: number) =>
     ? `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     : "–";
 const num = (v: string | number) => (typeof v === "number" ? v : Number(String(v).replace(/[,\s]/g, "")) || 0);
-const formatEmissions = (pounds: number) => {
+const formatEmissions = (pounds: number | null | undefined) => {
+  if (pounds == null) {
+    return "Data unavailable";
+  }
   if (!isFinite(pounds)) {
     return "–";
   }
@@ -114,9 +117,8 @@ type FuelOption = {
   label: string;
   description: string;
   co2eLbPerMMBtu: number;
-  noxLbPerMMBtu: number;
-  soxLbPerMMBtu: number;
-  isElectric: boolean;
+  noxLbPerMMBtu?: number | null;
+  soxLbPerMMBtu?: number | null;
 };
 
 const FUEL_OPTIONS: FuelOption[] = [
@@ -154,9 +156,6 @@ const FUEL_OPTIONS: FuelOption[] = [
     description:
       "Uses 30-day average carbon intensity from ElectricityMaps for the selected ISO region.",
     co2eLbPerMMBtu: 0,
-    noxLbPerMMBtu: 0,
-    soxLbPerMMBtu: 0,
-    isElectric: true,
   },
 ];
 
@@ -711,8 +710,8 @@ type EnergySummary = {
   fuel: FuelOption;
   emissions: {
     co2eLb: number;
-    noxLb: number;
-    soxLb: number;
+    noxLb: number | null;
+    soxLb: number | null;
   };
 };
 
@@ -796,18 +795,12 @@ function computeEnergySummary(
   const totalCost = ratePerMMBtu * inputMMBtu;
   const costPerDelivered = deliveredMMBtu > 0 ? totalCost / deliveredMMBtu : 0;
 
-  const baseFuel = FUEL_OPTION_MAP[source.fuel] ?? FUEL_OPTION_MAP.naturalGas;
-  const isElectricFuel = baseFuel.isElectric === true;
-  const electricFactor = electricIntensityLbPerMMBtu ?? 0;
-  const co2eFactor = isElectricFuel ? electricFactor : baseFuel.co2eLbPerMMBtu;
-  const co2eLb = co2eFactor * inputMMBtu;
-  const noxLb = (isElectricFuel ? 0 : baseFuel.noxLbPerMMBtu) * inputMMBtu;
-  const soxLb = (isElectricFuel ? 0 : baseFuel.soxLbPerMMBtu) * inputMMBtu;
-  const electricLabelSuffix = source.electricRegion?.trim().toUpperCase() || "";
-  const fuel =
-    isElectricFuel && electricLabelSuffix
-      ? { ...baseFuel, label: `${baseFuel.label} – ${electricLabelSuffix}` }
-      : baseFuel;
+  const fuel = FUEL_OPTION_MAP[source.fuel] ?? FUEL_OPTION_MAP.naturalGas;
+  const co2eLb = fuel.co2eLbPerMMBtu * inputMMBtu;
+  const noxFactor = fuel.noxLbPerMMBtu ?? null;
+  const soxFactor = fuel.soxLbPerMMBtu ?? null;
+  const noxLb = noxFactor == null ? null : noxFactor * inputMMBtu;
+  const soxLb = soxFactor == null ? null : soxFactor * inputMMBtu;
 
   return {
     name: source.name.trim() || "Source",
@@ -1210,6 +1203,10 @@ function EnergyComparison() {
             <p className="text-xs text-muted-foreground mt-1">
               Emissions are based on input energy, EPA stationary combustion factors for on-site fuels,
               and ElectricityMaps' rolling grid carbon intensity for electric regions.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              NOₓ and SOₓ figures are currently unavailable for electricity and will be added once we
+              integrate the appropriate dataset.
             </p>
           </div>
 
