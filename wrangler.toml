@@ -1,0 +1,5 @@
+name = "utilitycalculator"
+pages_build_output_dir = ".vercel/output/static"
+
+[build]
+command = "npm run pages:build"

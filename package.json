@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start"
+    "build": "next build",
+    "start": "next start",
+    "pages:build": "npm run build && npx @cloudflare/next-on-pages@1"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
