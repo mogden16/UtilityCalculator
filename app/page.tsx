@@ -130,6 +130,7 @@ const FUEL_OPTIONS: FuelOption[] = [
     co2eLbPerMMBtu: 117.12,
     noxLbPerMMBtu: 0.092,
     soxLbPerMMBtu: 0.0006,
+    isElectric: false,
   },
   {
     key: "propane",
@@ -138,6 +139,7 @@ const FUEL_OPTIONS: FuelOption[] = [
     co2eLbPerMMBtu: 138.71,
     noxLbPerMMBtu: 0.142,
     soxLbPerMMBtu: 0.0006,
+    isElectric: false,
   },
   {
     key: "distillateOil",
@@ -146,6 +148,7 @@ const FUEL_OPTIONS: FuelOption[] = [
     co2eLbPerMMBtu: 163.53,
     noxLbPerMMBtu: 0.146,
     soxLbPerMMBtu: 0.518,
+    isElectric: false,
   },
   {
     key: "gridElectricity",
