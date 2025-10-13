@@ -18,17 +18,28 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { BTU_PER_KW } from "@/lib/energy";
+import { getElectricIntensity, type ElectricIntensityData } from "@/lib/electric-intensity";
 
 // -----------------------------
 // Helpers & constants
 // -----------------------------
-const BTU_PER_KW = 3412.142;
 const BTU_PER_TON = 12000;
 const BTU_PER_HP = 2544.4336;
 const BTU_PER_THERM = 100000;
 const BTU_PER_DTH = 1_000_000;
 const BTU_PER_MLB = 1_000_000;
 const DEFAULT_HHV_MBTU_PER_MCF = 1.035;
+const DEFAULT_ELECTRIC_REGION = "PJM";
+const ELECTRIC_ZONES = [
+  { value: "PJM", label: "PJM (Mid-Atlantic)" },
+  { value: "NYISO", label: "NYISO (New York)" },
+  { value: "ISO-NE", label: "ISO-NE (New England)" },
+  { value: "MISO", label: "MISO (Midwest)" },
+  { value: "CAISO", label: "CAISO (California)" },
+  { value: "ERCOT", label: "ERCOT (Texas)" },
+  { value: "SPP", label: "SPP (Great Plains)" },
+] as const;
 
 const fmt0 = (n: number) => (isFinite(n) ? Math.round(n).toLocaleString() : "–");
 const fmt1 = (n: number) =>
@@ -76,13 +87,25 @@ type FuelOptionKey = "naturalGas" | "propane" | "distillateOil" | "gridElectrici
 
 const PRESET_SOURCE_METADATA: Record<
   (typeof LABEL_OPTIONS)[number],
-  { defaultEfficiency?: number; defaultFuel?: FuelOptionKey }
+  { defaultEfficiency?: number; defaultFuel?: FuelOptionKey; defaultElectricRegion?: string }
 > = {
   "Natural Gas Furnace": { defaultEfficiency: 0.9, defaultFuel: "naturalGas" },
   "Propane Furnace": { defaultEfficiency: 0.9, defaultFuel: "propane" },
-  "Electric Resistance": { defaultEfficiency: 1, defaultFuel: "gridElectricity" },
-  "Air-Source Heat Pump": { defaultEfficiency: 2.8, defaultFuel: "gridElectricity" },
-  "Ground-Source Heat Pump": { defaultEfficiency: 3.5, defaultFuel: "gridElectricity" },
+  "Electric Resistance": {
+    defaultEfficiency: 1,
+    defaultFuel: "gridElectricity",
+    defaultElectricRegion: DEFAULT_ELECTRIC_REGION,
+  },
+  "Air-Source Heat Pump": {
+    defaultEfficiency: 2.8,
+    defaultFuel: "gridElectricity",
+    defaultElectricRegion: DEFAULT_ELECTRIC_REGION,
+  },
+  "Ground-Source Heat Pump": {
+    defaultEfficiency: 3.5,
+    defaultFuel: "gridElectricity",
+    defaultElectricRegion: DEFAULT_ELECTRIC_REGION,
+  },
   "Fuel Oil Boiler": { defaultEfficiency: 0.87, defaultFuel: "distillateOil" },
   "Steam Boiler": { defaultEfficiency: 0.8, defaultFuel: "naturalGas" },
   "District Steam": { defaultEfficiency: 0.82, defaultFuel: "naturalGas" },
@@ -126,8 +149,9 @@ const FUEL_OPTIONS: FuelOption[] = [
   },
   {
     key: "gridElectricity",
-    label: "Electricity (On-site)",
-    description: "On-site electric equipment has no combustion emissions at the meter.",
+    label: "Electricity (Grid)",
+    description:
+      "Uses 30-day average carbon intensity from ElectricityMaps for the selected ISO region.",
     co2eLbPerMMBtu: 0,
   },
 ];
@@ -669,6 +693,7 @@ type RateSourceState = {
   rateUnit: EnergyUnit;
   efficiency: string;
   fuel: FuelOptionKey;
+  electricRegion: string;
 };
 
 type EnergySummary = {
@@ -687,11 +712,62 @@ type EnergySummary = {
   };
 };
 
+type ElectricIntensityHookState = {
+  status: "idle" | "loading" | "success" | "error";
+  data: ElectricIntensityData | null;
+  error: string | null;
+};
+
+function useElectricIntensity(zone: string | null | undefined): ElectricIntensityHookState {
+  const [status, setStatus] = useState<ElectricIntensityHookState["status"]>("idle");
+  const [data, setData] = useState<ElectricIntensityData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const normalized = zone?.trim().toUpperCase() ?? "";
+
+  useEffect(() => {
+    if (!normalized) {
+      setStatus("idle");
+      setData(null);
+      setError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setStatus("loading");
+    setError(null);
+
+    getElectricIntensity(normalized)
+      .then((result) => {
+        if (cancelled) {
+          return;
+        }
+        setData(result);
+        setStatus("success");
+      })
+      .catch((err) => {
+        if (cancelled) {
+          return;
+        }
+        setData(null);
+        setStatus("error");
+        setError(err instanceof Error ? err.message : "Failed to load electricity data");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [normalized]);
+
+  return { status, data, error };
+}
+
 function computeEnergySummary(
   source: RateSourceState,
   usageValue: string,
   usageUnit: EnergyUnit,
   ctx: ConversionContext,
+  electricIntensityLbPerMMBtu?: number | null,
 ): EnergySummary {
   const rateValue = Math.max(num(source.rate), 0);
   const unitRate = ENERGY_UNITS[source.rateUnit];
@@ -764,7 +840,19 @@ function SourceLabelSelect({
                 ? formatEfficiency(presetDefaults.defaultEfficiency)
                 : state.efficiency;
             const nextFuel = presetDefaults?.defaultFuel ?? state.fuel ?? DEFAULT_FUEL;
-            onChange({ ...state, name: value, efficiency: nextEfficiency, fuel: nextFuel });
+            const fuelMeta = FUEL_OPTION_MAP[nextFuel] ?? FUEL_OPTION_MAP[DEFAULT_FUEL];
+            const nextElectricRegion = presetDefaults?.defaultElectricRegion
+              ? presetDefaults.defaultElectricRegion
+              : fuelMeta.isElectric
+                ? state.electricRegion || DEFAULT_ELECTRIC_REGION
+                : state.electricRegion;
+            onChange({
+              ...state,
+              name: value,
+              efficiency: nextEfficiency,
+              fuel: nextFuel,
+              electricRegion: nextElectricRegion,
+            });
           }
         }}
       >
@@ -795,13 +883,18 @@ function RateSourceCard({
   title,
   state,
   onChange,
+  electricState,
 }: {
   title: string;
   state: RateSourceState;
   onChange: (next: RateSourceState) => void;
+  electricState?: ElectricIntensityHookState;
 }) {
   const selectedFuelKey = state.fuel ?? DEFAULT_FUEL;
   const selectedFuel = FUEL_OPTION_MAP[selectedFuelKey] ?? FUEL_OPTION_MAP[DEFAULT_FUEL];
+  const isElectric = selectedFuel.isElectric === true;
+  const electricRegion = state.electricRegion || DEFAULT_ELECTRIC_REGION;
+  const intensityData = electricState?.data;
 
   return (
     <Card>
@@ -862,7 +955,14 @@ function RateSourceCard({
           <Label>Emissions Profile</Label>
           <Select
             value={selectedFuelKey}
-            onValueChange={(value) => onChange({ ...state, fuel: value as FuelOptionKey })}
+            onValueChange={(value) => {
+              const nextFuel = value as FuelOptionKey;
+              const meta = FUEL_OPTION_MAP[nextFuel] ?? FUEL_OPTION_MAP[DEFAULT_FUEL];
+              const nextRegion = meta.isElectric
+                ? state.electricRegion || DEFAULT_ELECTRIC_REGION
+                : state.electricRegion;
+              onChange({ ...state, fuel: nextFuel, electricRegion: nextRegion });
+            }}
           >
             <SelectTrigger>
               <SelectValue />
@@ -877,6 +977,44 @@ function RateSourceCard({
           </Select>
           <p className="text-xs text-muted-foreground mt-1">{selectedFuel.description}</p>
         </div>
+
+        {isElectric && (
+          <div>
+            <Label>Grid Region (ISO)</Label>
+            <Select
+              value={electricRegion}
+              onValueChange={(value) =>
+                onChange({ ...state, electricRegion: value || DEFAULT_ELECTRIC_REGION })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ELECTRIC_ZONES.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Carbon intensity is sourced from ElectricityMaps using the selected ISO's rolling window.
+            </p>
+            {electricState?.status === "loading" && (
+              <p className="text-xs text-muted-foreground mt-1">Loading ElectricityMaps intensity…</p>
+            )}
+            {electricState?.status === "error" && electricState.error && (
+              <p className="text-xs text-destructive mt-1">{electricState.error}</p>
+            )}
+            {electricState?.status === "success" && intensityData && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {fmt1(intensityData.gCO2PerKWh)} gCO₂/kWh ({fmt1(intensityData.lbPerMMBtu)} lb/MMBtu · {" "}
+                {intensityData.samples} samples, {intensityData.window} avg)
+              </p>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -892,6 +1030,7 @@ function EnergyComparison() {
     rateUnit: "therm",
     efficiency: formatEfficiency(PRESET_SOURCE_METADATA["Natural Gas Furnace"].defaultEfficiency ?? 0.9),
     fuel: PRESET_SOURCE_METADATA["Natural Gas Furnace"].defaultFuel ?? DEFAULT_FUEL,
+    electricRegion: DEFAULT_ELECTRIC_REGION,
   });
   const [sourceB, setSourceB] = useState<RateSourceState>({
     name: "Electric Resistance",
@@ -899,6 +1038,8 @@ function EnergyComparison() {
     rateUnit: "kwh",
     efficiency: formatEfficiency(PRESET_SOURCE_METADATA["Electric Resistance"].defaultEfficiency ?? 1),
     fuel: PRESET_SOURCE_METADATA["Electric Resistance"].defaultFuel ?? DEFAULT_FUEL,
+    electricRegion:
+      PRESET_SOURCE_METADATA["Electric Resistance"].defaultElectricRegion ?? DEFAULT_ELECTRIC_REGION,
   });
 
   const context = useMemo(() => {
@@ -907,13 +1048,23 @@ function EnergyComparison() {
     return { hhv: fallback };
   }, [hhv]);
 
+  const fuelOptionA = FUEL_OPTION_MAP[sourceA.fuel] ?? FUEL_OPTION_MAP[DEFAULT_FUEL];
+  const fuelOptionB = FUEL_OPTION_MAP[sourceB.fuel] ?? FUEL_OPTION_MAP[DEFAULT_FUEL];
+  const electricZoneA = fuelOptionA.isElectric ? sourceA.electricRegion || DEFAULT_ELECTRIC_REGION : null;
+  const electricZoneB = fuelOptionB.isElectric ? sourceB.electricRegion || DEFAULT_ELECTRIC_REGION : null;
+
+  const electricInfoA = useElectricIntensity(electricZoneA);
+  const electricInfoB = useElectricIntensity(electricZoneB);
+  const electricIntensityA = electricInfoA.data?.lbPerMMBtu ?? null;
+  const electricIntensityB = electricInfoB.data?.lbPerMMBtu ?? null;
+
   const summaryA = useMemo(
-    () => computeEnergySummary(sourceA, usageValue, usageUnit, context),
-    [sourceA, usageValue, usageUnit, context],
+    () => computeEnergySummary(sourceA, usageValue, usageUnit, context, electricIntensityA),
+    [sourceA, usageValue, usageUnit, context, electricIntensityA],
   );
   const summaryB = useMemo(
-    () => computeEnergySummary(sourceB, usageValue, usageUnit, context),
-    [sourceB, usageValue, usageUnit, context],
+    () => computeEnergySummary(sourceB, usageValue, usageUnit, context, electricIntensityB),
+    [sourceB, usageValue, usageUnit, context, electricIntensityB],
   );
 
   const deliveredLoad = Math.max(summaryA.deliveredMMBtu, summaryB.deliveredMMBtu);
@@ -975,8 +1126,18 @@ function EnergyComparison() {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <RateSourceCard title="Primary Energy" state={sourceA} onChange={setSourceA} />
-        <RateSourceCard title="Comparison Energy" state={sourceB} onChange={setSourceB} />
+        <RateSourceCard
+          title="Primary Energy"
+          state={sourceA}
+          onChange={setSourceA}
+          electricState={electricInfoA}
+        />
+        <RateSourceCard
+          title="Comparison Energy"
+          state={sourceB}
+          onChange={setSourceB}
+          electricState={electricInfoB}
+        />
       </div>
 
       <Card>
@@ -1037,8 +1198,8 @@ function EnergyComparison() {
           <div>
             <h3 className="text-lg font-semibold">Emissions Impact</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Emissions are based on input energy and EPA stationary combustion factors for CO₂e, NOₓ,
-              and SOₓ.
+              Emissions are based on input energy, EPA stationary combustion factors for on-site fuels,
+              and ElectricityMaps' rolling grid carbon intensity for electric regions.
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               NOₓ and SOₓ figures are currently unavailable for electricity and will be added once we
@@ -1072,8 +1233,9 @@ function EnergyComparison() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            CO₂e includes CO₂, CH₄, and N₂O using 100-year global warming potentials. NOₓ and SOₓ are
-            shown in pounds or tons emitted at the site.
+            CO₂e includes CO₂, CH₄, and N₂O using 100-year global warming potentials. Grid emission
+            factors come from ElectricityMaps' 30-day average for the selected ISO. NOₓ and SOₓ reflect
+            site-level combustion only.
           </p>
         </CardContent>
       </Card>
