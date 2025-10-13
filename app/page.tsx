@@ -119,6 +119,7 @@ type FuelOption = {
   co2eLbPerMMBtu: number;
   noxLbPerMMBtu?: number | null;
   soxLbPerMMBtu?: number | null;
+  isElectric?: boolean;
 };
 
 const FUEL_OPTIONS: FuelOption[] = [
