@@ -40,7 +40,10 @@ const fmtCurrency = (n: number) =>
     ? `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     : "–";
 const num = (v: string | number) => (typeof v === "number" ? v : Number(String(v).replace(/[,\s]/g, "")) || 0);
-const formatEmissions = (pounds: number) => {
+const formatEmissions = (pounds: number | null | undefined) => {
+  if (pounds == null) {
+    return "Data unavailable";
+  }
   if (!isFinite(pounds)) {
     return "–";
   }
@@ -91,8 +94,8 @@ type FuelOption = {
   label: string;
   description: string;
   co2eLbPerMMBtu: number;
-  noxLbPerMMBtu: number;
-  soxLbPerMMBtu: number;
+  noxLbPerMMBtu?: number | null;
+  soxLbPerMMBtu?: number | null;
 };
 
 const FUEL_OPTIONS: FuelOption[] = [
@@ -126,8 +129,6 @@ const FUEL_OPTIONS: FuelOption[] = [
     label: "Electricity (On-site)",
     description: "On-site electric equipment has no combustion emissions at the meter.",
     co2eLbPerMMBtu: 0,
-    noxLbPerMMBtu: 0,
-    soxLbPerMMBtu: 0,
   },
 ];
 
@@ -681,8 +682,8 @@ type EnergySummary = {
   fuel: FuelOption;
   emissions: {
     co2eLb: number;
-    noxLb: number;
-    soxLb: number;
+    noxLb: number | null;
+    soxLb: number | null;
   };
 };
 
@@ -717,8 +718,10 @@ function computeEnergySummary(
 
   const fuel = FUEL_OPTION_MAP[source.fuel] ?? FUEL_OPTION_MAP.naturalGas;
   const co2eLb = fuel.co2eLbPerMMBtu * inputMMBtu;
-  const noxLb = fuel.noxLbPerMMBtu * inputMMBtu;
-  const soxLb = fuel.soxLbPerMMBtu * inputMMBtu;
+  const noxFactor = fuel.noxLbPerMMBtu ?? null;
+  const soxFactor = fuel.soxLbPerMMBtu ?? null;
+  const noxLb = noxFactor == null ? null : noxFactor * inputMMBtu;
+  const soxLb = soxFactor == null ? null : soxFactor * inputMMBtu;
 
   return {
     name: source.name.trim() || "Source",
@@ -1036,6 +1039,10 @@ function EnergyComparison() {
             <p className="text-xs text-muted-foreground mt-1">
               Emissions are based on input energy and EPA stationary combustion factors for CO₂e, NOₓ,
               and SOₓ.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              NOₓ and SOₓ figures are currently unavailable for electricity and will be added once we
+              integrate the appropriate dataset.
             </p>
           </div>
 
