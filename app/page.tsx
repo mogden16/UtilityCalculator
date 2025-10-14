@@ -1341,7 +1341,7 @@ function Tests() {
 // --- Page ---
 export default function EnergyProToolkit() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-6">
       <Tabs defaultValue="converter" className="w-full">
         <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
           <TabsTrigger value="converter">Converter</TabsTrigger>
