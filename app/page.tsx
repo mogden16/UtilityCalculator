@@ -222,13 +222,14 @@ function Converter() {
   const [energyReference, setEnergyReference] = useState<"input" | "output">("output");
   const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
   const [hours, setHours] = useState("500");
-  const [electricalEfficiency, setElectricalEfficiency] = useState("38");
+  const [efficiency, setEfficiency] = useState("38");
 
   const calc = useMemo(() => {
     const value = num(val);
     const HHV = num(hhv);
     const hrs = Math.max(num(hours), 0);
-    const electricalEffPct = Math.max(num(electricalEfficiency), 0);
+    const efficiencyInput = efficiency.trim();
+    const efficiencyPct = efficiencyInput === "" ? 100 : Math.max(num(efficiency), 0);
 
     let baseBtuh = value;
     switch (unit) {
@@ -252,7 +253,7 @@ function Converter() {
         break;
     }
 
-    const efficiencyDecimal = electricalEffPct > 0 ? electricalEffPct / 100 : 1;
+    const efficiencyDecimal = efficiencyPct > 0 ? efficiencyPct / 100 : 1;
 
     let deliveredBtuh = baseBtuh;
     let fuelBtuh = baseBtuh;
@@ -318,7 +319,7 @@ function Converter() {
       category,
       colorClass,
     };
-  }, [val, unit, hhv, hours, energyReference, electricalEfficiency]);
+  }, [val, unit, hhv, hours, energyReference, efficiency]);
 
   return (
     <div className="space-y-6">
@@ -413,10 +414,11 @@ function Converter() {
                       </p>
                     </div>
                     <div>
-                      <Label>Electrical Efficiency (%)</Label>
-                      <Input value={electricalEfficiency} onChange={(e) => setElectricalEfficiency(e.target.value)} />
+                      <Label>Efficiency (%)</Label>
+                      <Input value={efficiency} onChange={(e) => setEfficiency(e.target.value)} />
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Applied when Energy Reference is Output (Delivered Energy).
+                        Applies when Energy Reference is set to Output (Delivered Energy). Represents the equipment’s
+                        overall conversion efficiency.
                       </p>
                     </div>
                   </div>
