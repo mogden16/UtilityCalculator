@@ -68,23 +68,95 @@ const PRESET_SOURCE_METADATA: Record<(typeof LABEL_OPTIONS)[number], { defaultEf
 
 const formatEfficiency = (value: number) => value.toFixed(2);
 
-const RANGE_ROWS = [
+const ARCHETYPES = [
+  // Residential / light commercial space heat
+  { key: "res_furnace", name: "Residential furnace", range: [40000, 120000], note: "80–98% AFUE" },
+  { key: "unit_heater", name: "Unit heater (suspended)", range: [30000, 400000], note: "Warehouse/garage" },
+  { key: "res_boiler", name: "Residential boiler", range: [60000, 200000], note: "Hydronic" },
+
+  // Water heating
   {
-    segment: "Residential",
-    range: "30,000 – 120,000 BTU/hr",
-    notes: "Single-family homes and low-rise multifamily with conventional comfort systems.",
+    key: "res_storage_wh",
+    name: "Residential storage water heater",
+    range: [30000, 75000],
+    note: "Tank type",
   },
   {
-    segment: "Commercial",
-    range: "120,000 – 1,200,000 BTU/hr",
-    notes: "Mid-size offices, retail pads, and schools served by packaged rooftops or split systems.",
+    key: "tankless_wh",
+    name: "Tankless water heater (res/com)",
+    range: [150000, 199000],
+    note: "Condensing",
   },
   {
-    segment: "Industrial",
-    range: "1,000,000 – 5,000,000+ BTU/hr",
-    notes: "Warehouses, production floors, or make-up air units with process-driven loads.",
+    key: "comm_water_heater",
+    name: "Commercial water heater",
+    range: [199000, 1500000],
+    note: "Condensing, restaurants/multi-use",
+  },
+
+  // Packaged HVAC with gas heat
+  {
+    key: "rtu_gas_heat",
+    name: "Commercial RTU (gas heat section)",
+    range: [100000, 1200000],
+    note: "Packaged HVAC",
+  },
+
+  // Boilers (commercial/institutional)
+  {
+    key: "comm_boiler_small",
+    name: "Commercial boiler (small)",
+    range: [500000, 2000000],
+    note: "Schools/small bldgs",
+  },
+  {
+    key: "comm_boiler_med",
+    name: "Commercial boiler (medium)",
+    range: [2000000, 10000000],
+    note: "Hospitals/large bldgs",
+  },
+
+  // Process & make-up air
+  { key: "paint_booth", name: "Paint booth MUA", range: [1000000, 5000000], note: "Auto/body" },
+  {
+    key: "industrial_proc",
+    name: "Industrial process heater",
+    range: [10000000, 100000000],
+    note: "Heavy industry",
+  },
+
+  // Foodservice (approximate per-appliance)
+  {
+    key: "range_6_burner",
+    name: "Restaurant range (6-burner)",
+    range: [60000, 210000],
+    note: "10–35k BTU/hr per burner",
+  },
+  {
+    key: "griddle_comm",
+    name: "Commercial griddle",
+    range: [60000, 160000],
+    note: "Plate size dependent",
+  },
+  { key: "fryer_comm", name: "Commercial fryer", range: [80000, 200000], note: "Single vat" },
+  { key: "pizza_oven", name: "Pizza deck/stone oven", range: [80000, 200000], note: "Style/size dependent" },
+
+  // CHP / Fuel cells (thermal shown in BTU/hr; electric noted)
+  {
+    key: "chp_engine",
+    name: "CHP (engine/turbine)",
+    range: [1000000, 10000000],
+    note: "Thermal 1–10 MMBtu/hr; Electric ~200 kW–5 MW",
+  },
+  {
+    key: "fuel_cell",
+    name: "Fuel cell CHP",
+    range: [300000, 6000000],
+    note: "Thermal 0.3–6 MMBtu/hr; Electric ~100 kW–2 MW",
   },
 ] as const;
+
+const formatArchetypeRange = ([min, max]: readonly [number, number]) => `${fmt0(min)} – ${fmt0(max)} BTU/hr`;
 
 const LOAD_SCENARIOS = [
   { key: "tight", label: "Tight / New" },
@@ -436,37 +508,31 @@ function Ranges() {
       <Card>
         <CardContent className="mt-4 space-y-4">
           <div>
-            <h3 className="text-lg font-semibold">Typical Load Size Bands</h3>
+            <h3 className="text-lg font-semibold">Typical Gas Appliance Input Ranges</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Representative peak BTU/hr ranges for common building types. Treat these as quick
-              gut-checks alongside detailed load calculations or measured demand data.
+              Representative BTU/hr inputs for common combustion equipment. Use these to contextualize
+              load calculations, installed nameplate values, or replacement opportunities.
             </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-muted/50 text-left">
-                  <th className="px-3 py-2 font-medium">Segment</th>
-                  <th className="px-3 py-2 font-medium">Typical BTU/hr Range</th>
-                  <th className="px-3 py-2 font-medium">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {RANGE_ROWS.map((row) => (
-                  <tr key={row.segment} className="border-b last:border-0 border-border/60">
-                    <td className="px-3 py-2 align-top font-medium text-foreground">{row.segment}</td>
-                    <td className="px-3 py-2 align-top font-mono">{row.range}</td>
-                    <td className="px-3 py-2 align-top text-muted-foreground">{row.notes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {ARCHETYPES.map((item) => (
+              <div
+                key={item.key}
+                className="rounded-md border border-border/60 bg-muted/20 p-4 space-y-2"
+              >
+                <div className="text-sm font-semibold text-foreground">{item.name}</div>
+                <div className="font-mono text-lg text-foreground">
+                  {formatArchetypeRange(item.range)}
+                </div>
+                <p className="text-xs text-muted-foreground">{item.note}</p>
+              </div>
+            ))}
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Tip: Compare your calculated peak load or installed capacity to these bands to sanity
-            check sizing before committing to equipment selections.
+            Tip: Compare your calculated peak load or installed capacity to these references as a
+            sanity check before committing to equipment selections.
           </p>
         </CardContent>
       </Card>
@@ -836,8 +902,8 @@ function RateSourceCard({
   );
 }
 
-// --- Rates ---
-function Rates() {
+// --- Energy Comparison ---
+function EnergyComparison() {
   const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
   const [usageValue, setUsageValue] = useState("1200");
   const [usageUnit, setUsageUnit] = useState<EnergyUnit>("therm");
@@ -1219,7 +1285,6 @@ function Conversions() {
     <TooltipProvider>
       <div className="space-y-6">
         <div className="space-y-2 text-center">
-          <h3 className="text-2xl font-semibold tracking-tight">Universal Unit Converter</h3>
           <p className="text-muted-foreground">
             Quickly convert between common energy, power, temperature, flow, and pressure units.
           </p>
@@ -1345,18 +1410,21 @@ export default function EnergyProToolkit() {
       <Tabs defaultValue="converter" className="w-full">
         <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
           <TabsTrigger value="converter">Converter</TabsTrigger>
+          <TabsTrigger value="energy">Energy Comparison</TabsTrigger>
           <TabsTrigger value="load">Load Estimator</TabsTrigger>
           <TabsTrigger value="gasflow">Gas Flow</TabsTrigger>
-          <TabsTrigger value="ranges">Typical Ranges</TabsTrigger>
-          <TabsTrigger value="rates">Rates</TabsTrigger>
           <TabsTrigger value="convert" className="flex-shrink-0">
             Conversions
           </TabsTrigger>
+          <TabsTrigger value="ranges">Typical Ranges</TabsTrigger>
           <TabsTrigger value="tests">Tests</TabsTrigger>
         </TabsList>
 
         <TabsContent value="converter">
           <Converter />
+        </TabsContent>
+        <TabsContent value="energy">
+          <EnergyComparison />
         </TabsContent>
         <TabsContent value="load">
           <LoadEstimator />
@@ -1364,14 +1432,11 @@ export default function EnergyProToolkit() {
         <TabsContent value="gasflow">
           <GasFlow />
         </TabsContent>
-        <TabsContent value="ranges">
-          <Ranges />
-        </TabsContent>
-        <TabsContent value="rates">
-          <Rates />
-        </TabsContent>
         <TabsContent value="convert">
           <Conversions />
+        </TabsContent>
+        <TabsContent value="ranges">
+          <Ranges />
         </TabsContent>
         <TabsContent value="tests">
           <Tests />
