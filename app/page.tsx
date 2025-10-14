@@ -21,9 +21,7 @@ import {
 } from "recharts";
 import { BTU_PER_KW } from "@/lib/energy";
 
-// -----------------------------
-// Helpers & constants
-// -----------------------------
+// --- Helpers & constants ---
 const BTU_PER_TON = 12000;
 const BTU_PER_HP = 2544.4336;
 const BTU_PER_THERM = 100000;
@@ -145,9 +143,7 @@ const ENERGY_UNIT_ENTRIES = Object.entries(ENERGY_UNITS) as Array<
   [EnergyUnit, (typeof ENERGY_UNITS)[EnergyUnit]]
 >;
 
-// -----------------------------
-// Converter
-// -----------------------------
+// --- Converter ---
 function Converter() {
   const [val, setVal] = useState("9000000");
   const [unit, setUnit] = useState("BTU/hr");
@@ -414,10 +410,27 @@ function Readout({ label, value }: { label: string; value: string }) {
   );
 }
 
-// -----------------------------
-// Typical Ranges Table
-// -----------------------------
-function TypicalRangesTable() {
+// --- Gas Flow ---
+function GasFlow() {
+  return (
+    <Card>
+      <CardContent className="mt-4 space-y-3 text-sm text-muted-foreground">
+        <h3 className="text-lg font-semibold text-foreground">Gas Flow Toolkit (in progress)</h3>
+        <p>
+          Use the converter and load estimator to approximate CFH today. Planned updates will add line sizing
+          lookups and pressure drop tools in this tab.
+        </p>
+        <p className="text-xs">
+          Have a specific worksheet you rely on? Drop a note so we can prioritize building it into this
+          experience.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+// --- Typical Ranges ---
+function Ranges() {
   return (
     <div className="space-y-6">
       <Card>
@@ -461,9 +474,7 @@ function TypicalRangesTable() {
   );
 }
 
-// -----------------------------
-// Load Estimator (with chart)
-// -----------------------------
+// --- Load Estimator (with chart) ---
 function LoadEstimator() {
   const [sqft, setSqft] = useState("2000");
   const [vintage, setVintage] = useState<LoadScenarioKey>("average");
@@ -825,7 +836,8 @@ function RateSourceCard({
   );
 }
 
-function EnergyComparison() {
+// --- Rates ---
+function Rates() {
   const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
   const [usageValue, setUsageValue] = useState("1200");
   const [usageUnit, setUsageUnit] = useState<EnergyUnit>("therm");
@@ -985,9 +997,7 @@ function EnergyComparison() {
   );
 }
 
-// -----------------------------
-// Conversions tab
-// -----------------------------
+// --- Conversions tab utilities ---
 const TEMPERATURE_OFFSETS = {
   freezingFahrenheit: 32,
   kelvinOffset: 273.15,
@@ -1158,7 +1168,8 @@ const formatConversionResult = (value: number) =>
     ? value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : "";
 
-export function Conversions() {
+// --- Conversions ---
+function Conversions() {
   const [category, setCategory] = useState<ConversionCategoryKey>("energy");
   const [fromUnit, setFromUnit] = useState<string>("btu");
   const [toUnit, setToUnit] = useState<string>("therm");
@@ -1311,9 +1322,7 @@ export function Conversions() {
   );
 }
 
-// -----------------------------
-// Tests tab
-// -----------------------------
+// --- Tests ---
 function Tests() {
   return (
     <div className="space-y-2 text-sm text-muted-foreground">
@@ -1329,9 +1338,7 @@ function Tests() {
   );
 }
 
-// -----------------------------
-// Page
-// -----------------------------
+// --- Page ---
 export default function EnergyProToolkit() {
   return (
     <div className="space-y-6">
@@ -1355,25 +1362,13 @@ export default function EnergyProToolkit() {
           <LoadEstimator />
         </TabsContent>
         <TabsContent value="gasflow">
-          <Card>
-            <CardContent className="mt-4 space-y-3 text-sm text-muted-foreground">
-              <h3 className="text-lg font-semibold text-foreground">Gas Flow Toolkit (in progress)</h3>
-              <p>
-                Use the converter and load estimator to approximate CFH today. Planned updates will
-                add line sizing lookups and pressure drop tools in this tab.
-              </p>
-              <p className="text-xs">
-                Have a specific worksheet you rely on? Drop a note so we can prioritize building it
-                into this experience.
-              </p>
-            </CardContent>
-          </Card>
+          <GasFlow />
         </TabsContent>
         <TabsContent value="ranges">
-          <TypicalRangesTable />
+          <Ranges />
         </TabsContent>
         <TabsContent value="rates">
-          <EnergyComparison />
+          <Rates />
         </TabsContent>
         <TabsContent value="convert">
           <Conversions />
