@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1006,6 +1007,8 @@ function Tests() {
 // Page
 // -----------------------------
 export default function EnergyProToolkit() {
+  const router = useRouter();
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="converter" className="w-full">
@@ -1015,6 +1018,13 @@ export default function EnergyProToolkit() {
           <TabsTrigger value="gasflow">Gas Flow</TabsTrigger>
           <TabsTrigger value="ranges">Typical Ranges</TabsTrigger>
           <TabsTrigger value="rates">Energy Comparison</TabsTrigger>
+          <TabsTrigger
+            value="convert"
+            onClick={() => router.push("/convert")}
+            className="flex-shrink-0"
+          >
+            Conversions
+          </TabsTrigger>
           <TabsTrigger value="tests">Tests</TabsTrigger>
         </TabsList>
 
