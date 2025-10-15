@@ -40,7 +40,17 @@ const fmtCurrency = (n: number) =>
     : "–";
 const num = (v: string | number) => (typeof v === "number" ? v : Number(String(v).replace(/[,\s]/g, "")) || 0);
 
-const RATE_UNITS = new Set(["BTU/hr", "kW", "Ton", "HP", "Therm/hr", "DTH/hr", "Steam MLB/hr"]);
+const RATE_UNITS = new Set([
+  "BTU/hr",
+  "kW",
+  "Ton",
+  "HP",
+  "Therm/hr",
+  "DTH/hr",
+  "Steam MLB/hr",
+  "MBtu/hr",
+  "CFH",
+]);
 
 const LABEL_OPTIONS = [
   "Natural Gas Furnace",
@@ -222,7 +232,7 @@ function Converter() {
   const [energyReference, setEnergyReference] = useState<"input" | "output">("output");
   const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
   const [hours, setHours] = useState("500");
-  const [efficiency, setEfficiency] = useState("38");
+  const [efficiency, setEfficiency] = useState("90");
 
   const calc = useMemo(() => {
     const value = num(val);
@@ -230,6 +240,8 @@ function Converter() {
     const hrs = Math.max(num(hours), 0);
     const efficiencyInput = efficiency.trim();
     const efficiencyPct = efficiencyInput === "" ? 100 : Math.max(num(efficiency), 0);
+
+    const efficiencyDecimal = efficiencyPct > 0 ? efficiencyPct / 100 : 1;
 
     let baseBtuh = value;
     switch (unit) {
@@ -251,9 +263,17 @@ function Converter() {
       case "Steam MLB/hr":
         baseBtuh = value * BTU_PER_MLB;
         break;
+      case "MBtu/hr":
+        baseBtuh = value * 1_000_000;
+        break;
+      case "CFH":
+        {
+          const fuelBtuhFromFlow = value * HHV * 1_000;
+          baseBtuh =
+            energyReference === "input" ? fuelBtuhFromFlow : fuelBtuhFromFlow * efficiencyDecimal;
+        }
+        break;
     }
-
-    const efficiencyDecimal = efficiencyPct > 0 ? efficiencyPct / 100 : 1;
 
     let deliveredBtuh = baseBtuh;
     let fuelBtuh = baseBtuh;
@@ -286,7 +306,7 @@ function Converter() {
     const mlb_per_hr = RATE_UNITS.has(unit) ? deliveredBtuh / BTU_PER_MLB : NaN;
     const therm_per_hr = fuelBtuh / BTU_PER_THERM;
     const dth_per_hr = fuelBtuh / BTU_PER_DTH;
-    const cfh = fuelBtuh / (HHV * 1_000);
+    const cfh = HHV > 0 ? fuelBtuh / (HHV * 1_000) : NaN;
 
     const totalCF = cfh * hrs;
     const totalMCF = totalCF / 1_000;
@@ -326,7 +346,7 @@ function Converter() {
       {/* Inputs */}
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-4 items-end">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-end">
             <div>
               <Label>Value</Label>
               <Input value={val} onChange={(e) => setVal(e.target.value)} />
@@ -346,6 +366,8 @@ function Converter() {
                   <SelectItem value="Therm/hr">Therm/hr (Energy Rate)</SelectItem>
                   <SelectItem value="DTH/hr">DTH/hr (Energy Rate)</SelectItem>
                   <SelectItem value="Steam MLB/hr">MLB/hr (Steam Flow Rate)</SelectItem>
+                  <SelectItem value="MBtu/hr">MBtu/hr (Energy Rate)</SelectItem>
+                  <SelectItem value="CFH">CFH (Gas Flow Rate)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -369,8 +391,17 @@ function Converter() {
               </p>
             </div>
 
+            <div>
+              <Label>Efficiency (%)</Label>
+              <Input value={efficiency} onChange={(e) => setEfficiency(e.target.value)} />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Applies when Energy Reference is set to Output (Delivered Energy). Represents overall system
+                efficiency.
+              </p>
+            </div>
+
             {/* Auto Classification */}
-            <div className="flex items-end justify-end">
+            <div className="flex items-end justify-end sm:col-span-2 lg:col-span-1">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -398,7 +429,7 @@ function Converter() {
               <AccordionItem value="advanced">
                 <AccordionTrigger>Advanced options</AccordionTrigger>
                 <AccordionContent>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <Label>Gas HHV (MBTU/MCF)</Label>
                       <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
@@ -411,14 +442,6 @@ function Converter() {
                       <Input value={hours} onChange={(e) => setHours(e.target.value)} />
                       <p className="mt-1 text-xs text-muted-foreground">
                         Totals below use this duration.
-                      </p>
-                    </div>
-                    <div>
-                      <Label>Efficiency (%)</Label>
-                      <Input value={efficiency} onChange={(e) => setEfficiency(e.target.value)} />
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Applies when Energy Reference is set to Output (Delivered Energy). Represents the equipment’s
-                        overall conversion efficiency.
                       </p>
                     </div>
                   </div>
