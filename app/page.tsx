@@ -239,9 +239,10 @@ function Converter() {
     const HHV = num(hhv);
     const hrs = Math.max(num(hours), 0);
     const efficiencyInput = efficiency.trim();
-    const efficiencyPct = efficiencyInput === "" ? 100 : Math.max(num(efficiency), 0);
+    const parsedEfficiency = num(efficiencyInput);
+    const efficiencyPct = parsedEfficiency > 0 ? parsedEfficiency : 90;
 
-    const efficiencyDecimal = efficiencyPct > 0 ? efficiencyPct / 100 : 1;
+    const efficiencyDecimal = efficiencyPct / 100;
 
     let baseBtuh = value;
     switch (unit) {
@@ -267,20 +268,16 @@ function Converter() {
         baseBtuh = value * 1_000_000;
         break;
       case "CFH":
-        {
-          const fuelBtuhFromFlow = value * HHV * 1_000;
-          baseBtuh =
-            energyReference === "input" ? fuelBtuhFromFlow : fuelBtuhFromFlow * efficiencyDecimal;
-        }
+        baseBtuh = value * HHV * 1_000;
         break;
     }
 
-    let deliveredBtuh = baseBtuh;
     let fuelBtuh = baseBtuh;
+    let deliveredBtuh = baseBtuh;
 
     if (energyReference === "input") {
       fuelBtuh = baseBtuh;
-      deliveredBtuh = baseBtuh * efficiencyDecimal;
+      deliveredBtuh = fuelBtuh * efficiencyDecimal;
     } else {
       deliveredBtuh = baseBtuh;
       fuelBtuh = deliveredBtuh / efficiencyDecimal;
@@ -303,32 +300,33 @@ function Converter() {
     const kW = deliveredBtuh / BTU_PER_KW;
     const tons = deliveredBtuh / BTU_PER_TON;
     const hp = deliveredBtuh / BTU_PER_HP;
-    const mlb_per_hr = RATE_UNITS.has(unit) ? deliveredBtuh / BTU_PER_MLB : NaN;
+    const mlb_per_hr = deliveredBtuh / BTU_PER_MLB;
     const therm_per_hr = fuelBtuh / BTU_PER_THERM;
     const dth_per_hr = fuelBtuh / BTU_PER_DTH;
+    const fuelInputMMBtuHr = fuelBtuh / 1_000_000;
     const cfh = HHV > 0 ? fuelBtuh / (HHV * 1_000) : NaN;
+    const mcf_per_hr = cfh / 1_000;
 
     const totalCF = cfh * hrs;
     const totalMCF = totalCF / 1_000;
     const totalTherms = therm_per_hr * hrs;
     const totalDTH = dth_per_hr * hrs;
-    const totalMMBTU = (fuelBtuh / 1_000_000) * hrs;
-    const totalMLB = (deliveredBtuh / BTU_PER_MLB) * hrs;
+    const totalMMBTU = fuelInputMMBtuHr * hrs;
+    const totalMLB = mlb_per_hr * hrs;
     const totalKWh = kW * hrs;
-    const fuelInputMMBtuHr = fuelBtuh / 1_000_000;
     const kwPerMcf = isFinite(cfh) && cfh !== 0 ? kW / (cfh / 1_000) : NaN;
 
     return {
       deliveredBtuh,
-      fuelBtuh,
-      fuelInputMMBtuHr,
       kW,
       tons,
       hp,
       mlb_per_hr,
-      cfh,
       therm_per_hr,
       dth_per_hr,
+      fuelInputMMBtuHr,
+      cfh,
+      mcf_per_hr,
       totalMCF,
       totalTherms,
       totalDTH,
@@ -387,7 +385,7 @@ function Converter() {
                 </SelectContent>
               </Select>
               <p className="mt-1 text-xs text-muted-foreground">
-                Select whether the entered value represents input fuel energy or delivered energy output.
+                Select whether the entered value represents input fuel or delivered output energy.
               </p>
             </div>
 
@@ -395,8 +393,7 @@ function Converter() {
               <Label>Efficiency (%)</Label>
               <Input value={efficiency} onChange={(e) => setEfficiency(e.target.value)} />
               <p className="mt-1 text-xs text-muted-foreground">
-                Applies when Energy Reference is set to Output (Delivered Energy). Represents overall system
-                efficiency.
+                Represents system efficiency. Used to convert between input (fuel) and output (delivered) energy.
               </p>
             </div>
 
@@ -452,39 +449,47 @@ function Converter() {
         </CardContent>
       </Card>
 
-      {/* Instantaneous Demand */}
+      {/* Instantaneous Demand (Output Energy) */}
       <Card>
         <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">Instantaneous Demand</h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+          <h3 className="text-lg font-semibold border-b pb-2">Instantaneous Demand (Output Energy)</h3>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <Readout label="BTU/hr" value={fmt0(calc.deliveredBtuh)} />
             <Readout label="kW" value={fmt0(calc.kW)} />
             <Readout label="Tons" value={fmt0(calc.tons)} />
             <Readout label="HP" value={fmt0(calc.hp)} />
-            <Readout label="CFH" value={fmt0(calc.cfh)} />
-            <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
-            <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
-            <Readout label="Fuel Input (MMBtu/hr)" value={fmt2(calc.fuelInputMMBtuHr)} />
-            <Readout label="kW per MCF" value={fmt2(calc.kwPerMcf)} />
             {RATE_UNITS.has(unit) && <Readout label="MLB/hr" value={fmt0(calc.mlb_per_hr)} />}
           </div>
         </CardContent>
       </Card>
 
-      {/* Total Energy */}
+      {/* Fuel Input Rate (Input Energy) */}
       <Card>
         <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">Total Energy (Quantity over time)</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Computed as hourly rate × hours of operation.
-          </p>
+          <h3 className="text-lg font-semibold border-b pb-2">Fuel Input Rate (Input Energy)</h3>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            <Readout label="CFH" value={fmt0(calc.cfh)} />
+            <Readout label="MCF/hr" value={fmt0(calc.mcf_per_hr)} />
+            <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
+            <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
+            <Readout label="Fuel Input (MMBtu/hr)" value={fmt2(calc.fuelInputMMBtuHr)} />
+            <Readout label="kW per MCF" value={fmt2(calc.kwPerMcf)} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Total Fuel Energy Consumption */}
+      <Card>
+        <CardContent className="mt-4">
+          <h3 className="text-lg font-semibold border-b pb-2">Total Fuel Energy Consumption (over time)</h3>
+          <p className="text-xs text-muted-foreground mt-1">Computed based on fuel input × hours of operation.</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-6">
             <Readout label="MCF" value={fmt0(calc.totalMCF)} />
             <Readout label="Therms" value={fmt0(calc.totalTherms)} />
             <Readout label="DTH" value={fmt0(calc.totalDTH)} />
-            <Readout label="MMBTU" value={fmt0(calc.totalMMBTU)} />
+            <Readout label="MMBtu" value={fmt0(calc.totalMMBTU)} />
             <Readout label="kWh" value={fmt0(calc.totalKWh)} />
-            <Readout label="MLB" value={fmt0(calc.totalMLB)} />
+            {RATE_UNITS.has(unit) && <Readout label="MLB" value={fmt0(calc.totalMLB)} />}
           </div>
         </CardContent>
       </Card>
