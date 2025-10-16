@@ -20,6 +20,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { BTU_PER_KW } from "@/lib/energy";
+import { ArrowDown, ArrowRight, Flame, Zap } from "lucide-react";
 
 // --- Helpers & constants ---
 const BTU_PER_TON = 12000;
@@ -40,17 +41,46 @@ const fmtCurrency = (n: number) =>
     : "–";
 const num = (v: string | number) => (typeof v === "number" ? v : Number(String(v).replace(/[,\s]/g, "")) || 0);
 
-const RATE_UNITS = new Set([
-  "BTU/hr",
-  "kW",
-  "Ton",
-  "HP",
-  "Therm/hr",
-  "DTH/hr",
-  "Steam MLB/hr",
-  "MBtu/hr",
-  "CFH",
-]);
+const INPUT_DEMAND_OPTIONS = [
+  { value: "BTU/hr", label: "BTU/hr (Fuel Input)" },
+  { value: "kW", label: "kW" },
+  { value: "Therm/hr", label: "Therm/hr" },
+  { value: "DTH/hr", label: "DTH/hr" },
+  { value: "MBtu/hr", label: "MBtu/hr" },
+  { value: "CFH", label: "CFH (Gas Flow Rate)" },
+] as const;
+
+type InputDemandUnit = (typeof INPUT_DEMAND_OPTIONS)[number]["value"];
+
+const OUTPUT_DEMAND_OPTIONS = [
+  { value: "BTU/hr", label: "BTU/hr (Delivered)" },
+  { value: "kW", label: "kW" },
+  { value: "Ton", label: "Tons" },
+  { value: "HP", label: "HP" },
+  { value: "Steam MLB/hr", label: "MLB/hr" },
+  { value: "MBtu/hr", label: "MBtu/hr" },
+] as const;
+
+type OutputDemandUnit = (typeof OUTPUT_DEMAND_OPTIONS)[number]["value"];
+
+const TOTAL_INPUT_OPTIONS = [
+  { value: "MMBtu", label: "MMBtu" },
+  { value: "Therms", label: "Therms" },
+  { value: "DTH", label: "Dth" },
+  { value: "MCF", label: "MCF" },
+] as const;
+
+type TotalInputUnit = (typeof TOTAL_INPUT_OPTIONS)[number]["value"];
+
+const TOTAL_OUTPUT_OPTIONS = [
+  { value: "MMBtu", label: "MMBtu" },
+  { value: "kWh", label: "kWh" },
+  { value: "MLB", label: "MLB" },
+  { value: "Ton-hrs", label: "Ton-hours" },
+  { value: "HP-hrs", label: "HP-hours" },
+] as const;
+
+type TotalOutputUnit = (typeof TOTAL_OUTPUT_OPTIONS)[number]["value"];
 
 const LABEL_OPTIONS = [
   "Natural Gas Furnace",
@@ -233,6 +263,86 @@ function Converter() {
   const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
   const [hours, setHours] = useState("500");
   const [efficiency, setEfficiency] = useState("90");
+  const [inputDemandUnit, setInputDemandUnit] = useState<InputDemandUnit>("BTU/hr");
+  const [outputDemandUnit, setOutputDemandUnit] = useState<OutputDemandUnit>("BTU/hr");
+  const [inputDemandTouched, setInputDemandTouched] = useState(false);
+  const [outputDemandTouched, setOutputDemandTouched] = useState(false);
+  const [totalInputUnit, setTotalInputUnit] = useState<TotalInputUnit>("MMBtu");
+  const [totalOutputUnit, setTotalOutputUnit] = useState<TotalOutputUnit>("kWh");
+  const [totalInputTouched, setTotalInputTouched] = useState(false);
+  const [totalOutputTouched, setTotalOutputTouched] = useState(false);
+
+  useEffect(() => {
+    if (!inputDemandTouched) {
+      const match = INPUT_DEMAND_OPTIONS.find((option) => option.value === unit);
+      if (match) {
+        setInputDemandUnit(match.value);
+      }
+    }
+
+    if (!outputDemandTouched) {
+      const match = OUTPUT_DEMAND_OPTIONS.find((option) => option.value === unit);
+      if (match) {
+        setOutputDemandUnit(match.value);
+      }
+    }
+
+    if (!totalInputTouched) {
+      let next: TotalInputUnit | undefined;
+      switch (unit) {
+        case "Therm/hr":
+          next = "Therms";
+          break;
+        case "DTH/hr":
+          next = "DTH";
+          break;
+        case "MBtu/hr":
+          next = "MMBtu";
+          break;
+        case "CFH":
+          next = "MCF";
+          break;
+        default:
+          next = "MMBtu";
+      }
+      setTotalInputUnit(next);
+    }
+
+    if (!totalOutputTouched) {
+      let next: TotalOutputUnit | undefined;
+      switch (unit) {
+        case "kW":
+          next = "kWh";
+          break;
+        case "Ton":
+          next = "Ton-hrs";
+          break;
+        case "HP":
+          next = "HP-hrs";
+          break;
+        default:
+          next = "MMBtu";
+      }
+      setTotalOutputUnit(next);
+    }
+  }, [unit, inputDemandTouched, outputDemandTouched, totalInputTouched, totalOutputTouched]);
+
+  const efficiencyDisplay = useMemo(() => {
+    const trimmed = efficiency.trim();
+    if (trimmed === "") {
+      return "100";
+    }
+
+    const value = num(trimmed);
+    if (!isFinite(value)) {
+      return "0";
+    }
+
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  }, [efficiency]);
 
   const calc = useMemo(() => {
     const value = num(val);
@@ -303,7 +413,6 @@ function Converter() {
     const kW = deliveredBtuh / BTU_PER_KW;
     const tons = deliveredBtuh / BTU_PER_TON;
     const hp = deliveredBtuh / BTU_PER_HP;
-    const mlb_per_hr = RATE_UNITS.has(unit) ? deliveredBtuh / BTU_PER_MLB : NaN;
     const therm_per_hr = fuelBtuh / BTU_PER_THERM;
     const dth_per_hr = fuelBtuh / BTU_PER_DTH;
     const cfh = HHV > 0 ? fuelBtuh / (HHV * 1_000) : NaN;
@@ -315,8 +424,10 @@ function Converter() {
     const totalMMBTU = (fuelBtuh / 1_000_000) * hrs;
     const totalMLB = (deliveredBtuh / BTU_PER_MLB) * hrs;
     const totalKWh = kW * hrs;
+    const totalDeliveredMMBTU = (deliveredBtuh / 1_000_000) * hrs;
+    const totalTonHours = tons * hrs;
+    const totalHpHours = hp * hrs;
     const fuelInputMMBtuHr = fuelBtuh / 1_000_000;
-    const kwPerMcf = isFinite(cfh) && cfh !== 0 ? kW / (cfh / 1_000) : NaN;
 
     return {
       deliveredBtuh,
@@ -325,7 +436,6 @@ function Converter() {
       kW,
       tons,
       hp,
-      mlb_per_hr,
       cfh,
       therm_per_hr,
       dth_per_hr,
@@ -335,14 +445,103 @@ function Converter() {
       totalMMBTU,
       totalMLB,
       totalKWh,
-      kwPerMcf,
+      totalDeliveredMMBTU,
+      totalTonHours,
+      totalHpHours,
       category,
       colorClass,
     };
   }, [val, unit, hhv, hours, energyReference, efficiency]);
 
+  const inputDemandDisplay = useMemo(() => {
+    switch (inputDemandUnit) {
+      case "BTU/hr":
+        return fmt0(calc.fuelBtuh);
+      case "kW":
+        return fmt2(calc.fuelBtuh / BTU_PER_KW);
+      case "Therm/hr":
+        return fmt2(calc.therm_per_hr);
+      case "DTH/hr":
+        return fmt2(calc.dth_per_hr);
+      case "MBtu/hr":
+        return fmt2(calc.fuelBtuh / 1_000_000);
+      case "CFH":
+        return fmt0(calc.cfh);
+      default:
+        return "–";
+    }
+  }, [calc, inputDemandUnit]);
+
+  const outputDemandDisplay = useMemo(() => {
+    switch (outputDemandUnit) {
+      case "BTU/hr":
+        return fmt0(calc.deliveredBtuh);
+      case "kW":
+        return fmt2(calc.kW);
+      case "Ton":
+        return fmt2(calc.tons);
+      case "HP":
+        return fmt2(calc.hp);
+      case "Steam MLB/hr":
+        return fmt2(calc.deliveredBtuh / BTU_PER_MLB);
+      case "MBtu/hr":
+        return fmt2(calc.deliveredBtuh / 1_000_000);
+      default:
+        return "–";
+    }
+  }, [calc, outputDemandUnit]);
+
+  const totalInputDisplay = useMemo(() => {
+    switch (totalInputUnit) {
+      case "MMBtu":
+        return fmt2(calc.totalMMBTU);
+      case "Therms":
+        return fmt2(calc.totalTherms);
+      case "DTH":
+        return fmt2(calc.totalDTH);
+      case "MCF":
+        return fmt2(calc.totalMCF);
+      default:
+        return "–";
+    }
+  }, [calc, totalInputUnit]);
+
+  const totalOutputDisplay = useMemo(() => {
+    switch (totalOutputUnit) {
+      case "MMBtu":
+        return fmt2(calc.totalDeliveredMMBTU);
+      case "kWh":
+        return fmt0(calc.totalKWh);
+      case "MLB":
+        return fmt2(calc.totalMLB);
+      case "Ton-hrs":
+        return fmt2(calc.totalTonHours);
+      case "HP-hrs":
+        return fmt2(calc.totalHpHours);
+      default:
+        return "–";
+    }
+  }, [calc, totalOutputUnit]);
+
   return (
     <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm text-muted-foreground mt-2 mb-4">
+        <div className="flex items-center gap-1">
+          <Flame className="h-4 w-4" aria-hidden />
+          <span>Input Fuel Energy</span>
+        </div>
+        <ArrowDown className="h-4 w-4 sm:hidden" aria-hidden />
+        <ArrowRight className="hidden h-4 w-4 sm:block" aria-hidden />
+        <div className="border rounded-lg px-3 py-1 bg-muted/50 font-medium text-foreground">
+          Efficiency: {efficiencyDisplay}%
+        </div>
+        <ArrowDown className="h-4 w-4 sm:hidden" aria-hidden />
+        <ArrowRight className="hidden h-4 w-4 sm:block" aria-hidden />
+        <div className="flex items-center gap-1">
+          <Zap className="h-4 w-4" aria-hidden />
+          <span>Delivered Output Energy</span>
+        </div>
+      </div>
       {/* Inputs */}
       <Card>
         <CardContent className="mt-4 space-y-4">
@@ -452,39 +651,64 @@ function Converter() {
         </CardContent>
       </Card>
 
-      {/* Instantaneous Demand */}
+      {/* Demand Highlights */}
       <Card>
         <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">Instantaneous Demand</h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-            <Readout label="BTU/hr" value={fmt0(calc.deliveredBtuh)} />
-            <Readout label="kW" value={fmt0(calc.kW)} />
-            <Readout label="Tons" value={fmt0(calc.tons)} />
-            <Readout label="HP" value={fmt0(calc.hp)} />
-            <Readout label="CFH" value={fmt0(calc.cfh)} />
-            <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
-            <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
-            <Readout label="Fuel Input (MMBtu/hr)" value={fmt2(calc.fuelInputMMBtuHr)} />
-            <Readout label="kW per MCF" value={fmt2(calc.kwPerMcf)} />
-            {RATE_UNITS.has(unit) && <Readout label="MLB/hr" value={fmt0(calc.mlb_per_hr)} />}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <InstantaneousDemandPanel
+              title="Input Demand"
+              description="Fuel-side energy rate based on the current efficiency."
+              unit={inputDemandUnit}
+              onUnitChange={(next) => {
+                setInputDemandTouched(true);
+                setInputDemandUnit(next as InputDemandUnit);
+              }}
+              options={INPUT_DEMAND_OPTIONS}
+              value={inputDemandDisplay}
+            />
+            <InstantaneousDemandPanel
+              title="Output Demand"
+              description="Delivered load after applying the efficiency."
+              unit={outputDemandUnit}
+              onUnitChange={(next) => {
+                setOutputDemandTouched(true);
+                setOutputDemandUnit(next as OutputDemandUnit);
+              }}
+              options={OUTPUT_DEMAND_OPTIONS}
+              value={outputDemandDisplay}
+            />
           </div>
         </CardContent>
       </Card>
 
-      {/* Total Energy */}
+      {/* Total Energy Highlights */}
       <Card>
         <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">Total Energy (Quantity over time)</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Computed as hourly rate × hours of operation.
-          </p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-6">
-            <Readout label="MCF" value={fmt0(calc.totalMCF)} />
-            <Readout label="Therms" value={fmt0(calc.totalTherms)} />
-            <Readout label="DTH" value={fmt0(calc.totalDTH)} />
-            <Readout label="MMBTU" value={fmt0(calc.totalMMBTU)} />
-            <Readout label="kWh" value={fmt0(calc.totalKWh)} />
-            <Readout label="MLB" value={fmt0(calc.totalMLB)} />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <InstantaneousDemandPanel
+              title="Total Energy Input"
+              description="Fuel energy consumed over the selected hours."
+              unit={totalInputUnit}
+              onUnitChange={(next) => {
+                setTotalInputTouched(true);
+                setTotalInputUnit(next as TotalInputUnit);
+              }}
+              options={TOTAL_INPUT_OPTIONS}
+              value={totalInputDisplay}
+              metricLabel="Total"
+            />
+            <InstantaneousDemandPanel
+              title="Total Energy Output"
+              description="Delivered energy output across the selected hours."
+              unit={totalOutputUnit}
+              onUnitChange={(next) => {
+                setTotalOutputTouched(true);
+                setTotalOutputUnit(next as TotalOutputUnit);
+              }}
+              options={TOTAL_OUTPUT_OPTIONS}
+              value={totalOutputDisplay}
+              metricLabel="Total"
+            />
           </div>
         </CardContent>
       </Card>
@@ -497,6 +721,58 @@ function Readout({ label, value }: { label: string; value: string }) {
     <div className="rounded border p-3">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="mt-1 font-mono text-base bg-muted/30 rounded px-2 py-1 sm:text-lg">{value}</div>
+    </div>
+  );
+}
+
+type DemandOption = { value: string; label: string };
+
+function InstantaneousDemandPanel({
+  title,
+  description,
+  unit,
+  onUnitChange,
+  options,
+  value,
+  metricLabel = "Rate",
+}: {
+  title: string;
+  description: string;
+  unit: string;
+  onUnitChange: (value: string) => void;
+  options: readonly DemandOption[];
+  value: string;
+  metricLabel?: string;
+}) {
+  return (
+    <div className="space-y-4 rounded-lg border border-border/60 bg-muted/10 p-4">
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{metricLabel}</span>
+          <div className="mt-2 rounded-md bg-background/80 px-3 py-2 font-mono text-2xl font-semibold text-foreground">
+            {value}
+          </div>
+        </div>
+        <div className="sm:w-48">
+          <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Units</Label>
+          <Select value={unit} onValueChange={onUnitChange}>
+            <SelectTrigger className="mt-2">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
     </div>
   );
 }
