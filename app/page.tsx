@@ -345,7 +345,7 @@ function Converter() {
       <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm text-muted-foreground mt-2 mb-4">
         <div className="flex items-center gap-2 text-foreground">
           <Flame className="h-4 w-4" />
-          <span>Input Fuel</span>
+          <span>🔥 Input Fuel</span>
         </div>
         <ArrowDown className="h-4 w-4 sm:hidden" />
         <ArrowRight className="hidden h-4 w-4 sm:block" />
@@ -356,7 +356,7 @@ function Converter() {
         <ArrowRight className="hidden h-4 w-4 sm:block" />
         <div className="flex items-center gap-2 text-foreground">
           <Zap className="h-4 w-4" />
-          <span>Delivered Output</span>
+          <span>⚡ Delivered Output</span>
         </div>
       </div>
 
@@ -400,18 +400,8 @@ function Converter() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="input">
-                    <span className="flex items-center gap-2">
-                      <Flame className="h-4 w-4" />
-                      <span>Input Fuel</span>
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="output">
-                    <span className="flex items-center gap-2">
-                      <Zap className="h-4 w-4" />
-                      <span>Delivered Output</span>
-                    </span>
-                  </SelectItem>
+                  <SelectItem value="input">🔥 Input Fuel</SelectItem>
+                  <SelectItem value="output">⚡ Delivered Output</SelectItem>
                 </SelectContent>
               </Select>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -482,15 +472,11 @@ function Converter() {
       {/* Input Demand */}
       <Card>
         <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">
-            <span className="inline-flex items-center gap-2">
-              <Flame className="h-5 w-5" />
-              Input Demand (Fuel Energy Rate)
-            </span>
-          </h3>
+          <h3 className="text-lg font-semibold border-b pb-2">🔥 Input Demand (Fuel Energy Rate)</h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             <Readout label="BTU/hr (Input)" value={fmt0(calc.btuh_input)} />
             <Readout label="MBtu/hr (Input)" value={fmt0(calc.mbtu_per_hr_input)} />
+            <Readout label="MMBtu/hr (Input)" value={fmt0(calc.mmbtu_per_hr_input)} />
             <Readout label="CFH" value={fmt0(calc.cfh)} />
             <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
             <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
@@ -501,12 +487,7 @@ function Converter() {
       {/* Output Demand */}
       <Card>
         <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">
-            <span className="inline-flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              Output Demand (Delivered Energy Rate)
-            </span>
-          </h3>
+          <h3 className="text-lg font-semibold border-b pb-2">⚡ Output Demand (Delivered Energy Rate)</h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <Readout label="BTU/hr (Output)" value={fmt0(calc.btuh_output)} />
             <Readout label="kW" value={fmt0(calc.kW)} />
@@ -520,16 +501,12 @@ function Converter() {
       {/* Total Fuel Energy */}
       <Card>
         <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">
-            <span className="inline-flex items-center gap-2">
-              <Flame className="h-5 w-5" />
-              Total Fuel Energy (over time)
-            </span>
-          </h3>
+          <h3 className="text-lg font-semibold border-b pb-2">🔥 Total Fuel Energy (over time)</h3>
           <p className="text-xs text-muted-foreground mt-1">Computed as fuel input × hours of operation.</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             <Readout label="BTU" value={fmt0(calc.totalBtusInput)} />
             <Readout label="MBtu" value={fmt0(calc.totalMBtuInput)} />
+            <Readout label="MMBtu" value={fmt0(calc.totalMMBtuInput)} />
             <Readout label="MCF" value={fmt0(calc.totalMCF)} />
             <Readout label="Therms" value={fmt0(calc.totalTherms)} />
             <Readout label="DTH" value={fmt0(calc.totalDTH)} />
@@ -540,12 +517,7 @@ function Converter() {
       {/* Total Delivered Energy */}
       <Card>
         <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2">
-            <span className="inline-flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              Total Delivered Energy (over time)
-            </span>
-          </h3>
+          <h3 className="text-lg font-semibold border-b pb-2">⚡ Total Delivered Energy (over time)</h3>
           <p className="text-xs text-muted-foreground mt-1">Computed as delivered output × hours of operation.</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             <Readout label="BTU" value={fmt0(calc.totalBtusOutput)} />
