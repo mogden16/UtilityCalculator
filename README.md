@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UtilityCalculator
 
-## Getting Started
+A lightweight engineering toolbox for common HVAC and natural gas conversions. The
+package exposes clear functions with documented assumptions and a simple CLI for
+quick calculations.
 
-First, run the development server:
+## Engineering assumptions
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- 1 ton of cooling = 12,000 Btu/h.
+- 1,000,000 Btu = 1 MMBtu.
+- 1 Dth = 1 MMBtu.
+- Default gas heating value: 1.035 MMBtu per MCF (PGW convention).
+
+## Package layout
+
+```
+utility_calculator/
+    __init__.py
+    constants.py
+    units.py
+    hvac.py
+    gas.py
+    cli.py
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Tests live under `tests/` and cover the anchor values described above.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Python usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-## Learn More
+Example conversions:
 
-To learn more about Next.js, take a look at the following resources:
+```python
+from utility_calculator import (
+    btuh_to_mmbtuh,
+    btuh_to_tons,
+    mcf_to_mmbtu,
+    tons_to_mcf_per_hr,
+)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+print(btuh_to_tons(36_000_000))          # 3000 tons
+print(btuh_to_mmbtuh(36_000_000))        # 36 MMBtu/h
+print(mcf_to_mmbtu(1))                   # 1.035 MMBtu at default HV
+print(tons_to_mcf_per_hr(3000))          # ~34.78 MCF/h at 100% eff
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## CLI usage
 
-## Deploy on Vercel
+Run common conversions straight from the command line:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+python -m utility_calculator.cli tons-to-mcf --tons 3000 --eff 0.85
+python -m utility_calculator.cli tons-to-btuh 150
+python -m utility_calculator.cli mmbtuh-to-btuh 36
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Each subcommand prints the numeric result for piping into other tools.
+
+## Testing
+
+Run the pytest suite after installing the Python requirements:
+
+```
+pytest
+```
