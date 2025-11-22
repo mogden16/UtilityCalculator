@@ -16,7 +16,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip as RechartTooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
 } from "recharts";
@@ -33,6 +33,7 @@ const BTU_PER_GAL_DIESEL = 137000; // Diesel
 const DEFAULT_HHV_MBTU_PER_MCF = 1.035;
 const BTU_PER_MCF = DEFAULT_HHV_MBTU_PER_MCF * 1_000_000;
 const BTU_PER_CCF = BTU_PER_MCF / 10;
+const NAT_GAS_DIRECT_G_PER_KWH = 181;
 
 const fmt0 = (n: number) => (isFinite(n) ? Math.round(n).toLocaleString() : "–");
 const fmt1 = (n: number) =>
@@ -796,7 +797,7 @@ function LoadEstimator() {
                     style: { fill: "#888", textAnchor: "middle" },
                   }}
                 />
-                <RechartTooltip
+                <RechartsTooltip
                   formatter={(value: string | number, name: string) => [
                     `${fmt0(Number(value))} BTU/hr`,
                     name,
@@ -1157,6 +1158,171 @@ function EnergyComparison() {
         </CardContent>
       </Card>
 
+    </div>
+  );
+}
+
+// --- Grid Emissions ---
+function GridEmissionsTab() {
+  const [data, setData] = useState<{
+    carbonIntensity_g_per_kwh: number | null;
+    datetime: string | null;
+    zone: string | null;
+    mix: { source: string; percentage: number }[];
+    error?: string;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch("/api/grid-emissions");
+        const json = await response.json();
+
+        if (!isActive) return;
+
+        if (!response.ok || json?.error) {
+          setError(json?.error ?? "Unable to load grid emissions data right now.");
+          setData(json);
+        } else {
+          setData(json);
+        }
+      } catch (_err) {
+        if (isActive) {
+          setError("Unable to load grid emissions data right now.");
+        }
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="pt-6 text-sm text-muted-foreground">Loading PJM grid emissions …</CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6 text-sm text-red-600 dark:text-red-400">{error}</CardContent>
+      </Card>
+    );
+  }
+
+  if (!data) {
+    return (
+      <Card>
+        <CardContent className="pt-6 text-sm text-muted-foreground">No data available.</CardContent>
+      </Card>
+    );
+  }
+
+  const intensityRounded =
+    typeof data.carbonIntensity_g_per_kwh === "number" ? Math.round(data.carbonIntensity_g_per_kwh) : null;
+  const intensityKg =
+    typeof data.carbonIntensity_g_per_kwh === "number"
+      ? (data.carbonIntensity_g_per_kwh / 1_000).toFixed(3)
+      : null;
+  const timestamp = data.datetime ? new Date(data.datetime).toLocaleString() : null;
+  const zone = data.zone ?? "US-MIDA-PJM";
+
+  const gridIntensity = data.carbonIntensity_g_per_kwh;
+  const gasIntensity = NAT_GAS_DIRECT_G_PER_KWH;
+  const ratio =
+    typeof gridIntensity === "number" && isFinite(gridIntensity) && gasIntensity > 0
+      ? gridIntensity / gasIntensity
+      : null;
+
+  const chartData = Array.isArray(data.mix) ? data.mix.slice(0, 6) : [];
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="pt-6 space-y-2">
+          <div className="text-2xl font-semibold">
+            {intensityRounded !== null
+              ? `PJM grid is currently ${intensityRounded} gCO₂e per kWh`
+              : "PJM grid carbon intensity not available"}
+          </div>
+          {intensityKg !== null && (
+            <div className="text-sm text-muted-foreground">{`${intensityKg} kgCO₂e per kWh`}</div>
+          )}
+          <div className="text-xs text-muted-foreground">
+            <span>{`Zone: ${zone}`}</span>
+            {timestamp ? <span>{` • Updated: ${timestamp}`}</span> : <span>{" • Time not available"}</span>}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-6 space-y-2">
+          <h3 className="text-lg font-semibold">Grid vs. natural gas</h3>
+          {ratio !== null ? (
+            <p className="text-sm text-muted-foreground">
+              {ratio >= 1
+                ? `The PJM grid is about ${ratio.toFixed(1)} times higher CO₂ per kWh than direct natural gas combustion.`
+                : `The PJM grid is about ${ratio.toFixed(1)} times the CO₂ per kWh of direct natural gas combustion.`}
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">Grid carbon intensity not available.</p>
+          )}
+          <div className="text-sm space-y-1">
+            <div>
+              PJM grid: {intensityRounded !== null ? `${intensityRounded} gCO₂ per kWh` : "Not available"}
+            </div>
+            <div>Natural gas (direct combustion): {gasIntensity} gCO₂ per kWh</div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-6 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Current PJM electricity mix</h3>
+            <p className="text-xs text-muted-foreground">
+              Share of electricity consumption by source (from Electricity Maps).
+            </p>
+          </div>
+          {chartData.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No mix data available.</p>
+          ) : (
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+                  <XAxis dataKey="source" />
+                  <YAxis unit="%" />
+                  <RechartsTooltip />
+                  <Legend />
+                  <Bar dataKey="percentage" name="Share" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <p className="text-xs text-muted-foreground">
+        Data source: Electricity Maps, PJM zone US-MIDA-PJM. Carbon intensity values are in gCO₂e per kWh. Natural
+        gas reference is a simplified direct combustion factor and does not include upstream or lifecycle emissions.
+      </p>
     </div>
   );
 }
@@ -1530,6 +1696,7 @@ export default function EnergyProToolkit() {
         <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
           <TabsTrigger value="converter">Converter</TabsTrigger>
           <TabsTrigger value="energy">Energy Comparison</TabsTrigger>
+          <TabsTrigger value="grid">Grid Emissions</TabsTrigger>
           <TabsTrigger value="load">Load Estimator</TabsTrigger>
           <TabsTrigger value="gasflow">Gas Flow</TabsTrigger>
           <TabsTrigger value="convert" className="flex-shrink-0">
@@ -1544,6 +1711,9 @@ export default function EnergyProToolkit() {
         </TabsContent>
         <TabsContent value="energy">
           <EnergyComparison />
+        </TabsContent>
+        <TabsContent value="grid">
+          <GridEmissionsTab />
         </TabsContent>
         <TabsContent value="load">
           <LoadEstimator />
