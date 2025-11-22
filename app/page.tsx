@@ -31,6 +31,8 @@ const BTU_PER_MLB = 1_000_000;
 const BTU_PER_GAL_OIL_NO2 = 138500; // No. 2 fuel oil
 const BTU_PER_GAL_DIESEL = 137000; // Diesel
 const DEFAULT_HHV_MBTU_PER_MCF = 1.035;
+const BTU_PER_MCF = DEFAULT_HHV_MBTU_PER_MCF * 1_000_000;
+const BTU_PER_CCF = BTU_PER_MCF / 10;
 
 const fmt0 = (n: number) => (isFinite(n) ? Math.round(n).toLocaleString() : "–");
 const fmt1 = (n: number) =>
@@ -1204,6 +1206,16 @@ const CONVERSION_CATEGORY_DEFINITIONS: Record<ConversionCategoryKey, CategoryDef
         label: "MMBTU",
         toBase: (value) => value * 1_000_000,
         fromBase: (value) => value / 1_000_000,
+      },
+      mcf: {
+        label: "MCF",
+        toBase: (value) => value * BTU_PER_MCF,
+        fromBase: (value) => value / BTU_PER_MCF,
+      },
+      ccf: {
+        label: "CCF",
+        toBase: (value) => value * BTU_PER_CCF,
+        fromBase: (value) => value / BTU_PER_CCF,
       },
       kwh: {
         label: "kWh",
