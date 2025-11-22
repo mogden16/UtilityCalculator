@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 const ZONE_ID = "US-MIDA-PJM";
 const CARBON_INTENSITY_URL = `https://api.electricitymaps.com/v3/carbon-intensity/latest?zone=${ZONE_ID}`;
 const ELECTRICITY_MIX_URL = `https://api.electricitymaps.com/v3/electricity-mix/latest?zone=${ZONE_ID}`;
