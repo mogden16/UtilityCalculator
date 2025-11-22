@@ -25,6 +25,7 @@ import {
   BTU_PER_KW,
   BTU_PER_THERM,
   DEFAULT_HHV_MMBTU_PER_MCF,
+  TON_TO_BTUH,
   btuhToCFH,
   btuhToDth,
   btuhToDthPerHour,
@@ -683,7 +684,7 @@ function LoadEstimator() {
   const out = useMemo(() => {
     const heat = area * heatingFactor;
     const cool = area * coolingFactor;
-    const tons = cool / BTU_PER_TON;
+    const tons = cool / TON_TO_BTUH;
     const mbh = heat / 1000;
     return { heat, cool, tons, mbh };
   }, [area, heatingFactor, coolingFactor]);
