@@ -28,7 +28,11 @@ const BTU_PER_HP = 2544.4336;
 const BTU_PER_THERM = 100000;
 const BTU_PER_DTH = 1_000_000;
 const BTU_PER_MLB = 1_000_000;
+const BTU_PER_GAL_OIL_NO2 = 138500; // No. 2 fuel oil
+const BTU_PER_GAL_DIESEL = 137000; // Diesel
 const DEFAULT_HHV_MBTU_PER_MCF = 1.035;
+const BTU_PER_MCF = DEFAULT_HHV_MBTU_PER_MCF * 1_000_000;
+const BTU_PER_CCF = BTU_PER_MCF / 10;
 
 const fmt0 = (n: number) => (isFinite(n) ? Math.round(n).toLocaleString() : "–");
 const fmt1 = (n: number) =>
@@ -254,6 +258,12 @@ function Converter() {
       case "Steam MLB/hr":
         baseBtuh = value * BTU_PER_MLB;
         break;
+      case "No. 2 Oil (gal/hr)":
+        baseBtuh = value * BTU_PER_GAL_OIL_NO2;
+        break;
+      case "Diesel (gal/hr)":
+        baseBtuh = value * BTU_PER_GAL_DIESEL;
+        break;
       case "MBtu/hr":
         baseBtuh = value * 1_000;
         break;
@@ -298,6 +308,8 @@ function Converter() {
     const dth_per_hr = btuh_input / BTU_PER_DTH;
     const mbtu_per_hr_input = btuh_input / 1_000;
     const cfh = btuh_input / (HHV * 1_000);
+    const oil_gph = btuh_input / BTU_PER_GAL_OIL_NO2;
+    const diesel_gph = btuh_input / BTU_PER_GAL_DIESEL;
 
     const totalCF = cfh * hrs;
     const totalMCF = totalCF / 1_000;
@@ -309,6 +321,8 @@ function Converter() {
     const totalMLB = mlb_per_hr * hrs;
     const totalKWh = kW * hrs;
     const totalTons = tons * hrs;
+    const totalOilGallons = oil_gph * hrs;
+    const totalDieselGallons = diesel_gph * hrs;
 
     return {
       btuh_input,
@@ -321,6 +335,8 @@ function Converter() {
       dth_per_hr,
       mbtu_per_hr_input,
       cfh,
+      oil_gph,
+      diesel_gph,
       totalMCF,
       totalTherms,
       totalDTH,
@@ -330,6 +346,8 @@ function Converter() {
       totalMLB,
       totalKWh,
       totalTons,
+      totalOilGallons,
+      totalDieselGallons,
       efficiencyPct,
       category,
       colorClass,
@@ -379,6 +397,8 @@ function Converter() {
                   <SelectItem value="Therm/hr">Therm/hr (Energy Rate)</SelectItem>
                   <SelectItem value="DTH/hr">DTH/hr (Energy Rate)</SelectItem>
                   <SelectItem value="Steam MLB/hr">MLB/hr (Steam Flow Rate)</SelectItem>
+                  <SelectItem value="No. 2 Oil (gal/hr)">No. 2 Oil (gal/hr)</SelectItem>
+                  <SelectItem value="Diesel (gal/hr)">Diesel (gal/hr)</SelectItem>
                   <SelectItem value="MBtu/hr">MBtu/hr (Energy Rate)</SelectItem>
                   <SelectItem value="MMBtu/hr">MMBtu/hr (Energy Rate)</SelectItem>
                   <SelectItem value="CFH">CFH (Gas Flow Rate)</SelectItem>
@@ -488,6 +508,8 @@ function Converter() {
             <Readout label="CFH" value={fmt0(calc.cfh)} />
             <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
             <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
+            <Readout label="No. 2 Oil (gal/hr)" value={fmt2(calc.oil_gph)} />
+            <Readout label="Diesel (gal/hr)" value={fmt2(calc.diesel_gph)} />
           </div>
         </CardContent>
       </Card>
@@ -523,6 +545,8 @@ function Converter() {
             <Readout label="MCF" value={fmt0(calc.totalMCF)} />
             <Readout label="Therms" value={fmt0(calc.totalTherms)} />
             <Readout label="DTH" value={fmt0(calc.totalDTH)} />
+            <Readout label="No. 2 Oil (gal)" value={fmt2(calc.totalOilGallons)} />
+            <Readout label="Diesel (gal)" value={fmt2(calc.totalDieselGallons)} />
           </div>
         </CardContent>
       </Card>
@@ -1183,10 +1207,30 @@ const CONVERSION_CATEGORY_DEFINITIONS: Record<ConversionCategoryKey, CategoryDef
         toBase: (value) => value * 1_000_000,
         fromBase: (value) => value / 1_000_000,
       },
+      mcf: {
+        label: "MCF",
+        toBase: (value) => value * BTU_PER_MCF,
+        fromBase: (value) => value / BTU_PER_MCF,
+      },
+      ccf: {
+        label: "CCF",
+        toBase: (value) => value * BTU_PER_CCF,
+        fromBase: (value) => value / BTU_PER_CCF,
+      },
       kwh: {
         label: "kWh",
         toBase: (value) => value * 3_412,
         fromBase: (value) => value / 3_412,
+      },
+      oilno2: {
+        label: "No. 2 Oil (gal)",
+        toBase: (value) => value * BTU_PER_GAL_OIL_NO2,
+        fromBase: (value) => value / BTU_PER_GAL_OIL_NO2,
+      },
+      diesel: {
+        label: "Diesel (gal)",
+        toBase: (value) => value * BTU_PER_GAL_DIESEL,
+        fromBase: (value) => value / BTU_PER_GAL_DIESEL,
       },
     },
   },
