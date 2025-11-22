@@ -9,7 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import { ArrowDown, ArrowLeftRight, ArrowRight, Flame, Zap } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Flame, Zap } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -20,15 +20,31 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { BTU_PER_KW } from "@/lib/energy";
+import {
+  BTU_PER_DTH,
+  BTU_PER_KW,
+  BTU_PER_THERM,
+  DEFAULT_HHV_MMBTU_PER_MCF,
+  btuhToCFH,
+  btuhToDth,
+  btuhToDthPerHour,
+  btuhToHp,
+  btuhToKw,
+  btuhToMcfPerHour,
+  btuhToThermPerHour,
+  btuhToTons,
+  cfhToBtuh,
+  dthPerHourToBtuh,
+  dthToMcf,
+  hpToBtuh,
+  kwToBtuh,
+  mcfPerHourToBtuh,
+  mcfToDth,
+  thermPerHourToBtuh,
+  tonsToBtuh,
+} from "@/lib/energyConversions";
 
 // --- Helpers & constants ---
-const BTU_PER_TON = 12000;
-const BTU_PER_HP = 2544.4336;
-const BTU_PER_THERM = 100000;
-const BTU_PER_DTH = 1_000_000;
-const BTU_PER_MLB = 1_000_000;
-const DEFAULT_HHV_MBTU_PER_MCF = 1.035;
 
 const fmt0 = (n: number) => (isFinite(n) ? Math.round(n).toLocaleString() : "–");
 const fmt1 = (n: number) =>
@@ -219,14 +235,14 @@ function Converter() {
   const [val, setVal] = useState("9000000");
   const [unit, setUnit] = useState("BTU/hr");
   const [energyReference, setEnergyReference] = useState<"input" | "output">("output");
-  const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
+  const [hhv, setHhv] = useState(String(DEFAULT_HHV_MMBTU_PER_MCF));
   const [hours, setHours] = useState("500");
   const [efficiency, setEfficiency] = useState("90");
 
   const calc = useMemo(() => {
     const value = num(val);
     const parsedHHV = num(hhv);
-    const HHV = parsedHHV > 0 ? parsedHHV : DEFAULT_HHV_MBTU_PER_MCF;
+    const HHV = parsedHHV > 0 ? parsedHHV : DEFAULT_HHV_MMBTU_PER_MCF;
     const hrs = Math.max(num(hours), 0);
     const efficiencyInput = efficiency.trim();
     const parsedEfficiency = num(efficiencyInput);
@@ -234,47 +250,34 @@ function Converter() {
 
     const efficiencyDecimal = efficiencyPct > 0 ? efficiencyPct / 100 : 0.9;
 
-    let baseBtuh = value;
-    switch (unit) {
-      case "kW":
-        baseBtuh = value * BTU_PER_KW;
-        break;
-      case "Ton":
-        baseBtuh = value * BTU_PER_TON;
-        break;
-      case "HP":
-        baseBtuh = value * BTU_PER_HP;
-        break;
-      case "Therm/hr":
-        baseBtuh = value * BTU_PER_THERM;
-        break;
-      case "DTH/hr":
-        baseBtuh = value * BTU_PER_DTH;
-        break;
-      case "Steam MLB/hr":
-        baseBtuh = value * BTU_PER_MLB;
-        break;
-      case "MBtu/hr":
-        baseBtuh = value * 1_000;
-        break;
-      case "MMBtu/hr":
-        baseBtuh = value * 1_000_000;
-        break;
-      case "CFH":
-        baseBtuh = value * HHV * 1_000;
-        break;
-    }
+    const enteredBtuh = (() => {
+      switch (unit) {
+        case "kW":
+          return kwToBtuh(value);
+        case "Ton":
+        case "Tons":
+          return tonsToBtuh(value);
+        case "HP":
+          return hpToBtuh(value);
+        case "Therm/hr":
+          return thermPerHourToBtuh(value);
+        case "Dth/hr":
+          return dthPerHourToBtuh(value);
+        case "CFH":
+          return cfhToBtuh(value, HHV);
+        case "MCF/hr":
+          return mcfPerHourToBtuh(value, HHV);
+        case "MBtu/hr":
+        case "MMBtu/hr":
+          return value * BTU_PER_DTH;
+        case "BTU/hr":
+        default:
+          return value;
+      }
+    })();
 
-    let btuh_input = baseBtuh;
-    let btuh_output = baseBtuh;
-
-    if (energyReference === "input") {
-      btuh_input = baseBtuh;
-      btuh_output = btuh_input * efficiencyDecimal;
-    } else {
-      btuh_output = baseBtuh;
-      btuh_input = efficiencyDecimal > 0 ? btuh_output / efficiencyDecimal : btuh_output;
-    }
+    const btuh_input = energyReference === "input" ? enteredBtuh : enteredBtuh / efficiencyDecimal;
+    const btuh_output = energyReference === "input" ? enteredBtuh * efficiencyDecimal : enteredBtuh;
 
     // Auto-classification
     let category = "Unknown";
@@ -290,46 +293,67 @@ function Converter() {
       colorClass = "text-red-500";
     }
 
-    const kW = btuh_output / BTU_PER_KW;
-    const tons = btuh_output / BTU_PER_TON;
-    const hp = btuh_output / BTU_PER_HP;
-    const mlb_per_hr = btuh_output / BTU_PER_MLB;
-    const therm_per_hr = btuh_input / BTU_PER_THERM;
-    const dth_per_hr = btuh_input / BTU_PER_DTH;
-    const mbtu_per_hr_input = btuh_input / 1_000;
-    const cfh = btuh_input / (HHV * 1_000);
+    const inputKw = btuhToKw(btuh_input);
+    const inputTons = btuhToTons(btuh_input);
+    const inputHp = btuhToHp(btuh_input);
+    const inputThermPerHr = btuhToThermPerHour(btuh_input);
+    const inputDthPerHr = btuhToDthPerHour(btuh_input);
+    const inputMbtuPerHr = btuhToDthPerHour(btuh_input);
+    const inputCfh = btuhToCFH(btuh_input, HHV);
+    const inputMcfPerHr = btuhToMcfPerHour(btuh_input, HHV);
 
-    const totalCF = cfh * hrs;
-    const totalMCF = totalCF / 1_000;
-    const totalTherms = therm_per_hr * hrs;
-    const totalDTH = dth_per_hr * hrs;
+    const outputKw = btuhToKw(btuh_output);
+    const outputTons = btuhToTons(btuh_output);
+    const outputHp = btuhToHp(btuh_output);
+    const outputThermPerHr = btuhToThermPerHour(btuh_output);
+    const outputDthPerHr = btuhToDthPerHour(btuh_output);
+    const outputMbtuPerHr = btuhToDthPerHour(btuh_output);
+    const outputCfh = btuhToCFH(btuh_output, HHV);
+    const outputMcfPerHr = btuhToMcfPerHour(btuh_output, HHV);
+
     const totalBtusInput = btuh_input * hrs;
     const totalBtusOutput = btuh_output * hrs;
-    const totalMBtuInput = mbtu_per_hr_input * hrs;
-    const totalMLB = mlb_per_hr * hrs;
-    const totalKWh = kW * hrs;
-    const totalTons = tons * hrs;
+
+    const totalMBtuInput = totalBtusInput / BTU_PER_DTH;
+    const totalMBtuOutput = totalBtusOutput / BTU_PER_DTH;
+    const totalThermsInput = totalBtusInput / BTU_PER_THERM;
+    const totalThermsOutput = totalBtusOutput / BTU_PER_THERM;
+    const totalDthInput = btuhToDth(totalBtusInput);
+    const totalDthOutput = btuhToDth(totalBtusOutput);
+    const totalKWhInput = totalBtusInput / BTU_PER_KW;
+    const totalKWhOutput = totalBtusOutput / BTU_PER_KW;
+    const totalMCFInput = dthToMcf(totalDthInput, HHV);
 
     return {
       btuh_input,
       btuh_output,
-      kW,
-      tons,
-      hp,
-      mlb_per_hr,
-      therm_per_hr,
-      dth_per_hr,
-      mbtu_per_hr_input,
-      cfh,
-      totalMCF,
-      totalTherms,
-      totalDTH,
+      inputKw,
+      inputTons,
+      inputHp,
+      inputThermPerHr,
+      inputDthPerHr,
+      inputMbtuPerHr,
+      inputCfh,
+      inputMcfPerHr,
+      outputKw,
+      outputTons,
+      outputHp,
+      outputThermPerHr,
+      outputDthPerHr,
+      outputMbtuPerHr,
+      outputCfh,
+      outputMcfPerHr,
       totalBtusInput,
       totalBtusOutput,
       totalMBtuInput,
-      totalMLB,
-      totalKWh,
-      totalTons,
+      totalMBtuOutput,
+      totalThermsInput,
+      totalThermsOutput,
+      totalDthInput,
+      totalDthOutput,
+      totalKWhInput,
+      totalKWhOutput,
+      totalMCFInput,
       efficiencyPct,
       category,
       colorClass,
@@ -338,28 +362,10 @@ function Converter() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm text-muted-foreground mt-2 mb-4">
-        <div className="flex items-center gap-2 text-foreground">
-          <Flame className="h-4 w-4" aria-hidden="true" />
-          <span className="font-medium">Input Fuel</span>
-        </div>
-        <ArrowDown className="h-4 w-4 sm:hidden" />
-        <ArrowRight className="hidden h-4 w-4 sm:block" />
-        <div className="border rounded-lg px-3 py-1 bg-muted/50 font-medium text-foreground">
-          Efficiency: {fmt0(calc.efficiencyPct)}%
-        </div>
-        <ArrowDown className="h-4 w-4 sm:hidden" />
-        <ArrowRight className="hidden h-4 w-4 sm:block" />
-        <div className="flex items-center gap-2 text-foreground">
-          <Zap className="h-4 w-4" aria-hidden="true" />
-          <span className="font-medium">Delivered Output</span>
-        </div>
-      </div>
-
       {/* Inputs */}
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-end">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 items-end">
             <div>
               <Label>Value</Label>
               <Input value={val} onChange={(e) => setVal(e.target.value)} />
@@ -372,16 +378,15 @@ function Converter() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="BTU/hr">BTU/hr (Demand)</SelectItem>
-                  <SelectItem value="kW">kW (Demand)</SelectItem>
-                  <SelectItem value="Ton">Ton (Cooling Demand)</SelectItem>
-                  <SelectItem value="HP">HP (Mechanical)</SelectItem>
-                  <SelectItem value="Therm/hr">Therm/hr (Energy Rate)</SelectItem>
-                  <SelectItem value="DTH/hr">DTH/hr (Energy Rate)</SelectItem>
-                  <SelectItem value="Steam MLB/hr">MLB/hr (Steam Flow Rate)</SelectItem>
-                  <SelectItem value="MBtu/hr">MBtu/hr (Energy Rate)</SelectItem>
-                  <SelectItem value="MMBtu/hr">MMBtu/hr (Energy Rate)</SelectItem>
-                  <SelectItem value="CFH">CFH (Gas Flow Rate)</SelectItem>
+                  <SelectItem value="BTU/hr">BTU/hr</SelectItem>
+                  <SelectItem value="kW">kW</SelectItem>
+                  <SelectItem value="Ton">Tons</SelectItem>
+                  <SelectItem value="HP">HP</SelectItem>
+                  <SelectItem value="Therm/hr">Therm/hr</SelectItem>
+                  <SelectItem value="Dth/hr">Dth/hr</SelectItem>
+                  <SelectItem value="CFH">CFH</SelectItem>
+                  <SelectItem value="MCF/hr">MCF/hr</SelectItem>
+                  <SelectItem value="MBtu/hr">MBtu/hr</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -399,13 +404,13 @@ function Converter() {
                   <SelectItem value="input">
                     <span className="flex items-center gap-2">
                       <Flame className="h-4 w-4" aria-hidden="true" />
-                      <span>Input Fuel</span>
+                      <span>Input Fuel 🔥</span>
                     </span>
                   </SelectItem>
                   <SelectItem value="output">
                     <span className="flex items-center gap-2">
                       <Zap className="h-4 w-4" aria-hidden="true" />
-                      <span>Delivered Output</span>
+                      <span>Delivered Output ⚙️</span>
                     </span>
                   </SelectItem>
                 </SelectContent>
@@ -423,8 +428,24 @@ function Converter() {
               </p>
             </div>
 
-            {/* Auto Classification */}
-            <div className="flex items-end justify-end sm:col-span-2 lg:col-span-1">
+          </div>
+
+          <div className="flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                <Flame className="h-3 w-3" aria-hidden="true" />
+                <span>(Input Fuel 🔥)</span>
+              </span>
+              <span className="text-muted-foreground">
+                —[ Efficiency {fmt1(calc.efficiencyPct)}% ]→
+              </span>
+              <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                <Zap className="h-3 w-3" aria-hidden="true" />
+                <span>(Delivered Output ⚙️)</span>
+              </span>
+            </div>
+
+            <div className="flex items-center justify-end">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -454,10 +475,10 @@ function Converter() {
                 <AccordionContent>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <Label>Gas HHV (MBTU/MCF)</Label>
+                      <Label>Gas HHV (MMBtu/MCF)</Label>
                       <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Default {DEFAULT_HHV_MBTU_PER_MCF} ≈ 1,035 BTU/CF
+                        Default {DEFAULT_HHV_MMBTU_PER_MCF} ≈ 1,035 BTU/CF
                       </p>
                     </div>
                     <div>
@@ -480,14 +501,18 @@ function Converter() {
         <CardContent className="mt-4">
           <h3 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
             <Flame className="h-4 w-4" aria-hidden="true" />
-            <span>Input Demand (Fuel Energy Rate)</span>
+            <span>Input Demand (Fuel)</span>
           </h3>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             <Readout label="BTU/hr (Input)" value={fmt0(calc.btuh_input)} />
-            <Readout label="MBtu/hr (Input)" value={fmt0(calc.mbtu_per_hr_input)} />
-            <Readout label="CFH" value={fmt0(calc.cfh)} />
-            <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
-            <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
+            <Readout label="MBtu/hr (Input)" value={fmt2(calc.inputMbtuPerHr)} />
+            <Readout label="CFH" value={fmt0(calc.inputCfh)} />
+            <Readout label="MCF/hr" value={fmt2(calc.inputMcfPerHr)} />
+            <Readout label="Therm/hr" value={fmt2(calc.inputThermPerHr)} />
+            <Readout label="Dth/hr" value={fmt2(calc.inputDthPerHr)} />
+            <Readout label="kW (equiv)" value={fmt2(calc.inputKw)} />
+            <Readout label="HP (equiv)" value={fmt2(calc.inputHp)} />
+            <Readout label="Tons (equiv)" value={fmt2(calc.inputTons)} />
           </div>
         </CardContent>
       </Card>
@@ -497,14 +522,18 @@ function Converter() {
         <CardContent className="mt-4">
           <h3 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
             <Zap className="h-4 w-4" aria-hidden="true" />
-            <span>Output Demand (Delivered Energy Rate)</span>
+            <span>Output Demand (Delivered)</span>
           </h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             <Readout label="BTU/hr (Output)" value={fmt0(calc.btuh_output)} />
-            <Readout label="kW" value={fmt0(calc.kW)} />
-            <Readout label="Tons" value={fmt0(calc.tons)} />
-            <Readout label="HP" value={fmt0(calc.hp)} />
-            <Readout label="MLBs/hr" value={fmt0(calc.mlb_per_hr)} />
+            <Readout label="MBtu/hr (Output)" value={fmt2(calc.outputMbtuPerHr)} />
+            <Readout label="CFH (equiv)" value={fmt0(calc.outputCfh)} />
+            <Readout label="MCF/hr (equiv)" value={fmt2(calc.outputMcfPerHr)} />
+            <Readout label="Therm/hr" value={fmt2(calc.outputThermPerHr)} />
+            <Readout label="Dth/hr" value={fmt2(calc.outputDthPerHr)} />
+            <Readout label="kW" value={fmt2(calc.outputKw)} />
+            <Readout label="HP" value={fmt2(calc.outputHp)} />
+            <Readout label="Tons" value={fmt2(calc.outputTons)} />
           </div>
         </CardContent>
       </Card>
@@ -514,15 +543,16 @@ function Converter() {
         <CardContent className="mt-4">
           <h3 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
             <Flame className="h-4 w-4" aria-hidden="true" />
-            <span>Total Fuel Energy (over time)</span>
+            <span>Total Energy Input</span>
           </h3>
           <p className="text-xs text-muted-foreground mt-1">Computed as fuel input × hours of operation.</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             <Readout label="BTU" value={fmt0(calc.totalBtusInput)} />
-            <Readout label="MBtu" value={fmt0(calc.totalMBtuInput)} />
-            <Readout label="MCF" value={fmt0(calc.totalMCF)} />
-            <Readout label="Therms" value={fmt0(calc.totalTherms)} />
-            <Readout label="DTH" value={fmt0(calc.totalDTH)} />
+            <Readout label="MBtu (Input)" value={fmt2(calc.totalMBtuInput)} />
+            <Readout label="Dth" value={fmt2(calc.totalDthInput)} />
+            <Readout label="Therms" value={fmt0(calc.totalThermsInput)} />
+            <Readout label="kWh (equiv)" value={fmt2(calc.totalKWhInput)} />
+            <Readout label="MCF" value={fmt2(calc.totalMCFInput)} />
           </div>
         </CardContent>
       </Card>
@@ -532,14 +562,15 @@ function Converter() {
         <CardContent className="mt-4">
           <h3 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
             <Zap className="h-4 w-4" aria-hidden="true" />
-            <span>Total Delivered Energy (over time)</span>
+            <span>Total Energy Output</span>
           </h3>
           <p className="text-xs text-muted-foreground mt-1">Computed as delivered output × hours of operation.</p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <Readout label="BTU" value={fmt0(calc.totalBtusOutput)} />
-            <Readout label="kWh" value={fmt0(calc.totalKWh)} />
-            <Readout label="Tons" value={fmt0(calc.totalTons)} />
-            <Readout label="MLB" value={fmt0(calc.totalMLB)} />
+            <Readout label="MBtu (Output)" value={fmt2(calc.totalMBtuOutput)} />
+            <Readout label="Dth" value={fmt2(calc.totalDthOutput)} />
+            <Readout label="Therms" value={fmt0(calc.totalThermsOutput)} />
+            <Readout label="kWh (equiv)" value={fmt2(calc.totalKWhOutput)} />
           </div>
         </CardContent>
       </Card>
@@ -978,7 +1009,7 @@ function RateSourceCard({
 
 // --- Energy Comparison ---
 function EnergyComparison() {
-  const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
+  const [hhv, setHhv] = useState(String(DEFAULT_HHV_MMBTU_PER_MCF));
   const [usageValue, setUsageValue] = useState("1200");
   const [usageUnit, setUsageUnit] = useState<EnergyUnit>("therm");
   const [sourceA, setSourceA] = useState<RateSourceState>({
@@ -996,7 +1027,7 @@ function EnergyComparison() {
 
   const context = useMemo(() => {
     const parsed = num(hhv);
-    const fallback = parsed > 0 ? parsed : DEFAULT_HHV_MBTU_PER_MCF;
+    const fallback = parsed > 0 ? parsed : DEFAULT_HHV_MMBTU_PER_MCF;
     return { hhv: fallback };
   }, [hhv]);
 
@@ -1039,7 +1070,7 @@ function EnergyComparison() {
             <Label>Gas HHV (MMBtu/MCF)</Label>
             <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
             <p className="text-xs text-muted-foreground mt-1">
-              Defaults to {DEFAULT_HHV_MBTU_PER_MCF}. Adjust to match your territory billing factor.
+              Defaults to {DEFAULT_HHV_MMBTU_PER_MCF}. Adjust to match your territory billing factor.
             </p>
           </div>
           <div>
