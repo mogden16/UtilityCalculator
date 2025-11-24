@@ -57,10 +57,10 @@ function normalizeMix(raw: unknown): MixEntry[] {
 
 export async function GET() {
   try {
-    const token = process.env.ELECTRICITYMAPS_API_TOKEN;
+    const token = process.env.ELECTRICITYMAPS_TOKEN; // or ELECTRICITYMAPS_API_TOKEN if that’s what you ended up using
 
     if (!token) {
-      return NextResponse.json({ error: "Missing ELECTRICITYMAPS_API_TOKEN" }, { status: 500 });
+      return NextResponse.json({ error: "Missing ELECTRICITYMAPS_TOKEN" }, { status: 500 });
     }
 
     const headers = { "auth-token": token };
@@ -71,14 +71,23 @@ export async function GET() {
     ]);
 
     if (!carbonRes.ok || !mixRes.ok) {
+      const carbonText = !carbonRes.ok ? await carbonRes.text() : null;
+      const mixText = !mixRes.ok ? await mixRes.text() : null;
+
       console.error("Failed to fetch Electricity Maps data", {
         carbonStatus: carbonRes.status,
         mixStatus: mixRes.status,
+        carbonText,
+        mixText,
       });
+
       return NextResponse.json(
         {
           error: "Failed to fetch from Electricity Maps",
-          status: !carbonRes.ok ? carbonRes.status : mixRes.status,
+          carbonStatus: carbonRes.status,
+          mixStatus: mixRes.status,
+          carbonText,
+          mixText,
         },
         { status: 502 },
       );
@@ -86,26 +95,7 @@ export async function GET() {
 
     const [carbonJson, mixJson] = await Promise.all([carbonRes.json(), mixRes.json()]);
 
-    const carbonIntensity =
-      typeof carbonJson?.carbonIntensity === "number" && Number.isFinite(carbonJson.carbonIntensity)
-        ? carbonJson.carbonIntensity
-        : null;
-    const datetime =
-      typeof carbonJson?.datetime === "string"
-        ? carbonJson.datetime
-        : typeof carbonJson?.updatedAt === "string"
-          ? carbonJson.updatedAt
-          : null;
-    const zone = typeof carbonJson?.zone === "string" ? carbonJson.zone : null;
-
-    const mix = normalizeMix(mixJson);
-
-    return NextResponse.json({
-      carbonIntensity_g_per_kwh: carbonIntensity,
-      datetime,
-      zone,
-      mix,
-    });
+    // ... keep your existing carbonIntensity / datetime / zone / normalizeMix logic here ...
   } catch (error) {
     console.error("Failed to fetch grid emissions data", error);
     return NextResponse.json({ error: "Failed to fetch grid emissions data" }, { status: 500 });
