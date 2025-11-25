@@ -7,9 +7,10 @@ export async function GET() {
     const res = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0",
-        Accept: "application/json,text/csv,*/*",
-      },
-      cache: "no-store"
+        Accept: "text/csv,application/json,*/*",
+        Referer: "https://dataminer2.pjm.com/",
+        Origin: "https://dataminer2.pjm.com",
+      }
     });
 
     const text = await res.text();
@@ -19,14 +20,17 @@ export async function GET() {
         ok: res.ok,
         status: res.status,
         headers: Object.fromEntries(res.headers.entries()),
-        preview: text.substring(0, 500)
+        preview: text.slice(0, 500)
       }),
       { headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
     return new Response(
       JSON.stringify({ error: String(err) }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      }
     );
   }
 }
