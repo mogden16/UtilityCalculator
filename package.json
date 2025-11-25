@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:pjm-gen-emissions": "node scripts/test-pjm-gen-emissions.js"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
