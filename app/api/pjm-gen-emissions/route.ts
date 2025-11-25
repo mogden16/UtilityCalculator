@@ -228,20 +228,36 @@ function buildResponsePayload(totals: Map<FuelCategory, AggregatedFuel>, timesta
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   try {
-    const url = new URL(FEED_URL);
-    url.searchParams.set("rowCount", ROW_COUNT);
+    const url = new URL(request.url);
+    if (url.searchParams.has("test")) {
+      return new Response(
+        JSON.stringify({ ok: true, source: "pjm-gen-emissions-test" }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
 
-    const response = await fetch(url.toString(), {
+    const feedUrl = new URL(FEED_URL);
+    feedUrl.searchParams.set("rowCount", ROW_COUNT);
+
+    const response = await fetch(feedUrl.toString(), {
       signal: controller.signal,
       headers: { Accept: "application/json,text/csv" },
+      cache: "no-store",
     });
 
     if (!response.ok) {
+      const preview = await response.text().catch(() => "<unavailable>");
+      console.error("pjm-gen-emissions fetch failed", {
+        status: response.status,
+        statusText: response.statusText,
+        preview: preview.slice(0, 500),
+      });
+
       return new Response(
         JSON.stringify({ error: "Failed to fetch PJM gen_by_fuel", status: response.status }),
         { status: 502, headers: { "Content-Type": "application/json" } },
@@ -253,16 +269,22 @@ export async function GET() {
 
     let rawRecords: Array<Record<string, any>> = [];
     if (contentType.includes("json")) {
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed)) {
-        rawRecords = parsed as Array<Record<string, any>>;
-      } else if (parsed && typeof parsed === "object") {
-        const listLike = Object.values(parsed).find((value) => Array.isArray(value));
-        if (Array.isArray(listLike)) {
-          rawRecords = listLike as Array<Record<string, any>>;
+      try {
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) {
+          rawRecords = parsed as Array<Record<string, any>>;
+        } else if (parsed && typeof parsed === "object") {
+          const listLike = Object.values(parsed).find((value) => Array.isArray(value));
+          if (Array.isArray(listLike)) {
+            rawRecords = listLike as Array<Record<string, any>>;
+          }
         }
+      } catch (err) {
+        console.error("pjm-gen-emissions JSON parse failed", err);
       }
-    } else {
+    }
+
+    if (!rawRecords.length) {
       rawRecords = parseCsv(text);
     }
 
@@ -274,6 +296,7 @@ export async function GET() {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
+    console.error("pjm-gen-emissions route error", error);
     return new Response(
       JSON.stringify({ error: "Failed to fetch PJM gen_by_fuel", status: 502 }),
       { status: 502, headers: { "Content-Type": "application/json" } },
