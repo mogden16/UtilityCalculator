@@ -1522,6 +1522,113 @@ function Tests() {
   );
 }
 
+// --- Grid Emissions ---
+type GridMixRow = {
+  fuel_type: string;
+  category: string;
+  mw: number;
+  percentage: number;
+  factor_g_per_kwh: number;
+};
+
+type GridEmissionsData = {
+  carbonIntensity_g_per_kwh: number | null;
+  datetime: string | null;
+  zone: string;
+  mix: GridMixRow[];
+};
+
+function GridEmissionsTab() {
+  const [gridData, setGridData] = useState<GridEmissionsData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let canceled = false;
+
+    const fetchGridEmissions = async () => {
+      try {
+        const response = await fetch("/api/pjm-gen-emissions");
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = (await response.json()) as GridEmissionsData;
+        if (!canceled) {
+          setGridData(data);
+          setError(null);
+        }
+      } catch (err) {
+        if (!canceled) {
+          setError("Unable to load grid emissions data right now.");
+        }
+      } finally {
+        if (!canceled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchGridEmissions();
+    const interval = setInterval(fetchGridEmissions, 15 * 60 * 1000);
+
+    return () => {
+      canceled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const mix = useMemo(
+    () => (gridData?.mix ? [...gridData.mix].sort((a, b) => b.percentage - a.percentage) : []),
+    [gridData?.mix],
+  );
+
+  const carbonIntensity = gridData?.carbonIntensity_g_per_kwh ?? null;
+  const timestampLabel = gridData?.datetime ? new Date(gridData.datetime).toLocaleString() : "–";
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="mt-4 space-y-2">
+          <div className="flex flex-col gap-1">
+            <h3 className="text-lg font-semibold">PJM Grid Emissions (approximate)</h3>
+            <p className="text-sm text-muted-foreground">gCO2e per kWh (source: PJM gen_by_fuel feed)</p>
+          </div>
+          <div className="text-4xl font-bold leading-tight">
+            {carbonIntensity !== null ? fmt1(carbonIntensity) : "–"}
+          </div>
+          <p className="text-sm text-muted-foreground">Last updated: {timestampLabel}</p>
+          {loading && <p className="text-sm text-muted-foreground">Loading latest data…</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
+        </CardContent>
+      </Card>
+
+      <div className="space-y-2">
+        <h4 className="text-base font-semibold">Generation mix</h4>
+        {mix.length === 0 && !loading ? (
+          <p className="text-sm text-muted-foreground">No generation data available.</p>
+        ) : (
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {mix.map((row) => (
+              <Card key={`${row.category}-${row.fuel_type}`} className="h-full">
+                <CardContent className="mt-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-base font-semibold">{row.fuel_type}</div>
+                    <div className="text-sm text-muted-foreground">{fmt1(row.percentage)}%</div>
+                  </div>
+                  <div className="text-2xl font-bold leading-tight">{fmt0(row.mw)} MW</div>
+                  <p className="text-sm text-muted-foreground">Emission factor: {fmt0(row.factor_g_per_kwh)} gCO2e/kWh</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <p className="text-sm text-muted-foreground">Data refreshes automatically every 15 minutes while this tab is open.</p>
+    </div>
+  );
+}
+
 // --- Page ---
 export default function EnergyProToolkit() {
   return (
@@ -1530,6 +1637,7 @@ export default function EnergyProToolkit() {
         <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
           <TabsTrigger value="converter">Converter</TabsTrigger>
           <TabsTrigger value="energy">Energy Comparison</TabsTrigger>
+          <TabsTrigger value="grid">Grid Emissions</TabsTrigger>
           <TabsTrigger value="load">Load Estimator</TabsTrigger>
           <TabsTrigger value="gasflow">Gas Flow</TabsTrigger>
           <TabsTrigger value="convert" className="flex-shrink-0">
@@ -1544,6 +1652,9 @@ export default function EnergyProToolkit() {
         </TabsContent>
         <TabsContent value="energy">
           <EnergyComparison />
+        </TabsContent>
+        <TabsContent value="grid">
+          <GridEmissionsTab />
         </TabsContent>
         <TabsContent value="load">
           <LoadEstimator />
