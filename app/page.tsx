@@ -1161,6 +1161,157 @@ function EnergyComparison() {
   );
 }
 
+// --- Emissions Comparison ---
+type EmissionsApiResponse = {
+  carbonIntensity?: number;
+  carbonIntensityUnits?: string;
+  carbon_intensity?: number;
+  carbon_intensity_units?: string;
+  gridMix?: Array<Record<string, unknown>> | Record<string, number>;
+  grid_mix?: Array<Record<string, unknown>> | Record<string, number>;
+  mix?: Array<Record<string, unknown>> | Record<string, number>;
+  updatedAt?: string;
+  timestamp?: string;
+};
+
+type GridMixEntry = { label: string; value: number };
+
+function EmissionsComparison() {
+  const [data, setData] = useState<EmissionsApiResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const carbonIntensity = useMemo(() => {
+    const value = data?.carbonIntensity ?? data?.carbon_intensity;
+    return typeof value === "number" && isFinite(value) ? value : null;
+  }, [data]);
+
+  const carbonIntensityUnits = data?.carbonIntensityUnits ?? data?.carbon_intensity_units ?? "lbs CO₂/MWh";
+
+  const gridMix = useMemo(() => {
+    const rawMix = (data?.gridMix ?? data?.grid_mix ?? data?.mix) as
+      | Array<Record<string, unknown>>
+      | Record<string, unknown>
+      | undefined;
+
+    if (!rawMix) return [] as GridMixEntry[];
+
+    if (Array.isArray(rawMix)) {
+      return rawMix
+        .map((entry, index) => {
+          const label =
+            (entry.fuel as string) ||
+            (entry.source as string) ||
+            (entry.type as string) ||
+            (entry.name as string) ||
+            `Source ${index + 1}`;
+          const value = Number(entry.percentage ?? entry.percent ?? entry.value ?? entry.share ?? entry.mix ?? 0);
+          return { label, value } satisfies GridMixEntry;
+        })
+        .filter((entry) => isFinite(entry.value))
+        .sort((a, b) => b.value - a.value);
+    }
+
+    return Object.entries(rawMix)
+      .map(([label, value]) => ({ label, value: Number(value) }))
+      .filter((entry) => isFinite(entry.value))
+      .sort((a, b) => b.value - a.value);
+  }, [data]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchEmissions = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("/api/pjm-gen-emissions");
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+        const payload: EmissionsApiResponse = await response.json();
+        if (isMounted) {
+          setData(payload);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : "Unable to load emissions data");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchEmissions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardContent className="mt-4 space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">PJM Generation Emissions</h3>
+            <p className="text-sm text-muted-foreground">
+              Live grid mix and carbon intensity from the PJM Data Miner feed.
+            </p>
+          </div>
+
+          {loading && (
+            <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-sm">Loading emissions data…</div>
+          )}
+
+          {error && !loading && (
+            <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+          {!loading && !error && (
+            <div className="grid gap-4 md:grid-cols-[1.1fr_1fr]">
+              <div className="rounded-md border border-border/60 p-4 space-y-3">
+                <div>
+                  <div className="text-sm text-muted-foreground">Carbon Intensity</div>
+                  <div className="text-3xl font-semibold">
+                    {carbonIntensity !== null ? fmt1(carbonIntensity) : "–"}
+                    <span className="ml-2 text-base font-normal text-muted-foreground">{carbonIntensityUnits}</span>
+                  </div>
+                </div>
+                {data?.updatedAt || data?.timestamp ? (
+                  <div className="text-xs text-muted-foreground">
+                    Updated {new Date((data.updatedAt ?? data.timestamp) as string).toLocaleString()}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="rounded-md border border-border/60 p-4">
+                <div className="font-semibold mb-2">Grid Mix</div>
+                {gridMix.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">No grid mix data available.</div>
+                ) : (
+                  <div className="space-y-2">
+                    {gridMix.map((entry) => (
+                      <div key={entry.label} className="flex items-center justify-between text-sm">
+                        <span className="text-foreground">{entry.label}</span>
+                        <span className="font-mono text-muted-foreground">{fmt1(entry.value)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // --- Conversions tab utilities ---
 const TEMPERATURE_OFFSETS = {
   freezingFahrenheit: 32,
@@ -1530,6 +1681,7 @@ export default function EnergyProToolkit() {
         <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
           <TabsTrigger value="converter">Converter</TabsTrigger>
           <TabsTrigger value="energy">Energy Comparison</TabsTrigger>
+          <TabsTrigger value="emissions">Emissions Comparison</TabsTrigger>
           <TabsTrigger value="load">Load Estimator</TabsTrigger>
           <TabsTrigger value="gasflow">Gas Flow</TabsTrigger>
           <TabsTrigger value="convert" className="flex-shrink-0">
@@ -1544,6 +1696,9 @@ export default function EnergyProToolkit() {
         </TabsContent>
         <TabsContent value="energy">
           <EnergyComparison />
+        </TabsContent>
+        <TabsContent value="emissions">
+          <EmissionsComparison />
         </TabsContent>
         <TabsContent value="load">
           <LoadEstimator />
