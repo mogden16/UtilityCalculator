@@ -1,103 +1,32 @@
 export const runtime = "edge";
 
-import { NextResponse } from "next/server";
-
-const ZONE_ID = "US-MIDA-PJM";
-const CARBON_INTENSITY_URL = `https://api.electricitymaps.com/v3/carbon-intensity/latest?zone=${ZONE_ID}`;
-const ELECTRICITY_MIX_URL = `https://api.electricitymaps.com/v3/electricity-mix/latest?zone=${ZONE_ID}`;
-
-type MixEntry = { source: string; percentage: number };
-
-type ElectricityMapsMixValue = number | { value?: number; percentage?: number } | null;
-
-function normalizeMix(raw: unknown): MixEntry[] {
-  const mixData: unknown =
-    typeof raw === "object" && raw !== null && "mix" in raw ? (raw as Record<string, unknown>).mix : raw;
-
-  const entries: { source: string; value: number }[] = [];
-
-  if (Array.isArray(mixData)) {
-    for (const item of mixData) {
-      const source =
-        typeof item === "object" && item !== null
-          ? (item as Record<string, unknown>).source ?? (item as Record<string, unknown>).fuel ??
-            (item as Record<string, unknown>).type
-          : null;
-      const value =
-        typeof item === "object" && item !== null
-          ? (item as Record<string, ElectricityMapsMixValue>).value ??
-            (item as Record<string, ElectricityMapsMixValue>).percentage
-          : null;
-      if (typeof source === "string" && typeof value === "number" && Number.isFinite(value)) {
-        entries.push({ source, value: value });
-      }
-    }
-  } else if (mixData && typeof mixData === "object") {
-    for (const [source, value] of Object.entries(mixData as Record<string, ElectricityMapsMixValue>)) {
-      if (typeof value === "number" && Number.isFinite(value)) {
-        entries.push({ source, value });
-      } else if (value && typeof value === "object") {
-        const numericValue = (value as { value?: number }).value ?? (value as { percentage?: number }).percentage;
-        if (typeof numericValue === "number" && Number.isFinite(numericValue)) {
-          entries.push({ source, value: numericValue });
-        }
-      }
-    }
-  }
-
-  const total = entries.reduce((sum, item) => sum + (Number.isFinite(item.value) ? Math.max(item.value, 0) : 0), 0);
-
-  const percentages = entries.map(({ source, value }) => {
-    const pct = total > 0 ? (Math.max(value, 0) / total) * 100 : Number.isFinite(value) ? value : 0;
-    return { source, percentage: Math.round(pct * 10) / 10 };
-  });
-
-  return percentages.sort((a, b) => b.percentage - a.percentage);
-}
-
 export async function GET() {
   try {
-    const token = process.env.ELECTRICITYMAPS_TOKEN; // or ELECTRICITYMAPS_API_TOKEN if that’s what you ended up using
+    const url = "https://dataminer2.pjm.com/feed/gen_by_fuel?rowCount=5";
 
-    if (!token) {
-      return NextResponse.json({ error: "Missing ELECTRICITYMAPS_TOKEN" }, { status: 500 });
-    }
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        Accept: "application/json,text/csv,*/*",
+      },
+      cache: "no-store"
+    });
 
-    const headers = { "auth-token": token };
+    const text = await res.text();
 
-    const [carbonRes, mixRes] = await Promise.all([
-      fetch(CARBON_INTENSITY_URL, { headers }),
-      fetch(ELECTRICITY_MIX_URL, { headers }),
-    ]);
-
-    if (!carbonRes.ok || !mixRes.ok) {
-      const carbonText = !carbonRes.ok ? await carbonRes.text() : null;
-      const mixText = !mixRes.ok ? await mixRes.text() : null;
-
-      console.error("Failed to fetch Electricity Maps data", {
-        carbonStatus: carbonRes.status,
-        mixStatus: mixRes.status,
-        carbonText,
-        mixText,
-      });
-
-      return NextResponse.json(
-        {
-          error: "Failed to fetch from Electricity Maps",
-          carbonStatus: carbonRes.status,
-          mixStatus: mixRes.status,
-          carbonText,
-          mixText,
-        },
-        { status: 502 },
-      );
-    }
-
-    const [carbonJson, mixJson] = await Promise.all([carbonRes.json(), mixRes.json()]);
-
-    // ... keep your existing carbonIntensity / datetime / zone / normalizeMix logic here ...
-  } catch (error) {
-    console.error("Failed to fetch grid emissions data", error);
-    return NextResponse.json({ error: "Failed to fetch grid emissions data" }, { status: 500 });
+    return new Response(
+      JSON.stringify({
+        ok: res.ok,
+        status: res.status,
+        headers: Object.fromEntries(res.headers.entries()),
+        preview: text.substring(0, 500)
+      }),
+      { headers: { "Content-Type": "application/json" } }
+    );
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: String(err) }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 }
