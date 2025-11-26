@@ -1162,19 +1162,34 @@ function EnergyComparison() {
 }
 
 // --- Emissions Comparison ---
-type EmissionsApiResponse = {
-  carbonIntensity?: number;
-  carbonIntensityUnits?: string;
-  carbon_intensity?: number;
-  carbon_intensity_units?: string;
-  gridMix?: Array<Record<string, unknown>> | Record<string, number>;
-  grid_mix?: Array<Record<string, unknown>> | Record<string, number>;
-  mix?: Array<Record<string, unknown>> | Record<string, number>;
-  updatedAt?: string;
-  timestamp?: string;
+type GridMixEntry = { label: string; value: number };
+
+type PjmEmissionsResponse = {
+  carbonIntensity: number | null;
+  carbonIntensityUnits: string;
+  gridMix: GridMixEntry[];
+  timestamp: string | null;
+  source: string;
+  updatedAt?: string | null;
 };
 
-type GridMixEntry = { label: string; value: number };
+type EmissionsApiResponse = PjmEmissionsResponse & {
+  carbon_intensity?: number | null;
+  carbon_intensity_units?: string;
+  grid_mix?: Array<Record<string, unknown>> | Record<string, number>;
+  mix?: Array<Record<string, unknown>> | Record<string, number>;
+};
+
+const PRETTY_GRID_LABELS: Record<string, string> = {
+  COAL: "Coal",
+  NG: "Natural Gas",
+  HYDRO: "Hydro",
+  OTHER: "Other",
+  NUCLEAR: "Nuclear",
+  OIL: "Oil",
+  SOLAR: "Solar",
+  WIND: "Wind",
+};
 
 function EmissionsComparison() {
   const [data, setData] = useState<EmissionsApiResponse | null>(null);
@@ -1198,25 +1213,36 @@ function EmissionsComparison() {
 
     if (Array.isArray(rawMix)) {
       return rawMix
-        .map((entry, index) => {
-          const label =
-            (entry.fuel as string) ||
-            (entry.source as string) ||
-            (entry.type as string) ||
-            (entry.name as string) ||
-            `Source ${index + 1}`;
-          const value = Number(entry.percentage ?? entry.percent ?? entry.value ?? entry.share ?? entry.mix ?? 0);
-          return { label, value } satisfies GridMixEntry;
+        .map((entry) => {
+          const labelCandidate =
+            (typeof entry.label === "string" && entry.label.trim()) ||
+            (typeof entry.fuel === "string" && entry.fuel.trim()) ||
+            (typeof entry.source === "string" && entry.source.trim()) ||
+            (typeof entry.type === "string" && entry.type.trim()) ||
+            (typeof entry.name === "string" && entry.name.trim());
+          const value = Number(
+            entry.value ??
+              entry.percentage ??
+              entry.percent ??
+              entry.share ??
+              entry.mix ??
+              0,
+          );
+          if (!labelCandidate || !isFinite(value)) return null;
+          return { label: labelCandidate, value } satisfies GridMixEntry;
         })
-        .filter((entry) => isFinite(entry.value))
-        .sort((a, b) => b.value - a.value);
+        .filter((entry): entry is GridMixEntry => Boolean(entry));
     }
 
     return Object.entries(rawMix)
       .map(([label, value]) => ({ label, value: Number(value) }))
-      .filter((entry) => isFinite(entry.value))
-      .sort((a, b) => b.value - a.value);
+      .filter((entry) => isFinite(entry.value));
   }, [data]);
+
+  const sortedGridMix = useMemo(
+    () => [...gridMix].sort((a, b) => b.value - a.value),
+    [gridMix],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -1272,7 +1298,7 @@ function EmissionsComparison() {
             </div>
           )}
 
-          {!loading && !error && (
+          {!loading && (
             <div className="grid gap-4 md:grid-cols-[1.1fr_1fr]">
               <div className="rounded-md border border-border/60 p-4 space-y-3">
                 <div>
@@ -1291,16 +1317,21 @@ function EmissionsComparison() {
 
               <div className="rounded-md border border-border/60 p-4">
                 <div className="font-semibold mb-2">Grid Mix</div>
-                {gridMix.length === 0 ? (
+                {sortedGridMix.length === 0 || error ? (
                   <div className="text-sm text-muted-foreground">No grid mix data available.</div>
                 ) : (
                   <div className="space-y-2">
-                    {gridMix.map((entry) => (
-                      <div key={entry.label} className="flex items-center justify-between text-sm">
-                        <span className="text-foreground">{entry.label}</span>
-                        <span className="font-mono text-muted-foreground">{fmt1(entry.value)}%</span>
-                      </div>
-                    ))}
+                    {sortedGridMix.map((entry) => {
+                      const readableLabel = PRETTY_GRID_LABELS[entry.label] ?? entry.label;
+                      const percent = Number.isFinite(entry.value) ? entry.value : 0;
+
+                      return (
+                        <div key={entry.label} className="flex items-center justify-between text-sm">
+                          <span className="text-foreground">{readableLabel}</span>
+                          <span className="font-mono text-muted-foreground">{fmt1(percent)}%</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
