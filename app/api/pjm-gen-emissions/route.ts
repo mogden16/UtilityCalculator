@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-const PJM_EMISSIONS_URL = "https://api.pjm.com/api/v1/emissions-mix";
+const PJM_EMISSIONS_URL = "https://api.pjm.com/api/v1/gen_by_fuel";
 
 const parseCarbonIntensity = (record: any) => {
   const rawIntensity =
