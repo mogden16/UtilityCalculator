@@ -91,24 +91,30 @@ export async function GET() {
       );
     }
 
-    // Find the most recent timestamp in the returned records
-    const getTs = (r: any) =>
-      r.datetime_beginning_ept ??
-      r.datetime_ending_ept ??
+    const getUtcTs = (r: any) =>
       r.datetime_beginning_utc ??
       r.datetime_ending_utc ??
       null;
 
-    let latestTs: string | null = null;
+    const getEptTs = (r: any) =>
+      r.datetime_beginning_ept ??
+      r.datetime_ending_ept ??
+      null;
+
+    // Find the most recent timestamp (not in the future) using UTC, while keeping the EPT mapping
+    const nowUtc = new Date();
+    let latestUtc: string | null = null;
     for (const r of records) {
-      const ts = getTs(r);
-      if (!ts) continue;
-      if (!latestTs || new Date(ts) > new Date(latestTs)) {
-        latestTs = ts;
+      const tsUtc = getUtcTs(r);
+      if (!tsUtc) continue;
+      const tsUtcDate = new Date(tsUtc);
+      if (tsUtcDate > nowUtc) continue;
+      if (!latestUtc || tsUtcDate > new Date(latestUtc)) {
+        latestUtc = tsUtc;
       }
     }
 
-    if (!latestTs) {
+    if (!latestUtc) {
       return NextResponse.json(
         { error: "Could not determine latest timestamp from PJM data" },
         { status: 502 }
@@ -116,11 +122,21 @@ export async function GET() {
     }
 
     // Keep only records for that latest timestamp
-    const latestRecords = records.filter((r) => getTs(r) === latestTs);
+    const latestRecords = records.filter((r) => getUtcTs(r) === latestUtc);
 
     if (!latestRecords.length) {
       return NextResponse.json(
         { error: "No records found for latest timestamp" },
+        { status: 502 }
+      );
+    }
+
+    const latestTsUtc = getUtcTs(latestRecords[0]);
+    const latestTsEpt = getEptTs(latestRecords[0]) ?? latestTsUtc;
+
+    if (!latestTsUtc) {
+      return NextResponse.json(
+        { error: "Could not determine UTC timestamp for latest records" },
         { status: 502 }
       );
     }
@@ -168,7 +184,8 @@ export async function GET() {
       carbonIntensityUnits: "lbs/MWh",
       gridMix,
       totalMw,
-      timestamp: latestTs,
+      timestamp: latestTsUtc,
+      timestampEpt: latestTsEpt,
       source: "PJM gen_by_fuel",
     });
   } catch (error) {

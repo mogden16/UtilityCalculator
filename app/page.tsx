@@ -1174,6 +1174,7 @@ type PjmEmissionsResponse = {
   gridMix: GridMixEntry[];
   totalMw?: number;
   timestamp: string | null;
+  timestampEpt?: string | null;
   source: string;
   updatedAt?: string | null;
 };
@@ -1258,21 +1259,25 @@ function EmissionsComparison() {
 
   const totalMw = data?.totalMw;
 
-  const timestamp = data?.updatedAt ?? data?.timestamp ?? null;
+  const timestampUtc = data?.timestamp ?? null;
+
   const formattedTimestamp = useMemo(() => {
-    const dt = timestamp ? new Date(timestamp) : null;
-    return dt
-      ? dt.toLocaleString("en-US", {
-          timeZone: "America/New_York",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        })
-      : null;
-  }, [timestamp]);
+    const updatedLabel = (() => {
+      if (!timestampUtc) return null;
+      const dt = new Date(timestampUtc);
+      return dt.toLocaleString("en-US", {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+    })();
+
+    return updatedLabel;
+  }, [timestampUtc]);
 
   const gridCarbonIntensity = carbonIntensity ?? null;
   const gridToNatGasRatio =
@@ -1357,7 +1362,7 @@ function EmissionsComparison() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm font-semibold mb-2">
                       <span>Fuel</span>
-                      <span className="w-24 text-right">MW</span>
+                      <span className="w-24 text-right tabular-nums whitespace-nowrap">MW</span>
                       <span className="w-16 text-right">Share</span>
                     </div>
                     {sortedGridMix.map((entry) => {
@@ -1367,8 +1372,8 @@ function EmissionsComparison() {
                       return (
                         <div key={entry.label} className="flex items-center justify-between text-sm py-0.5">
                           <span className="text-foreground">{readableLabel}</span>
-                          <span className="w-24 text-right font-mono text-muted-foreground">
-                            {entry.mw.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          <span className="w-24 text-right tabular-nums whitespace-nowrap font-mono text-muted-foreground">
+                            {entry.mw.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                           </span>
                           <span className="w-16 text-right font-mono text-muted-foreground">{fmt1(percent)}%</span>
                         </div>
@@ -1377,8 +1382,8 @@ function EmissionsComparison() {
                     {typeof totalMw === "number" && (
                       <div className="flex justify-between text-xs text-muted-foreground mt-2">
                         <span>Total Generation</span>
-                        <span className="w-24 text-right">
-                          {totalMw.toLocaleString(undefined, { maximumFractionDigits: 0 })} MW
+                        <span className="w-24 text-right tabular-nums whitespace-nowrap">
+                          {totalMw.toLocaleString("en-US", { maximumFractionDigits: 0 })} MW
                         </span>
                         <span className="w-16" />
                       </div>
