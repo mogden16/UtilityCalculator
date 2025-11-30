@@ -97,7 +97,6 @@ export async function GET() {
       r.datetime_ending_ept ??
       r.datetime_beginning_utc ??
       r.datetime_ending_utc ??
-      
       null;
 
     let latestTs: string | null = null;
@@ -150,6 +149,7 @@ export async function GET() {
     const gridMix = Array.from(mwByFuel.entries()).map(([fuel, mw]) => ({
       label: fuel,
       value: (mw / totalMw) * 100,
+      mw,
     }));
 
     // Compute weighted-average carbon intensity
@@ -167,6 +167,7 @@ export async function GET() {
       carbonIntensity,
       carbonIntensityUnits: "lbs/MWh",
       gridMix,
+      totalMw,
       timestamp: latestTs,
       source: "PJM gen_by_fuel",
     });
