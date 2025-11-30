@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1348,9 +1348,7 @@ function EmissionsComparison() {
                   </div>
                 </div>
                 {formattedTimestamp ? (
-                  <p className="text-sm text-muted-foreground">
-                    Updated {formattedTimestamp} (Eastern)
-                  </p>
+                  <p className="text-sm text-muted-foreground">Updated {formattedTimestamp}</p>
                 ) : null}
               </div>
 
@@ -1359,34 +1357,34 @@ function EmissionsComparison() {
                 {sortedGridMix.length === 0 || error ? (
                   <div className="text-sm text-muted-foreground">No grid mix data available.</div>
                 ) : (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm font-semibold mb-2">
-                      <span>Fuel</span>
-                      <span className="w-24 text-right tabular-nums whitespace-nowrap">MW</span>
-                      <span className="w-16 text-right">Share</span>
-                    </div>
+                  <div className="grid grid-cols-[minmax(0,1fr)_110px_70px] gap-y-1 text-sm">
+                    <span className="font-semibold">Fuel</span>
+                    <span className="text-center font-semibold tabular-nums whitespace-nowrap">MW</span>
+                    <span className="text-right font-semibold tabular-nums whitespace-nowrap">Share</span>
                     {sortedGridMix.map((entry) => {
                       const readableLabel = PRETTY_GRID_LABELS[entry.label] ?? entry.label;
                       const percent = Number.isFinite(entry.value) ? entry.value : 0;
 
                       return (
-                        <div key={entry.label} className="flex items-center justify-between text-sm py-0.5">
+                        <Fragment key={entry.label}>
                           <span className="text-foreground">{readableLabel}</span>
-                          <span className="w-24 text-right tabular-nums whitespace-nowrap font-mono text-muted-foreground">
+                          <span className="text-center tabular-nums whitespace-nowrap font-mono text-muted-foreground">
                             {entry.mw.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                           </span>
-                          <span className="w-16 text-right font-mono text-muted-foreground">{fmt1(percent)}%</span>
-                        </div>
+                          <span className="text-right tabular-nums whitespace-nowrap font-mono text-muted-foreground">
+                            {fmt1(percent)}%
+                          </span>
+                        </Fragment>
                       );
                     })}
                     {typeof totalMw === "number" && (
-                      <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                        <span>Total Generation</span>
-                        <span className="w-24 text-right tabular-nums whitespace-nowrap">
+                      <>
+                        <span className="text-xs text-muted-foreground">Total Generation</span>
+                        <span className="text-center tabular-nums whitespace-nowrap text-xs text-muted-foreground">
                           {totalMw.toLocaleString("en-US", { maximumFractionDigits: 0 })} MW
                         </span>
-                        <span className="w-16" />
-                      </div>
+                        <span />
+                      </>
                     )}
                   </div>
                 )}
