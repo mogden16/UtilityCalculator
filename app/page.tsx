@@ -1259,25 +1259,22 @@ function EmissionsComparison() {
 
   const totalMw = data?.totalMw;
 
-  const timestampUtc = data?.timestamp ?? null;
+  const formatLocalTime = (utcString: string | null) => {
+    if (!utcString) return null;
+    const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const dt = new Date(utcString);
+    return dt.toLocaleString("en-US", {
+      timeZone: localTz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  };
 
-  const formattedTimestamp = useMemo(() => {
-    const updatedLabel = (() => {
-      if (!timestampUtc) return null;
-      const dt = new Date(timestampUtc);
-      return dt.toLocaleString("en-US", {
-        timeZone: "America/New_York",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-    })();
-
-    return updatedLabel;
-  }, [timestampUtc]);
+  const updatedLabel = formatLocalTime(data?.timestamp ?? null);
 
   const gridCarbonIntensity = carbonIntensity ?? null;
   const gridToNatGasRatio =
@@ -1347,8 +1344,8 @@ function EmissionsComparison() {
                     <span className="ml-2 text-base font-normal text-muted-foreground">{carbonIntensityUnits}</span>
                   </div>
                 </div>
-                {formattedTimestamp ? (
-                  <p className="text-sm text-muted-foreground">Updated {formattedTimestamp}</p>
+                {updatedLabel ? (
+                  <p className="text-sm text-muted-foreground">Updated {updatedLabel}</p>
                 ) : null}
               </div>
 
