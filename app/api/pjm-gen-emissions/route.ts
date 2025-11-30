@@ -93,10 +93,11 @@ export async function GET() {
 
     // Find the most recent timestamp in the returned records
     const getTs = (r: any) =>
-      r.datetime_beginning_utc ??
       r.datetime_beginning_ept ??
-      r.datetime_ending_utc ??
       r.datetime_ending_ept ??
+      r.datetime_beginning_utc ??
+      r.datetime_ending_utc ??
+      
       null;
 
     let latestTs: string | null = null;
