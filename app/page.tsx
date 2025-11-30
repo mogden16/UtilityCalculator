@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1162,12 +1162,17 @@ function EnergyComparison() {
 }
 
 // --- Emissions Comparison ---
-type GridMixEntry = { label: string; value: number };
+type GridMixEntry = {
+  label: string;
+  value: number; // percent of total
+  mw: number; // absolute MW
+};
 
 type PjmEmissionsResponse = {
   carbonIntensity: number | null;
   carbonIntensityUnits: string;
   gridMix: GridMixEntry[];
+  totalMw?: number;
   timestamp: string | null;
   source: string;
   updatedAt?: string | null;
@@ -1190,6 +1195,8 @@ const PRETTY_GRID_LABELS: Record<string, string> = {
   SOLAR: "Solar",
   WIND: "Wind",
 };
+
+const NAT_GAS_CI = 400; // lbs/MWh, approx 117 lb/MMBtu * 3.412
 
 function EmissionsComparison() {
   const [data, setData] = useState<EmissionsApiResponse | null>(null);
@@ -1228,14 +1235,19 @@ function EmissionsComparison() {
               entry.mix ??
               0,
           );
+          const mw = Number(entry.mw ?? entry.MW ?? entry.megawatts ?? entry.amount ?? 0);
           if (!labelCandidate || !isFinite(value)) return null;
-          return { label: labelCandidate, value } satisfies GridMixEntry;
+          return {
+            label: labelCandidate,
+            value,
+            mw: Number.isFinite(mw) ? mw : 0,
+          } satisfies GridMixEntry;
         })
         .filter((entry): entry is GridMixEntry => Boolean(entry));
     }
 
     return Object.entries(rawMix)
-      .map(([label, value]) => ({ label, value: Number(value) }))
+      .map(([label, value]) => ({ label, value: Number(value), mw: 0 }))
       .filter((entry) => isFinite(entry.value));
   }, [data]);
 
@@ -1243,6 +1255,27 @@ function EmissionsComparison() {
     () => [...gridMix].sort((a, b) => b.value - a.value),
     [gridMix],
   );
+
+  const totalMw = data?.totalMw;
+
+  const timestampUtc = data?.timestamp ?? null;
+
+  const updatedLabel = useMemo(() => {
+    if (!timestampUtc) return null;
+    const dt = new Date(timestampUtc);
+    return dt.toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  }, [timestampUtc]);
+
+  const gridCarbonIntensity = carbonIntensity ?? null;
+  const gridToNatGasRatio =
+    gridCarbonIntensity !== null ? gridCarbonIntensity / NAT_GAS_CI : null;
 
   useEffect(() => {
     let isMounted = true;
@@ -1308,10 +1341,8 @@ function EmissionsComparison() {
                     <span className="ml-2 text-base font-normal text-muted-foreground">{carbonIntensityUnits}</span>
                   </div>
                 </div>
-                {data?.updatedAt || data?.timestamp ? (
-                  <div className="text-xs text-muted-foreground">
-                    Updated {new Date((data.updatedAt ?? data.timestamp) as string).toLocaleString()}
-                  </div>
+                {updatedLabel ? (
+                  <p className="text-sm text-muted-foreground">Updated {updatedLabel}</p>
                 ) : null}
               </div>
 
@@ -1320,23 +1351,58 @@ function EmissionsComparison() {
                 {sortedGridMix.length === 0 || error ? (
                   <div className="text-sm text-muted-foreground">No grid mix data available.</div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-[minmax(0,1fr)_110px_70px] gap-y-1 text-sm">
+                    <span className="font-semibold">Fuel</span>
+                    <span className="text-center font-semibold tabular-nums whitespace-nowrap">MW</span>
+                    <span className="text-right font-semibold tabular-nums whitespace-nowrap">Share</span>
                     {sortedGridMix.map((entry) => {
                       const readableLabel = PRETTY_GRID_LABELS[entry.label] ?? entry.label;
                       const percent = Number.isFinite(entry.value) ? entry.value : 0;
 
                       return (
-                        <div key={entry.label} className="flex items-center justify-between text-sm">
+                        <Fragment key={entry.label}>
                           <span className="text-foreground">{readableLabel}</span>
-                          <span className="font-mono text-muted-foreground">{fmt1(percent)}%</span>
-                        </div>
+                          <span className="text-center tabular-nums whitespace-nowrap font-mono text-muted-foreground">
+                            {entry.mw.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                          </span>
+                          <span className="text-right tabular-nums whitespace-nowrap font-mono text-muted-foreground">
+                            {fmt1(percent)}%
+                          </span>
+                        </Fragment>
                       );
                     })}
+                    {typeof totalMw === "number" && (
+                      <>
+                        <span className="text-xs text-muted-foreground">Total Generation</span>
+                        <span className="text-center tabular-nums whitespace-nowrap text-xs text-muted-foreground">
+                          {totalMw.toLocaleString("en-US", { maximumFractionDigits: 0 })} MW
+                        </span>
+                        <span />
+                      </>
+                    )}
                   </div>
                 )}
               </div>
             </div>
           )}
+
+          <div className="mt-6 border rounded-xl p-4">
+            <h3 className="font-semibold mb-2">Natural Gas Customer Emissions</h3>
+            <p className="text-sm mb-2">
+              Onsite natural gas combustion (typical boiler or furnace) has an emissions factor of approximately:
+            </p>
+            <p className="text-2xl font-semibold">
+              {NAT_GAS_CI.toFixed(0)} <span className="text-base font-normal">lbs/MWh</span>
+            </p>
+            {gridCarbonIntensity !== null && gridToNatGasRatio !== null && (
+              <p className="text-sm text-muted-foreground mt-3">
+                Compared to the current PJM grid intensity of{" "}
+                <strong>{gridCarbonIntensity.toFixed(1)} lbs/MWh</strong>, electricity is{" "}
+                <strong>{gridToNatGasRatio.toFixed(2)}×</strong> more carbon intensive per unit of delivered
+                energy than burning natural gas onsite.
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
