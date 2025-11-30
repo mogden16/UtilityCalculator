@@ -1174,7 +1174,6 @@ type PjmEmissionsResponse = {
   gridMix: GridMixEntry[];
   totalMw?: number;
   timestamp: string | null;
-  timestampEpt?: string | null;
   source: string;
   updatedAt?: string | null;
 };
@@ -1259,12 +1258,12 @@ function EmissionsComparison() {
 
   const totalMw = data?.totalMw;
 
-  const formatLocalTime = (utcString: string | null) => {
-    if (!utcString) return null;
-    const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const dt = new Date(utcString);
+  const timestampUtc = data?.timestamp ?? null;
+
+  const updatedLabel = useMemo(() => {
+    if (!timestampUtc) return null;
+    const dt = new Date(timestampUtc);
     return dt.toLocaleString("en-US", {
-      timeZone: localTz,
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -1272,9 +1271,7 @@ function EmissionsComparison() {
       minute: "2-digit",
       second: "2-digit",
     });
-  };
-
-  const updatedLabel = formatLocalTime(data?.timestamp ?? null);
+  }, [timestampUtc]);
 
   const gridCarbonIntensity = carbonIntensity ?? null;
   const gridToNatGasRatio =

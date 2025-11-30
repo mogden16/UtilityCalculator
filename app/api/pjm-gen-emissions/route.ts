@@ -96,12 +96,7 @@ export async function GET() {
       r.datetime_ending_utc ??
       null;
 
-    const getEptTs = (r: any) =>
-      r.datetime_beginning_ept ??
-      r.datetime_ending_ept ??
-      null;
-
-    // Find the most recent timestamp (not in the future) using UTC, while keeping the EPT mapping
+    // Find the most recent timestamp (not in the future) using UTC
     const nowUtc = new Date();
     let latestUtc: string | null = null;
     for (const r of records) {
@@ -132,7 +127,6 @@ export async function GET() {
     }
 
     const latestTsUtc = getUtcTs(latestRecords[0]);
-    const latestTsEpt = getEptTs(latestRecords[0]) ?? latestTsUtc;
 
     if (!latestTsUtc) {
       return NextResponse.json(
@@ -140,6 +134,12 @@ export async function GET() {
         { status: 502 }
       );
     }
+
+    const latestUtcDate = latestTsUtc
+      ? new Date(latestTsUtc.endsWith("Z") ? latestTsUtc : latestTsUtc + "Z")
+      : null;
+
+    const timestampIso = latestUtcDate ? latestUtcDate.toISOString() : null;
 
     // Aggregate MW by normalized fuel type
     const mwByFuel = new Map<string, number>();
@@ -184,8 +184,7 @@ export async function GET() {
       carbonIntensityUnits: "lbs/MWh",
       gridMix,
       totalMw,
-      timestamp: latestTsUtc,
-      timestampEpt: latestTsEpt,
+      timestamp: timestampIso,
       source: "PJM gen_by_fuel",
     });
   } catch (error) {
