@@ -1,39 +1,14 @@
 import { NextResponse } from "next/server";
+import {
+  EMISSION_FACTORS_LB_PER_MWH,
+  FuelKey,
+  mapPjmFuelToFuelKey,
+  prettyFuelLabel,
+} from "@/lib/emissions";
 
 export const runtime = "edge";
 
 const PJM_GEN_BY_FUEL_URL = "https://api.pjm.com/api/v1/gen_by_fuel";
-
-// Approximate emission factors in lbs CO2 per MWh by fuel.
-// You can tune these later.
-const EMISSION_FACTORS_LBS_PER_MWH: Record<string, number> = {
-  COAL: 2249,
-  NG: 978, // natural gas
-  GAS: 978,
-  OIL: 1672,
-  DIESEL: 1672,
-  PETROLEUM: 1672,
-  NUCLEAR: 0,
-  NUC: 0,
-  HYDRO: 0,
-  HYD: 0,
-  SOLAR: 0,
-  WIND: 0,
-  OTHER: 0,
-};
-
-function normalizeFuelType(raw: string | undefined): string {
-  if (!raw) return "OTHER";
-  const f = raw.toUpperCase().trim();
-  if (f.includes("COAL")) return "COAL";
-  if (f.includes("NUC")) return "NUCLEAR";
-  if (f.includes("NG") || f.includes("GAS")) return "NG";
-  if (f.includes("OIL") || f.includes("DIESEL") || f.includes("PET")) return "OIL";
-  if (f.includes("HYD")) return "HYDRO";
-  if (f.includes("SOLAR")) return "SOLAR";
-  if (f.includes("WIND")) return "WIND";
-  return "OTHER";
-}
 
 export async function GET() {
   try {
@@ -142,11 +117,11 @@ export async function GET() {
     const timestampIso = latestUtcDate ? latestUtcDate.toISOString() : null;
 
     // Aggregate MW by normalized fuel type
-    const mwByFuel = new Map<string, number>();
+    const mwByFuel = new Map<FuelKey, number>();
     let totalMw = 0;
 
     for (const r of latestRecords) {
-      const fuel = normalizeFuelType(r.fuel_type as string | undefined);
+      const fuel = mapPjmFuelToFuelKey(r.fuel_type as string | undefined);
       const mw = Number(r.mw ?? r.MW ?? 0);
       if (!Number.isFinite(mw)) continue;
 
@@ -163,7 +138,7 @@ export async function GET() {
 
     // Build grid mix as % of total MW
     const gridMix = Array.from(mwByFuel.entries()).map(([fuel, mw]) => ({
-      label: fuel,
+      label: prettyFuelLabel(fuel),
       value: (mw / totalMw) * 100,
       mw,
     }));
@@ -171,9 +146,7 @@ export async function GET() {
     // Compute weighted-average carbon intensity
     let weightedSum = 0;
     for (const [fuel, mw] of mwByFuel.entries()) {
-      const factor =
-        EMISSION_FACTORS_LBS_PER_MWH[fuel] ??
-        EMISSION_FACTORS_LBS_PER_MWH["OTHER"];
+      const factor = EMISSION_FACTORS_LB_PER_MWH[fuel] ?? 0;
       weightedSum += factor * mw;
     }
 
