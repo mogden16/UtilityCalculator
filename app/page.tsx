@@ -21,6 +21,17 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { BTU_PER_KW } from "@/lib/energy";
+import {
+  computeFuelEmissionsRows,
+  computeGasEmissionsForScenario,
+  DEFAULT_T_AND_D_LOSS_FRACTION,
+  EMISSION_FACTORS_LB_PER_MWH,
+  FuelMixRow,
+  LeakScenarioKey,
+  LEAK_SCENARIOS,
+  mapPjmFuelToFuelKey,
+  prettyFuelLabel,
+} from "@/lib/emissions";
 
 // --- Helpers & constants ---
 const BTU_PER_TON = 12000;
@@ -39,6 +50,8 @@ const fmt1 = (n: number) =>
   isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : "–";
 const fmt2 = (n: number) =>
   isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "–";
+const fmt3 = (n: number) =>
+  isFinite(n) ? n.toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : "–";
 const fmtCurrency = (n: number) =>
   isFinite(n)
     ? `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -1196,12 +1209,57 @@ const PRETTY_GRID_LABELS: Record<string, string> = {
   WIND: "Wind",
 };
 
-const NAT_GAS_CI = 400; // lbs/MWh, approx 117 lb/MMBtu * 3.412
+type PjmScenarioKey = "real_time" | "renewable" | "coal" | "annual";
+
+const PJM_SCENARIOS: Record<PjmScenarioKey, { label: string; rows: FuelMixRow[] }> = {
+  real_time: { label: "Real time PJM (from API)", rows: [] },
+  renewable: {
+    label: "Example: Renewable heavy hour",
+    rows: [
+      { fuelKey: "wind", label: prettyFuelLabel("wind"), mw: 9000 },
+      { fuelKey: "solar", label: prettyFuelLabel("solar"), mw: 6500 },
+      { fuelKey: "nuclear", label: prettyFuelLabel("nuclear"), mw: 7500 },
+      { fuelKey: "ngcc", label: prettyFuelLabel("ngcc"), mw: 7000 },
+      { fuelKey: "coal", label: prettyFuelLabel("coal"), mw: 2500 },
+      { fuelKey: "hydro", label: prettyFuelLabel("hydro"), mw: 1200 },
+      { fuelKey: "biomass", label: prettyFuelLabel("biomass"), mw: 500 },
+      { fuelKey: "oil", label: prettyFuelLabel("oil"), mw: 300 },
+    ],
+  },
+  coal: {
+    label: "Example: Coal heavy hour",
+    rows: [
+      { fuelKey: "coal", label: prettyFuelLabel("coal"), mw: 12000 },
+      { fuelKey: "ngcc", label: prettyFuelLabel("ngcc"), mw: 9000 },
+      { fuelKey: "nuclear", label: prettyFuelLabel("nuclear"), mw: 6500 },
+      { fuelKey: "oil", label: prettyFuelLabel("oil"), mw: 1200 },
+      { fuelKey: "wind", label: prettyFuelLabel("wind"), mw: 1200 },
+      { fuelKey: "solar", label: prettyFuelLabel("solar"), mw: 700 },
+      { fuelKey: "hydro", label: prettyFuelLabel("hydro"), mw: 800 },
+      { fuelKey: "biomass", label: prettyFuelLabel("biomass"), mw: 400 },
+    ],
+  },
+  annual: {
+    label: "Example: PJM annual average",
+    rows: [
+      { fuelKey: "ngcc", label: prettyFuelLabel("ngcc"), mw: 18000 },
+      { fuelKey: "coal", label: prettyFuelLabel("coal"), mw: 9500 },
+      { fuelKey: "nuclear", label: prettyFuelLabel("nuclear"), mw: 11000 },
+      { fuelKey: "wind", label: prettyFuelLabel("wind"), mw: 6000 },
+      { fuelKey: "solar", label: prettyFuelLabel("solar"), mw: 3500 },
+      { fuelKey: "hydro", label: prettyFuelLabel("hydro"), mw: 2000 },
+      { fuelKey: "biomass", label: prettyFuelLabel("biomass"), mw: 700 },
+      { fuelKey: "oil", label: prettyFuelLabel("oil"), mw: 500 },
+    ],
+  },
+};
 
 function EmissionsComparison() {
   const [data, setData] = useState<EmissionsApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedLeakScenario, setSelectedLeakScenario] = useState<LeakScenarioKey>("medium");
+  const [selectedPjmScenario, setSelectedPjmScenario] = useState<PjmScenarioKey>("real_time");
 
   const carbonIntensity = useMemo(() => {
     const value = data?.carbonIntensity ?? data?.carbon_intensity;
@@ -1273,9 +1331,54 @@ function EmissionsComparison() {
     });
   }, [timestampUtc]);
 
-  const gridCarbonIntensity = carbonIntensity ?? null;
+  const fuelMixRows: FuelMixRow[] = useMemo(() => {
+    return sortedGridMix
+      .map((entry) => {
+        const fuelKey = mapPjmFuelToFuelKey(entry.label);
+        const computedMw =
+          Number.isFinite(entry.mw) && entry.mw > 0
+            ? entry.mw
+            : typeof totalMw === "number"
+              ? (entry.value / 100) * totalMw
+              : 0;
+        const readableLabel = PRETTY_GRID_LABELS[entry.label] ?? entry.label ?? prettyFuelLabel(fuelKey);
+        return { fuelKey, label: readableLabel, mw: Math.max(computedMw, 0) } satisfies FuelMixRow;
+      })
+      .filter((row) => row.mw > 0);
+  }, [sortedGridMix, totalMw]);
+
+  const emissionsSummary = useMemo(
+    () => computeFuelEmissionsRows(fuelMixRows, DEFAULT_T_AND_D_LOSS_FRACTION),
+    [fuelMixRows],
+  );
+
+  const computedCarbonIntensity =
+    carbonIntensity ?? (emissionsSummary.totalGenerationLbPerMwh || null);
+
+  const deliveredCarbonIntensity =
+    emissionsSummary.totalDeliveredLbPerMwh || computedCarbonIntensity || null;
+
+  const gasBreakdown = useMemo(
+    () => computeGasEmissionsForScenario(selectedLeakScenario),
+    [selectedLeakScenario],
+  );
+
   const gridToNatGasRatio =
-    gridCarbonIntensity !== null ? gridCarbonIntensity / NAT_GAS_CI : null;
+    deliveredCarbonIntensity !== null && gasBreakdown.directCo2LbPerKwh > 0
+      ? deliveredCarbonIntensity / 1000 / gasBreakdown.directCo2LbPerKwh
+      : null;
+
+  const pjmScenarioRows = useMemo(() => {
+    if (selectedPjmScenario === "real_time" && fuelMixRows.length > 0) {
+      return fuelMixRows;
+    }
+    return PJM_SCENARIOS[selectedPjmScenario].rows;
+  }, [fuelMixRows, selectedPjmScenario]);
+
+  const pjmScenarioEmissions = useMemo(
+    () => computeFuelEmissionsRows(pjmScenarioRows, DEFAULT_T_AND_D_LOSS_FRACTION),
+    [pjmScenarioRows],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -1332,77 +1435,237 @@ function EmissionsComparison() {
           )}
 
           {!loading && (
-            <div className="grid gap-4 md:grid-cols-[1.1fr_1fr]">
-              <div className="rounded-md border border-border/60 p-4 space-y-3">
-                <div>
-                  <div className="text-sm text-muted-foreground">Carbon Intensity</div>
-                  <div className="text-3xl font-semibold">
-                    {carbonIntensity !== null ? fmt1(carbonIntensity) : "–"}
-                    <span className="ml-2 text-base font-normal text-muted-foreground">{carbonIntensityUnits}</span>
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-[1.1fr_1fr]">
+                <div className="rounded-md border border-border/60 p-4 space-y-3">
+                  <div>
+                    <div className="text-sm text-muted-foreground">Carbon Intensity (delivered)</div>
+                    <div className="text-3xl font-semibold">
+                      {deliveredCarbonIntensity !== null ? fmt1(deliveredCarbonIntensity) : "–"}
+                      <span className="ml-2 text-base font-normal text-muted-foreground">lbs CO₂e/MWh</span>
+                    </div>
+                  </div>
+                  {computedCarbonIntensity !== null && (
+                    <p className="text-sm text-muted-foreground">
+                      Generation mix average: {fmt1(computedCarbonIntensity)} {carbonIntensityUnits}
+                    </p>
+                  )}
+                  {updatedLabel ? (
+                    <p className="text-sm text-muted-foreground">Updated {updatedLabel}</p>
+                  ) : null}
+                </div>
+
+                <div className="rounded-md border border-border/60 p-4 space-y-3">
+                  <div className="font-semibold">Grid Mix with Emissions</div>
+                  {emissionsSummary.rows.length === 0 || error ? (
+                    <div className="text-sm text-muted-foreground">No grid mix data available.</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm border-collapse">
+                        <thead>
+                          <tr className="bg-muted/50 text-left">
+                            <th className="px-3 py-2 font-medium">Fuel</th>
+                            <th className="px-3 py-2 font-medium text-center">MW (real time)</th>
+                            <th className="px-3 py-2 font-medium text-right">Share of PJM (%)</th>
+                            <th className="px-3 py-2 font-medium text-right">Emission factor</th>
+                            <th className="px-3 py-2 font-medium text-right">Emissions contribution</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {emissionsSummary.rows.map((row) => (
+                            <tr key={row.label} className="border-b last:border-0 border-border/60">
+                              <td className="px-3 py-2 align-top text-foreground">{row.label}</td>
+                              <td className="px-3 py-2 align-top text-center font-mono text-muted-foreground">{fmt0(row.mw)}</td>
+                              <td className="px-3 py-2 align-top text-right font-mono text-muted-foreground">
+                                {fmt1(row.sharePercent)}%
+                              </td>
+                              <td className="px-3 py-2 align-top text-right font-mono text-muted-foreground">{fmt0(row.emissionFactorLbPerMwh)}</td>
+                              <td className="px-3 py-2 align-top text-right font-mono text-muted-foreground">{fmt1(row.contributionLbPerMwh)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  {typeof totalMw === "number" && totalMw > 0 && (
+                    <p className="text-xs text-muted-foreground">Total Generation: {fmt0(totalMw)} MW</p>
+                  )}
+                  {emissionsSummary.totalGenerationLbPerMwh > 0 && (
+                    <div className="text-sm space-y-1">
+                      <div className="text-foreground">
+                        Total generation emissions: {fmt1(emissionsSummary.totalGenerationLbPerMwh)} lbs CO₂e/MWh
+                      </div>
+                      <div className="text-muted-foreground">
+                        Delivered emissions (after T & D losses): {fmt1(emissionsSummary.totalDeliveredLbPerMwh)} lbs
+                        CO₂e/MWh ({fmt2(emissionsSummary.totalDeliveredLbPerMwh / 1000)} lbs/kWh)
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-2 grid gap-4 md:grid-cols-2">
+                <div className="border rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Natural Gas Customer Emissions</h3>
+                    <Select value={selectedLeakScenario} onValueChange={(v) => setSelectedLeakScenario(v as LeakScenarioKey)}>
+                      <SelectTrigger className="w-[220px]">
+                        <SelectValue placeholder="Leakage scenario" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(LEAK_SCENARIOS).map(([key, scenario]) => (
+                          <SelectItem key={key} value={key}>
+                            {scenario.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Constant assumptions: 1.035 MMBtu per MCF, 117 lb CO₂ per MMBtu combustion.
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <tbody>
+                        <tr className="border-b border-border/60">
+                          <td className="py-2 pr-3">Direct CO₂ (combustion)</td>
+                          <td className="py-2 text-right font-mono text-muted-foreground">{fmt1(gasBreakdown.directCo2LbPerMmbtu)}</td>
+                          <td className="py-2 pl-2 text-muted-foreground">lb CO₂/MMBtu</td>
+                        </tr>
+                        <tr className="border-b border-border/60">
+                          <td className="py-2 pr-3">Methane upstream (CO₂e)</td>
+                          <td className="py-2 text-right font-mono text-muted-foreground">{fmt1(gasBreakdown.methaneCo2eLbPerMmbtu)}</td>
+                          <td className="py-2 pl-2 text-muted-foreground">lb CO₂e/MMBtu</td>
+                        </tr>
+                        <tr className="border-b border-border/60">
+                          <td className="py-2 pr-3 font-medium">Total CO₂e per MMBtu</td>
+                          <td className="py-2 text-right font-mono text-foreground">{fmt1(gasBreakdown.totalCo2eLbPerMmbtu)}</td>
+                          <td className="py-2 pl-2 text-muted-foreground">lb CO₂e/MMBtu</td>
+                        </tr>
+                        <tr className="border-b border-border/60">
+                          <td className="py-2 pr-3">Total CO₂e per MCF</td>
+                          <td className="py-2 text-right font-mono text-foreground">{fmt1(gasBreakdown.totalCo2eLbPerMcf)}</td>
+                          <td className="py-2 pl-2 text-muted-foreground">lb CO₂e/MCF</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 pr-3">Total CO₂e per kWh (thermal)</td>
+                          <td className="py-2 text-right font-mono text-foreground">{fmt3(gasBreakdown.totalCo2eLbPerKwh)}</td>
+                          <td className="py-2 pl-2 text-muted-foreground">lb CO₂e/kWh</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-                {updatedLabel ? (
-                  <p className="text-sm text-muted-foreground">Updated {updatedLabel}</p>
-                ) : null}
-              </div>
 
-              <div className="rounded-md border border-border/60 p-4">
-                <div className="font-semibold mb-2">Grid Mix</div>
-                {sortedGridMix.length === 0 || error ? (
-                  <div className="text-sm text-muted-foreground">No grid mix data available.</div>
-                ) : (
-                  <div className="grid grid-cols-[minmax(0,1fr)_110px_70px] gap-y-1 text-sm">
-                    <span className="font-semibold">Fuel</span>
-                    <span className="text-center font-semibold tabular-nums whitespace-nowrap">MW</span>
-                    <span className="text-right font-semibold tabular-nums whitespace-nowrap">Share</span>
-                    {sortedGridMix.map((entry) => {
-                      const readableLabel = PRETTY_GRID_LABELS[entry.label] ?? entry.label;
-                      const percent = Number.isFinite(entry.value) ? entry.value : 0;
-
-                      return (
-                        <Fragment key={entry.label}>
-                          <span className="text-foreground">{readableLabel}</span>
-                          <span className="text-center tabular-nums whitespace-nowrap font-mono text-muted-foreground">
-                            {entry.mw.toLocaleString("en-US", { maximumFractionDigits: 0 })}
-                          </span>
-                          <span className="text-right tabular-nums whitespace-nowrap font-mono text-muted-foreground">
-                            {fmt1(percent)}%
-                          </span>
-                        </Fragment>
-                      );
-                    })}
-                    {typeof totalMw === "number" && (
-                      <>
-                        <span className="text-xs text-muted-foreground">Total Generation</span>
-                        <span className="text-center tabular-nums whitespace-nowrap text-xs text-muted-foreground">
-                          {totalMw.toLocaleString("en-US", { maximumFractionDigits: 0 })} MW
-                        </span>
-                        <span />
-                      </>
-                    )}
+                <div className="border rounded-xl p-4 space-y-3">
+                  <h3 className="font-semibold">Electric vs. Gas Comparison</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="pjm-scenario-select">PJM scenario</Label>
+                    <Select
+                      value={selectedPjmScenario}
+                      onValueChange={(value) => setSelectedPjmScenario(value as PjmScenarioKey)}
+                    >
+                      <SelectTrigger id="pjm-scenario-select">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(PJM_SCENARIOS).map(([key, scenario]) => (
+                          <SelectItem key={key} value={key}>
+                            {scenario.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border-collapse">
+                      <thead>
+                        <tr className="bg-muted/50 text-left">
+                          <th className="px-3 py-2 font-medium">Option</th>
+                          <th className="px-3 py-2 font-medium text-right">lb CO₂e per kWh</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-border/60">
+                          <td className="px-3 py-2">PJM electricity (delivered)</td>
+                          <td className="px-3 py-2 text-right font-mono text-foreground">
+                            {pjmScenarioEmissions.totalDeliveredLbPerMwh
+                              ? fmt3(pjmScenarioEmissions.totalDeliveredLbPerMwh / 1000)
+                              : "–"}
+                          </td>
+                        </tr>
+                        <tr className="border-b border-border/60">
+                          <td className="px-3 py-2">Natural gas (direct CO₂ only)</td>
+                          <td className="px-3 py-2 text-right font-mono text-muted-foreground">{fmt3(gasBreakdown.directCo2LbPerKwh)}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-3 py-2">Natural gas (including leakage)</td>
+                          <td className="px-3 py-2 text-right font-mono text-foreground">{fmt3(gasBreakdown.totalCo2eLbPerKwh)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
+
+              <Accordion type="single" collapsible>
+                <AccordionItem value="assumptions">
+                  <AccordionTrigger className="font-semibold">Assumptions and formulas</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <div>
+                        <div className="font-medium text-foreground">Emission factors (lb CO₂e/MWh)</div>
+                        <ul className="list-disc list-inside">
+                          {Object.entries(EMISSION_FACTORS_LB_PER_MWH).map(([fuel, factor]) => (
+                            <li key={fuel}>
+                              {prettyFuelLabel(fuel as keyof typeof EMISSION_FACTORS_LB_PER_MWH)}: {fmt0(factor)}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="font-medium text-foreground">Transmission & distribution loss</div>
+                        <div>{fmt2(DEFAULT_T_AND_D_LOSS_FRACTION * 100)}% assumed loss.</div>
+                      </div>
+                      <div>
+                        <div className="font-medium text-foreground">Natural gas constants</div>
+                        <ul className="list-disc list-inside">
+                          <li>1.035 MMBtu per MCF (higher heating value)</li>
+                          <li>117 lb CO₂ per MMBtu direct combustion</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="font-medium text-foreground">Leakage scenarios</div>
+                        <ul className="list-disc list-inside">
+                          {Object.entries(LEAK_SCENARIOS).map(([key, scenario]) => (
+                            <li key={key}>{scenario.label}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <div className="font-medium text-foreground">Core formulas</div>
+                        <ul className="list-disc list-inside">
+                          <li>PJM_avg_emissions_lb_per_MWh = Σ(fuel_share_fraction × emission_factor_lb_per_MWh)</li>
+                          <li>PJM_delivered_lb_per_MWh = PJM_avg_emissions_lb_per_MWh / (1 - T_and_D_loss_fraction)</li>
+                          <li>Gas_total_CO2e_per_MMBtu = 117 + methane_CO2e_per_MMBtu</li>
+                          <li>lb_per_kWh = lb_per_MMBtu / 293.1</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </div>
           )}
 
-          <div className="mt-6 border rounded-xl p-4">
-            <h3 className="font-semibold mb-2">Natural Gas Customer Emissions</h3>
-            <p className="text-sm mb-2">
-              Onsite natural gas combustion (typical boiler or furnace) has an emissions factor of approximately:
-            </p>
-            <p className="text-2xl font-semibold">
-              {NAT_GAS_CI.toFixed(0)} <span className="text-base font-normal">lbs/MWh</span>
-            </p>
-            {gridCarbonIntensity !== null && gridToNatGasRatio !== null && (
-              <p className="text-sm text-muted-foreground mt-3">
-                Compared to the current PJM grid intensity of{" "}
-                <strong>{gridCarbonIntensity.toFixed(1)} lbs/MWh</strong>, electricity is{" "}
-                <strong>{gridToNatGasRatio.toFixed(2)}×</strong> more carbon intensive per unit of delivered
-                energy than burning natural gas onsite.
-              </p>
-            )}
-          </div>
+          {deliveredCarbonIntensity !== null && gridToNatGasRatio !== null && (
+            <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-sm">
+              Compared to the current PJM delivered intensity of {fmt1(deliveredCarbonIntensity)} lbs/MWh, electricity is
+              {" "}
+              {fmt2(gridToNatGasRatio)}× the direct CO₂ intensity of burning natural gas onsite (excluding leakage).
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
