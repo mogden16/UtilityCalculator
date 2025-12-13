@@ -1713,6 +1713,11 @@ const CONVERSION_CATEGORY_DEFINITIONS: Record<ConversionCategoryKey, CategoryDef
         toBase: (value) => value * 1_000_000,
         fromBase: (value) => value / 1_000_000,
       },
+      mlb: {
+        label: "MLB",
+        toBase: (value) => value * BTU_PER_MLB,
+        fromBase: (value) => value / BTU_PER_MLB,
+      },
       mmbtu: {
         label: "MMBTU",
         toBase: (value) => value * 1_000_000,
