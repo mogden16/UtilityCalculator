@@ -256,6 +256,9 @@ function Converter() {
       case "kW":
         baseBtuh = value * BTU_PER_KW;
         break;
+      case "MW":
+        baseBtuh = value * BTU_PER_KW * 1_000;
+        break;
       case "Ton":
         baseBtuh = value * BTU_PER_TON;
         break;
@@ -286,6 +289,9 @@ function Converter() {
       case "CFH":
         baseBtuh = value * HHV * 1_000;
         break;
+      case "MCFH":
+        baseBtuh = value * HHV * 1_000_000;
+        break;
     }
 
     let btuh_input = baseBtuh;
@@ -314,6 +320,7 @@ function Converter() {
     }
 
     const kW = btuh_output / BTU_PER_KW;
+    const mw = kW / 1_000;
     const tons = btuh_output / BTU_PER_TON;
     const hp = btuh_output / BTU_PER_HP;
     const mlb_per_hr = btuh_output / BTU_PER_MLB;
@@ -321,6 +328,7 @@ function Converter() {
     const dth_per_hr = btuh_input / BTU_PER_DTH;
     const mbtu_per_hr_input = btuh_input / 1_000;
     const cfh = btuh_input / (HHV * 1_000);
+    const mcfh = cfh / 1_000;
     const oil_gph = btuh_input / BTU_PER_GAL_OIL_NO2;
     const diesel_gph = btuh_input / BTU_PER_GAL_DIESEL;
 
@@ -341,6 +349,7 @@ function Converter() {
       btuh_input,
       btuh_output,
       kW,
+      mw,
       tons,
       hp,
       mlb_per_hr,
@@ -348,6 +357,7 @@ function Converter() {
       dth_per_hr,
       mbtu_per_hr_input,
       cfh,
+      mcfh,
       oil_gph,
       diesel_gph,
       totalMCF,
@@ -405,6 +415,7 @@ function Converter() {
                 <SelectContent>
                   <SelectItem value="BTU/hr">BTU/hr (Demand)</SelectItem>
                   <SelectItem value="kW">kW (Demand)</SelectItem>
+                  <SelectItem value="MW">MW (Demand)</SelectItem>
                   <SelectItem value="Ton">Ton (Cooling Demand)</SelectItem>
                   <SelectItem value="HP">HP (Mechanical)</SelectItem>
                   <SelectItem value="Therm/hr">Therm/hr (Energy Rate)</SelectItem>
@@ -415,6 +426,7 @@ function Converter() {
                   <SelectItem value="MBtu/hr">MBtu/hr (Energy Rate)</SelectItem>
                   <SelectItem value="MMBtu/hr">MMBtu/hr (Energy Rate)</SelectItem>
                   <SelectItem value="CFH">CFH (Gas Flow Rate)</SelectItem>
+                  <SelectItem value="MCFH">MCFH (Gas Flow Rate)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -519,6 +531,7 @@ function Converter() {
             <Readout label="BTU/hr (Input)" value={fmt0(calc.btuh_input)} />
             <Readout label="MBtu/hr (Input)" value={fmt0(calc.mbtu_per_hr_input)} />
             <Readout label="CFH" value={fmt0(calc.cfh)} />
+            <Readout label="MCFH" value={fmt3(calc.mcfh)} />
             <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
             <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
             <Readout label="No. 2 Oil (gal/hr)" value={fmt2(calc.oil_gph)} />
@@ -537,6 +550,7 @@ function Converter() {
           <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <Readout label="BTU/hr (Output)" value={fmt0(calc.btuh_output)} />
             <Readout label="kW" value={fmt0(calc.kW)} />
+            <Readout label="MW" value={fmt3(calc.mw)} />
             <Readout label="Tons" value={fmt0(calc.tons)} />
             <Readout label="HP" value={fmt0(calc.hp)} />
             <Readout label="MLBs/hr" value={fmt0(calc.mlb_per_hr)} />
@@ -1763,6 +1777,11 @@ const CONVERSION_CATEGORY_DEFINITIONS: Record<ConversionCategoryKey, CategoryDef
         label: "kW",
         toBase: (value) => value * 3_412,
         fromBase: (value) => value / 3_412,
+      },
+      mw: {
+        label: "MW",
+        toBase: (value) => value * 3_412_000,
+        fromBase: (value) => value / 3_412_000,
       },
       ton: {
         label: "Ton",
