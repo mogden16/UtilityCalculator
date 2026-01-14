@@ -21,6 +21,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { BTU_PER_KW } from "@/lib/energy";
+import { PressureSystem, ServiceType, SERVICE_LENGTHS } from "@/src/data/serviceCapacityTables";
+import { getCapacityRow, normalizeLength } from "@/src/utils/serviceCapacityLookup";
 import {
   computeFuelEmissionsRows,
   computeGasEmissionsForScenario,
@@ -594,6 +596,8 @@ function Converter() {
           </div>
         </CardContent>
       </Card>
+
+      <ServiceCapacityTablesPanel />
     </div>
   );
 }
@@ -604,6 +608,180 @@ function Readout({ label, value }: { label: string; value: string }) {
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="mt-1 font-mono text-base bg-muted/30 rounded px-2 py-1 sm:text-lg">{value}</div>
     </div>
+  );
+}
+
+function ServiceCapacityTablesPanel() {
+  const [serviceType, setServiceType] = useState<ServiceType>("existing");
+  const [pressureSystem, setPressureSystem] = useState<PressureSystem>("low");
+  const [lengthInput, setLengthInput] = useState("25");
+  const [password, setPassword] = useState("");
+  const [isUnlocked, setIsUnlocked] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const stored = window.localStorage.getItem("serviceCapacityUnlocked");
+    if (stored === "true") {
+      setIsUnlocked(true);
+    }
+  }, []);
+
+  const parsedLength = Number(lengthInput);
+  const normalizedLength = useMemo(() => normalizeLength(lengthInput), [lengthInput]);
+  const wasRounded = Number.isFinite(parsedLength) && normalizedLength !== parsedLength;
+
+  const capacityData = useMemo(
+    () => getCapacityRow(serviceType, pressureSystem, normalizedLength),
+    [serviceType, pressureSystem, normalizedLength],
+  );
+
+  const handleUnlock = () => {
+    if (password === "123") {
+      setIsUnlocked(true);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("serviceCapacityUnlocked", "true");
+      }
+    }
+  };
+
+  const handleLock = () => {
+    setIsUnlocked(false);
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("serviceCapacityUnlocked");
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="mt-4 space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold">Service Capacity Tables</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Lookup service capacities by service type, pressure system, and length.
+            </p>
+          </div>
+          {isUnlocked && (
+            <Button variant="ghost" size="sm" onClick={handleLock}>
+              Lock
+            </Button>
+          )}
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] items-end rounded-md border border-border/60 bg-muted/20 p-4">
+          <div className="space-y-2">
+            <Label>Password</Label>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter the shared password to unlock the Service Capacity Tables.
+            </p>
+            {/* Note: This is client-side only and does not provide real security. */}
+          </div>
+          <Button onClick={handleUnlock} disabled={isUnlocked}>
+            Unlock
+          </Button>
+        </div>
+
+        {!isUnlocked ? (
+          <div className="text-sm text-muted-foreground">
+            The Service Capacity Tables are locked. Enter the password to view the lookup tool.
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <Label>Service Type</Label>
+                <Select value={serviceType} onValueChange={(value) => setServiceType(value as ServiceType)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="existing">Existing Plastic</SelectItem>
+                    <SelectItem value="new">New Plastic</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Pressure System</Label>
+                <Select
+                  value={pressureSystem}
+                  onValueChange={(value) => setPressureSystem(value as PressureSystem)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Service Length (ft)</Label>
+                <Input
+                  type="number"
+                  min={SERVICE_LENGTHS[0]}
+                  max={SERVICE_LENGTHS[SERVICE_LENGTHS.length - 1]}
+                  step={1}
+                  value={lengthInput}
+                  onChange={(e) => setLengthInput(e.target.value)}
+                  onBlur={() => setLengthInput(String(normalizedLength))}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Supported lengths: 5–100 ft (5 ft increments).
+                </p>
+                {wasRounded && <p className="text-xs text-muted-foreground">Rounded to nearest 5 ft.</p>}
+              </div>
+            </div>
+
+            <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-sm">
+              <span className="font-medium text-foreground">Selection:</span>{" "}
+              <span className="text-muted-foreground">
+                {serviceType === "existing" ? "Existing Plastic" : "New Plastic"} ·{" "}
+                {pressureSystem.charAt(0).toUpperCase() + pressureSystem.slice(1)} Pressure ·{" "}
+                {normalizedLength} ft
+              </span>
+            </div>
+
+            {capacityData.pipeSizes.length > 0 && capacityData.row ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-muted/50 text-left">
+                      <th className="px-3 py-2 font-medium">Pipe Size</th>
+                      <th className="px-3 py-2 font-medium">Capacity (CFH)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {capacityData.pipeSizes.map((size) => (
+                      <tr key={size} className="border-b last:border-0 border-border/60">
+                        <td className="px-3 py-2 font-medium text-foreground">{size}</td>
+                        <td className="px-3 py-2 font-mono">
+                          {fmt0(capacityData.row?.[size] ?? Number.NaN)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground">
+                No capacity data available for this selection.
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
