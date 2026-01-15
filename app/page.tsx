@@ -239,6 +239,13 @@ function Converter() {
   const [hhv, setHhv] = useState(String(DEFAULT_HHV_MBTU_PER_MCF));
   const [hours, setHours] = useState("500");
   const [efficiency, setEfficiency] = useState("90");
+  const [detailMode, setDetailMode] = useState<"simple" | "detailed">("simple");
+  const [expandedCards, setExpandedCards] = useState({
+    inputRate: false,
+    outputRate: false,
+    fuelTotal: false,
+    deliveredTotal: false,
+  });
 
   const calc = useMemo(() => {
     const value = num(val);
@@ -377,6 +384,68 @@ function Converter() {
     };
   }, [val, unit, hhv, hours, energyReference, efficiency]);
 
+  const hoursValue = num(hours);
+  const hasHours = hours.trim().length > 0 && hoursValue > 0;
+  const overTimeLabel = hasHours ? `${fmt0(hoursValue)} hrs` : "Current basis";
+  const detailIsExpanded = detailMode === "detailed";
+
+  const fuelInputRateRows: ResultRow[] = [
+    { key: "btuh-input", label: "BTU/hr (Input)", value: fmt0(calc.btuh_input) },
+    { key: "mbtu-input", label: "MBtu/hr (Input)", value: fmt0(calc.mbtu_per_hr_input) },
+    { key: "cfh", label: "CFH", value: fmt0(calc.cfh) },
+    { key: "mcfh", label: "MCFH", value: fmt3(calc.mcfh) },
+    { key: "therm-hr", label: "Therm/hr", value: fmt0(calc.therm_per_hr) },
+    { key: "dth-hr", label: "DTH/hr", value: fmt0(calc.dth_per_hr) },
+    { key: "oil-gph", label: "No. 2 Oil (gal/hr)", value: fmt2(calc.oil_gph) },
+    { key: "diesel-gph", label: "Diesel (gal/hr)", value: fmt2(calc.diesel_gph) },
+  ];
+
+  const deliveredOutputRateRows: ResultRow[] = [
+    { key: "btuh-output", label: "BTU/hr (Output)", value: fmt0(calc.btuh_output) },
+    { key: "kw", label: "kW", value: fmt0(calc.kW) },
+    { key: "mw", label: "MW", value: fmt3(calc.mw) },
+    { key: "tons", label: "Tons", value: fmt0(calc.tons) },
+    { key: "hp", label: "HP", value: fmt0(calc.hp) },
+    { key: "mlb-hr", label: "MLBs/hr", value: fmt0(calc.mlb_per_hr) },
+  ];
+
+  const fuelEnergyOverTimeRows: ResultRow[] = [
+    { key: "btu-total-input", label: "BTU", value: fmt0(calc.totalBtusInput) },
+    { key: "mbtu-total-input", label: "MBtu", value: fmt0(calc.totalMBtuInput) },
+    { key: "mcf-total", label: "MCF", value: fmt0(calc.totalMCF) },
+    { key: "therms-total", label: "Therms", value: fmt0(calc.totalTherms) },
+    { key: "dth-total", label: "DTH", value: fmt0(calc.totalDTH) },
+    { key: "oil-total", label: "No. 2 Oil (gal)", value: fmt2(calc.totalOilGallons) },
+    { key: "diesel-total", label: "Diesel (gal)", value: fmt2(calc.totalDieselGallons) },
+  ];
+
+  const deliveredEnergyOverTimeRows: ResultRow[] = [
+    { key: "btu-total-output", label: "BTU", value: fmt0(calc.totalBtusOutput) },
+    { key: "kwh-total", label: "kWh", value: fmt0(calc.totalKWh) },
+    { key: "mwh-total", label: "MWh", value: fmt3(calc.totalKWh / 1000) },
+    { key: "tons-total", label: "Tons", value: fmt0(calc.totalTons) },
+    { key: "mlb-total", label: "MLB", value: fmt0(calc.totalMLB) },
+  ].filter((row) => row.value !== "–");
+
+  const handleDetailModeChange = (mode: "simple" | "detailed") => {
+    setDetailMode(mode);
+    if (mode === "simple") {
+      setExpandedCards({
+        inputRate: false,
+        outputRate: false,
+        fuelTotal: false,
+        deliveredTotal: false,
+      });
+    }
+  };
+
+  const toggleCardExpansion = (key: keyof typeof expandedCards) => {
+    if (detailIsExpanded) {
+      return;
+    }
+    setExpandedCards((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm text-muted-foreground mt-2 mb-4">
@@ -400,7 +469,7 @@ function Converter() {
       {/* Inputs */}
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 items-end">
+          <div className="grid gap-4 md:grid-cols-3 items-end">
             <div>
               <Label>Value</Label>
               <Input value={val} onChange={(e) => setVal(e.target.value)} />
@@ -469,11 +538,11 @@ function Converter() {
             </div>
 
             {/* Auto Classification */}
-            <div className="flex items-end justify-end sm:col-span-2 lg:col-span-1">
+            <div className="flex items-end justify-start md:justify-end">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="text-right cursor-help">
+                    <div className="text-left md:text-right cursor-help">
                       <div className="text-xs text-muted-foreground">Application Type</div>
                       <div className={`font-medium ${calc.colorClass}`}>{calc.category}</div>
                     </div>
@@ -489,111 +558,166 @@ function Converter() {
                 </Tooltip>
               </TooltipProvider>
             </div>
-          </div>
 
-          {/* Advanced Options */}
-          <div className="border-t border-border pt-4">
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="advanced">
-                <AccordionTrigger>Advanced options</AccordionTrigger>
-                <AccordionContent>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <Label>Gas HHV (MBTU/MCF)</Label>
-                      <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Default {DEFAULT_HHV_MBTU_PER_MCF} ≈ 1,035 BTU/CF
-                      </p>
+            <div className="md:col-span-3">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="advanced">
+                  <AccordionTrigger>Advanced options</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <Label>Gas HHV (MBTU/MCF)</Label>
+                        <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Default {DEFAULT_HHV_MBTU_PER_MCF} ≈ 1,035 BTU/CF
+                        </p>
+                      </div>
+                      <div>
+                        <Label>Hours of operation</Label>
+                        <Input value={hours} onChange={(e) => setHours(e.target.value)} />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Totals below use this duration.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <Label>Hours of operation</Label>
-                      <Input value={hours} onChange={(e) => setHours(e.target.value)} />
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Totals below use this duration.
-                      </p>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Input Demand */}
-      <Card>
-        <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
-            <Flame className="h-4 w-4" aria-hidden="true" />
-            <span>Input Demand (Fuel Energy Rate)</span>
-          </h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-            <Readout label="BTU/hr (Input)" value={fmt0(calc.btuh_input)} />
-            <Readout label="MBtu/hr (Input)" value={fmt0(calc.mbtu_per_hr_input)} />
-            <Readout label="CFH" value={fmt0(calc.cfh)} />
-            <Readout label="MCFH" value={fmt3(calc.mcfh)} />
-            <Readout label="Therm/hr" value={fmt0(calc.therm_per_hr)} />
-            <Readout label="DTH/hr" value={fmt0(calc.dth_per_hr)} />
-            <Readout label="No. 2 Oil (gal/hr)" value={fmt2(calc.oil_gph)} />
-            <Readout label="Diesel (gal/hr)" value={fmt2(calc.diesel_gph)} />
+      <div className="sticky top-4 z-10">
+        <div className="rounded-lg border bg-background/95 px-4 py-2 text-xs backdrop-blur">
+          <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
+            <span className="font-semibold text-foreground">Context</span>
+            <span className="flex items-center gap-1">
+              <span className="text-muted-foreground">Energy Reference:</span>
+              <span className="font-medium text-foreground">
+                {energyReference === "input" ? "Input Fuel" : "Delivered Output"}
+              </span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="text-muted-foreground">Efficiency:</span>
+              <span className="font-medium text-foreground">{fmt0(calc.efficiencyPct)}%</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="text-muted-foreground">Application Type:</span>
+              <span className="font-medium text-foreground">{calc.category}</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="text-muted-foreground">Over time:</span>
+              <span className="font-medium text-foreground">{overTimeLabel}</span>
+            </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Output Demand */}
-      <Card>
-        <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
-            <Zap className="h-4 w-4" aria-hidden="true" />
-            <span>Output Demand (Delivered Energy Rate)</span>
-          </h3>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            <Readout label="BTU/hr (Output)" value={fmt0(calc.btuh_output)} />
-            <Readout label="kW" value={fmt0(calc.kW)} />
-            <Readout label="MW" value={fmt3(calc.mw)} />
-            <Readout label="Tons" value={fmt0(calc.tons)} />
-            <Readout label="HP" value={fmt0(calc.hp)} />
-            <Readout label="MLBs/hr" value={fmt0(calc.mlb_per_hr)} />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold">Results</h3>
+          <p className="text-xs text-muted-foreground">
+            Demand values are rates. Energy values reflect totals over the selected time basis.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 rounded-md border bg-muted/30 p-1 text-xs">
+          <Button
+            size="sm"
+            variant={detailMode === "simple" ? "secondary" : "ghost"}
+            onClick={() => handleDetailModeChange("simple")}
+          >
+            Simple
+          </Button>
+          <Button
+            size="sm"
+            variant={detailMode === "detailed" ? "secondary" : "ghost"}
+            onClick={() => handleDetailModeChange("detailed")}
+          >
+            Detailed
+          </Button>
+        </div>
+      </div>
 
-      {/* Total Fuel Energy */}
-      <Card>
-        <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
-            <Flame className="h-4 w-4" aria-hidden="true" />
-            <span>Total Fuel Energy (over time)</span>
-          </h3>
-          <p className="text-xs text-muted-foreground mt-1">Computed as fuel input × hours of operation.</p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-            <Readout label="BTU" value={fmt0(calc.totalBtusInput)} />
-            <Readout label="MBtu" value={fmt0(calc.totalMBtuInput)} />
-            <Readout label="MCF" value={fmt0(calc.totalMCF)} />
-            <Readout label="Therms" value={fmt0(calc.totalTherms)} />
-            <Readout label="DTH" value={fmt0(calc.totalDTH)} />
-            <Readout label="No. 2 Oil (gal)" value={fmt2(calc.totalOilGallons)} />
-            <Readout label="Diesel (gal)" value={fmt2(calc.totalDieselGallons)} />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-4">
+          <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Flame className="h-4 w-4 text-blue-600" aria-hidden="true" />
+                  <h3 className="text-base font-semibold">Demand (Rate)</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Instantaneous fuel input and delivered output rates.
+                </p>
+              </div>
+              <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                Rate
+              </span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Total Delivered Energy */}
-      <Card>
-        <CardContent className="mt-4">
-          <h3 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
-            <Zap className="h-4 w-4" aria-hidden="true" />
-            <span>Total Delivered Energy (over time)</span>
-          </h3>
-          <p className="text-xs text-muted-foreground mt-1">Computed as delivered output × hours of operation.</p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            <Readout label="BTU" value={fmt0(calc.totalBtusOutput)} />
-            <Readout label="kWh" value={fmt0(calc.totalKWh)} />
-            <Readout label="Tons" value={fmt0(calc.totalTons)} />
-            <Readout label="MLB" value={fmt0(calc.totalMLB)} />
+          <ResultCard
+            title="Fuel Input Rate"
+            subtitle="Fuel energy entering the system."
+            rows={fuelInputRateRows}
+            primaryKeys={["mcfh", "mbtu-input", "dth-hr", "therm-hr"]}
+            expanded={detailIsExpanded || expandedCards.inputRate}
+            onToggle={() => toggleCardExpansion("inputRate")}
+            showToggle={!detailIsExpanded}
+          />
+
+          <ResultCard
+            title="Delivered Output Rate"
+            subtitle="Useful energy delivered to the load."
+            rows={deliveredOutputRateRows}
+            primaryKeys={["kw", "mw", "btuh-output", "tons", "hp"]}
+            expanded={detailIsExpanded || expandedCards.outputRate}
+            onToggle={() => toggleCardExpansion("outputRate")}
+            showToggle={!detailIsExpanded}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-green-600" aria-hidden="true" />
+                  <h3 className="text-base font-semibold">Energy (Total)</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Totals over the selected operating hours.
+                </p>
+              </div>
+              <span className="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-green-700">
+                Total
+              </span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+
+          <ResultCard
+            title="Fuel Energy Over Time"
+            subtitle="Computed as fuel input × hours of operation."
+            rows={fuelEnergyOverTimeRows}
+            primaryKeys={["mcf-total", "dth-total", "mbtu-total-input", "btu-total-input"]}
+            expanded={detailIsExpanded || expandedCards.fuelTotal}
+            onToggle={() => toggleCardExpansion("fuelTotal")}
+            showToggle={!detailIsExpanded}
+          />
+
+          <ResultCard
+            title="Delivered Energy Over Time"
+            subtitle="Computed as delivered output × hours of operation."
+            rows={deliveredEnergyOverTimeRows}
+            primaryKeys={["kwh-total", "mwh-total", "btu-total-output", "tons-total", "mlb-total"]}
+            expanded={detailIsExpanded || expandedCards.deliveredTotal}
+            onToggle={() => toggleCardExpansion("deliveredTotal")}
+            showToggle={!detailIsExpanded}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -603,6 +727,71 @@ function Readout({ label, value }: { label: string; value: string }) {
     <div className="rounded border p-3">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="mt-1 font-mono text-base bg-muted/30 rounded px-2 py-1 sm:text-lg">{value}</div>
+    </div>
+  );
+}
+
+type ResultRow = {
+  key: string;
+  label: string;
+  value: string;
+};
+
+function ResultCard({
+  title,
+  subtitle,
+  rows,
+  primaryKeys,
+  expanded,
+  onToggle,
+  showToggle,
+}: {
+  title: string;
+  subtitle?: string;
+  rows: ResultRow[];
+  primaryKeys: string[];
+  expanded: boolean;
+  onToggle: () => void;
+  showToggle: boolean;
+}) {
+  const primaryRows = primaryKeys
+    .map((key) => rows.find((row) => row.key === key))
+    .filter((row): row is ResultRow => Boolean(row));
+  const visibleRows = expanded ? rows : primaryRows;
+
+  return (
+    <Card>
+      <CardContent className="mt-4 space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h4 className="text-base font-semibold">{title}</h4>
+            {subtitle ? <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p> : null}
+          </div>
+        </div>
+        <div className="grid gap-2">
+          {visibleRows.map((row) => (
+            <ResultRowItem key={row.key} label={row.label} value={row.value} />
+          ))}
+        </div>
+        <div className="flex items-center justify-end">
+          {showToggle ? (
+            <Button variant="ghost" size="sm" onClick={onToggle}>
+              {expanded ? "Show fewer units" : "Show all units"}
+            </Button>
+          ) : (
+            <span className="text-xs text-muted-foreground">All units shown</span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ResultRowItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded border px-3 py-2 text-sm">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="font-mono text-right text-sm text-foreground">{value}</span>
     </div>
   );
 }
