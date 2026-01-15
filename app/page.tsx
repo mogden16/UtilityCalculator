@@ -9,7 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import { ArrowDown, ArrowLeftRight, ArrowRight, Flame, Zap } from "lucide-react";
+import { ArrowLeftRight, Flame, Zap } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -446,29 +446,16 @@ function Converter() {
     setExpandedCards((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const demandContext = `Reference: ${
+    energyReference === "input" ? "Input Fuel" : "Delivered Output"
+  } | Eff: ${fmt0(calc.efficiencyPct)}%`;
+  const hoursContext = hasHours ? `Hours: ${fmt0(hoursValue)}` : `Basis: ${overTimeLabel}`;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm text-muted-foreground mt-2 mb-4">
-        <div className="flex items-center gap-2 text-foreground">
-          <Flame className="h-4 w-4" aria-hidden="true" />
-          <span className="font-medium">Input Fuel</span>
-        </div>
-        <ArrowDown className="h-4 w-4 sm:hidden" />
-        <ArrowRight className="hidden h-4 w-4 sm:block" />
-        <div className="border rounded-lg px-3 py-1 bg-muted/50 font-medium text-foreground">
-          Efficiency: {fmt0(calc.efficiencyPct)}%
-        </div>
-        <ArrowDown className="h-4 w-4 sm:hidden" />
-        <ArrowRight className="hidden h-4 w-4 sm:block" />
-        <div className="flex items-center gap-2 text-foreground">
-          <Zap className="h-4 w-4" aria-hidden="true" />
-          <span className="font-medium">Delivered Output</span>
-        </div>
-      </div>
-
       {/* Inputs */}
       <Card>
-        <CardContent className="mt-4 space-y-4">
+        <CardContent className="mt-4">
           <div className="grid gap-4 md:grid-cols-3 items-end">
             <div>
               <Label>Value</Label>
@@ -559,7 +546,7 @@ function Converter() {
               </TooltipProvider>
             </div>
 
-            <div className="md:col-span-3">
+            <div>
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="advanced">
                   <AccordionTrigger>Advanced options</AccordionTrigger>
@@ -588,32 +575,6 @@ function Converter() {
         </CardContent>
       </Card>
 
-      <div className="sticky top-4 z-10">
-        <div className="rounded-lg border bg-background/95 px-4 py-2 text-xs backdrop-blur">
-          <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
-            <span className="font-semibold text-foreground">Context</span>
-            <span className="flex items-center gap-1">
-              <span className="text-muted-foreground">Energy Reference:</span>
-              <span className="font-medium text-foreground">
-                {energyReference === "input" ? "Input Fuel" : "Delivered Output"}
-              </span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="text-muted-foreground">Efficiency:</span>
-              <span className="font-medium text-foreground">{fmt0(calc.efficiencyPct)}%</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="text-muted-foreground">Application Type:</span>
-              <span className="font-medium text-foreground">{calc.category}</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="text-muted-foreground">Over time:</span>
-              <span className="font-medium text-foreground">{overTimeLabel}</span>
-            </span>
-          </div>
-        </div>
-      </div>
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold">Results</h3>
@@ -640,17 +601,15 @@ function Converter() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-4">
-          <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-3">
+        <div className="space-y-4 rounded-lg border border-blue-500/20 bg-blue-500/5 p-4">
+          <div className="rounded-lg border border-blue-500/20 bg-background/80 px-3 py-2">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="flex items-center gap-2">
                   <Flame className="h-4 w-4 text-blue-600" aria-hidden="true" />
                   <h3 className="text-base font-semibold">Demand (Rate)</h3>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Instantaneous fuel input and delivered output rates.
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">instantaneous / per hour</p>
               </div>
               <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700">
                 Rate
@@ -660,7 +619,7 @@ function Converter() {
 
           <ResultCard
             title="Fuel Input Rate"
-            subtitle="Fuel energy entering the system."
+            contextLine={demandContext}
             rows={fuelInputRateRows}
             primaryKeys={["mcfh", "mbtu-input", "dth-hr", "therm-hr"]}
             expanded={detailIsExpanded || expandedCards.inputRate}
@@ -670,7 +629,7 @@ function Converter() {
 
           <ResultCard
             title="Delivered Output Rate"
-            subtitle="Useful energy delivered to the load."
+            contextLine={demandContext}
             rows={deliveredOutputRateRows}
             primaryKeys={["kw", "mw", "btuh-output", "tons", "hp"]}
             expanded={detailIsExpanded || expandedCards.outputRate}
@@ -679,19 +638,17 @@ function Converter() {
           />
         </div>
 
-        <div className="space-y-4">
-          <div className="rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-3">
+        <div className="space-y-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+          <div className="rounded-lg border border-emerald-500/20 bg-background/80 px-3 py-2">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-green-600" aria-hidden="true" />
+                  <Zap className="h-4 w-4 text-emerald-600" aria-hidden="true" />
                   <h3 className="text-base font-semibold">Energy (Total)</h3>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Totals over the selected operating hours.
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">accumulated over selected hours</p>
               </div>
-              <span className="rounded-full border border-green-500/30 bg-green-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-green-700">
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
                 Total
               </span>
             </div>
@@ -699,7 +656,7 @@ function Converter() {
 
           <ResultCard
             title="Fuel Energy Over Time"
-            subtitle="Computed as fuel input × hours of operation."
+            contextLine={`Computed: fuel input × hours | ${hoursContext}`}
             rows={fuelEnergyOverTimeRows}
             primaryKeys={["mcf-total", "dth-total", "mbtu-total-input", "btu-total-input"]}
             expanded={detailIsExpanded || expandedCards.fuelTotal}
@@ -709,7 +666,7 @@ function Converter() {
 
           <ResultCard
             title="Delivered Energy Over Time"
-            subtitle="Computed as delivered output × hours of operation."
+            contextLine={`Computed: delivered output × hours | ${hoursContext}`}
             rows={deliveredEnergyOverTimeRows}
             primaryKeys={["kwh-total", "mwh-total", "btu-total-output", "tons-total", "mlb-total"]}
             expanded={detailIsExpanded || expandedCards.deliveredTotal}
@@ -718,6 +675,26 @@ function Converter() {
           />
         </div>
       </div>
+
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="assumptions">
+          <AccordionTrigger>Assumptions &amp; Definitions</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>
+                <span className="font-medium text-foreground">Efficiency</span> represents how much input fuel
+                energy is converted into delivered output energy. Input demand is adjusted by the efficiency
+                percentage when your reference is delivered output, and output demand is adjusted when your
+                reference is input fuel.
+              </p>
+              <p>
+                <span className="font-medium text-foreground">Totals</span> are computed as rate × hours. The
+                totals above use {hasHours ? `the current ${fmt0(hoursValue)} hours of operation` : overTimeLabel}.
+              </p>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }
@@ -739,7 +716,7 @@ type ResultRow = {
 
 function ResultCard({
   title,
-  subtitle,
+  contextLine,
   rows,
   primaryKeys,
   expanded,
@@ -747,7 +724,7 @@ function ResultCard({
   showToggle,
 }: {
   title: string;
-  subtitle?: string;
+  contextLine: string;
   rows: ResultRow[];
   primaryKeys: string[];
   expanded: boolean;
@@ -765,7 +742,7 @@ function ResultCard({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h4 className="text-base font-semibold">{title}</h4>
-            {subtitle ? <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p> : null}
+            <p className="mt-1 text-xs text-muted-foreground">{contextLine}</p>
           </div>
         </div>
         <div className="grid gap-2">
@@ -789,8 +766,8 @@ function ResultCard({
 
 function ResultRowItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded border px-3 py-2 text-sm">
-      <span className="text-xs text-muted-foreground">{label}</span>
+    <div className="flex items-center justify-between gap-4 rounded border px-3 py-1.5 text-sm">
+      <span className="text-xs text-muted-foreground text-left">{label}</span>
       <span className="font-mono text-right text-sm text-foreground">{value}</span>
     </div>
   );
