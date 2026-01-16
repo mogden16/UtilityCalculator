@@ -1,6 +1,7 @@
 "use client";
 
-import React, { Fragment, useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -2230,9 +2231,86 @@ function Tests() {
 
 // --- Page ---
 export default function EnergyProToolkit() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tabValues = useMemo(
+    () =>
+      [
+        "converter",
+        "energy",
+        "emissions",
+        "load",
+        "gasflow",
+        "convert",
+        "ranges",
+        "tests",
+      ] as const,
+    []
+  );
+  type TabValue = (typeof tabValues)[number];
+  const defaultTab: TabValue = "converter";
+  const isTabValue = (value: string | null): value is TabValue =>
+    !!value && tabValues.includes(value as TabValue);
+  const [activeTab, setActiveTab] = useState<TabValue>(() => {
+    if (typeof window === "undefined") {
+      return defaultTab;
+    }
+    const initialParam = new URLSearchParams(window.location.search).get("tab");
+    return isTabValue(initialParam) ? initialParam : defaultTab;
+  });
+  const previousTabRef = useRef<TabValue>(activeTab);
+
+  // Sync active tab from query string so back/forward buttons update the UI.
+  useEffect(() => {
+    const queryTab = searchParams.get("tab");
+    if (isTabValue(queryTab) && queryTab !== activeTab) {
+      setActiveTab(queryTab);
+      return;
+    }
+    if (!queryTab && activeTab !== defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [activeTab, defaultTab, searchParams]);
+
+  // Update the URL query string without a full navigation.
+  useEffect(() => {
+    const currentQuery = searchParams.toString();
+    const nextParams = new URLSearchParams(currentQuery);
+    if (activeTab === defaultTab) {
+      nextParams.delete("tab");
+    } else {
+      nextParams.set("tab", activeTab);
+    }
+    const nextQuery = nextParams.toString();
+    const currentUrl = currentQuery ? `${pathname}?${currentQuery}` : pathname;
+    const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+    if (nextUrl !== currentUrl) {
+      router.replace(nextUrl, { scroll: false });
+    }
+  }, [activeTab, defaultTab, pathname, router, searchParams]);
+
+  // Store and restore scroll positions per tab in sessionStorage.
+  useEffect(() => {
+    const previousTab = previousTabRef.current;
+    if (previousTab !== activeTab) {
+      sessionStorage.setItem(`tabScroll:${previousTab}`, String(window.scrollY));
+    }
+    const savedScroll = sessionStorage.getItem(`tabScroll:${activeTab}`);
+    const scrollTarget = savedScroll ? Number(savedScroll) : 0;
+    requestAnimationFrame(() => {
+      window.scrollTo(0, Number.isFinite(scrollTarget) ? scrollTarget : 0);
+    });
+    previousTabRef.current = activeTab;
+  }, [activeTab]);
+
   return (
     <div className="space-y-6 pb-6">
-      <Tabs defaultValue="converter" className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as TabValue)}
+        className="w-full"
+      >
         <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
           <TabsTrigger value="converter">Converter</TabsTrigger>
           <TabsTrigger value="energy">Energy Comparison</TabsTrigger>
@@ -2246,28 +2324,28 @@ export default function EnergyProToolkit() {
           <TabsTrigger value="tests">Tests</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="converter">
+        <TabsContent value="converter" forceMount>
           <Converter />
         </TabsContent>
-        <TabsContent value="energy">
+        <TabsContent value="energy" forceMount>
           <EnergyComparison />
         </TabsContent>
-        <TabsContent value="emissions">
+        <TabsContent value="emissions" forceMount>
           <EmissionsComparison />
         </TabsContent>
-        <TabsContent value="load">
+        <TabsContent value="load" forceMount>
           <LoadEstimator />
         </TabsContent>
-        <TabsContent value="gasflow">
+        <TabsContent value="gasflow" forceMount>
           <GasFlow />
         </TabsContent>
-        <TabsContent value="convert">
+        <TabsContent value="convert" forceMount>
           <Conversions />
         </TabsContent>
-        <TabsContent value="ranges">
+        <TabsContent value="ranges" forceMount>
           <Ranges />
         </TabsContent>
-        <TabsContent value="tests">
+        <TabsContent value="tests" forceMount>
           <Tests />
         </TabsContent>
       </Tabs>
