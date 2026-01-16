@@ -21,12 +21,33 @@ def test_constants_relationship():
     assert math.isclose(mmbtuh_to_btuh(1.0), BTU_PER_MMBTU)
 
 
+def _evaluate_expression(expression: str, content: str) -> float:
+    expression = expression.strip()
+    if expression.replace("_", "").replace(".", "").isdigit():
+        return float(expression.replace("_", ""))
+    parts = re.split(r"\s*([*/])\s*", expression)
+    if not parts:
+        msg = f"Unsupported constant expression: {expression}"
+        raise AssertionError(msg)
+    result = _extract_constant(parts[0], content) if not parts[0].replace("_", "").replace(".", "").isdigit() else float(parts[0].replace("_", ""))
+    for index in range(1, len(parts), 2):
+        operator = parts[index]
+        operand = parts[index + 1]
+        value = (
+            _extract_constant(operand, content)
+            if not operand.replace("_", "").replace(".", "").isdigit()
+            else float(operand.replace("_", ""))
+        )
+        result = result * value if operator == "*" else result / value
+    return result
+
+
 def _extract_constant(name: str, content: str) -> float:
-    match = re.search(rf"const\s+{re.escape(name)}\s*=\s*([0-9][0-9_\.]*);", content)
+    match = re.search(rf"const\s+{re.escape(name)}\s*=\s*([^;]+);", content)
     if not match:
         msg = f"Constant {name} not found"
         raise AssertionError(msg)
-    return float(match.group(1).replace("_", ""))
+    return _evaluate_expression(match.group(1), content)
 
 
 def _get_conversion_energy_section(content: str) -> str:
@@ -48,15 +69,15 @@ def _parse_unit_multiplier(expression: str, content: str) -> float:
     expression = expression.strip()
     if expression == "value":
         return 1.0
-    multiplier_match = re.match(r"value\s*\*\s*(?P<factor>[\w_\.]+)", expression)
-    if multiplier_match:
-        factor = multiplier_match.group("factor")
-        return _extract_constant(factor, content) if not factor.replace("_", "").isdigit() else float(factor.replace("_", ""))
-    divider_match = re.match(r"value\s*/\s*(?P<factor>[\w_\.]+)", expression)
-    if divider_match:
-        factor = divider_match.group("factor")
-        divisor = _extract_constant(factor, content) if not factor.replace("_", "").isdigit() else float(factor.replace("_", ""))
-        return 1.0 / divisor
+    if expression.startswith("value"):
+        multiplier = 1.0
+        remainder = expression[len("value") :].strip()
+        for op, factor in re.findall(r"([*/])\s*([\w_\.]+)", remainder):
+            numeric_factor = (
+                _extract_constant(factor, content) if not factor.replace("_", "").isdigit() else float(factor.replace("_", ""))
+            )
+            multiplier = multiplier * numeric_factor if op == "*" else multiplier / numeric_factor
+        return multiplier
     msg = f"Unsupported unit expression: {expression}"
     raise AssertionError(msg)
 
@@ -136,3 +157,21 @@ def test_mw_converts_to_kw_and_back():
     base_from_kw = 1.0 * kw_to
     converted_mw = base_from_kw * mw_from
     assert math.isclose(converted_mw, 0.001), "1 kW should equal 0.001 MW"
+
+
+def test_bcf_converts_to_mcf_and_back():
+    content = Path("app/page.tsx").read_text()
+    bcf_to, bcf_from = _extract_unit_conversion_multipliers("bcf", "energy", content)
+    mcf_to, mcf_from = _extract_unit_conversion_multipliers("mcf", "energy", content)
+
+    base_from_bcf = 1.0 * bcf_to
+    converted_mcf = base_from_bcf * mcf_from
+    assert math.isclose(converted_mcf, 1_000_000.0), "1 BCF should equal 1,000,000 MCF"
+
+    base_from_half_bcf = 0.5 * bcf_to
+    converted_half_mcf = base_from_half_bcf * mcf_from
+    assert math.isclose(converted_half_mcf, 500_000.0), "0.5 BCF should equal 500,000 MCF"
+
+    base_from_mcf = 1_000_000.0 * mcf_to
+    converted_bcf = base_from_mcf * bcf_from
+    assert math.isclose(converted_bcf, 1.0), "1,000,000 MCF should equal 1 BCF"

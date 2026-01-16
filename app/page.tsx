@@ -1908,6 +1908,11 @@ const CONVERSION_CATEGORY_DEFINITIONS: Record<ConversionCategoryKey, CategoryDef
         toBase: (value) => value * BTU_PER_MCF,
         fromBase: (value) => value / BTU_PER_MCF,
       },
+      bcf: {
+        label: "BCF",
+        toBase: (value) => value * BTU_PER_MCF * 1_000_000,
+        fromBase: (value) => value / BTU_PER_MCF / 1_000_000,
+      },
       ccf: {
         label: "CCF",
         toBase: (value) => value * BTU_PER_CCF,
