@@ -513,8 +513,8 @@ export const PJMOpsDashboard = () => {
           timestamp,
         } as ConstraintRow;
       })
-      .filter(Boolean)
-      .filter((row) => Number.isFinite(row.marginalValue)) as ConstraintRow[];
+      .filter((row): row is ConstraintRow => row !== null)
+      .filter((row) => Number.isFinite(row.marginalValue));
   }, [constraintState.data]);
 
   const activeConstraints = constraintRows.filter((row) => row.marginalValue !== 0);
