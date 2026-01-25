@@ -218,9 +218,12 @@ export const fetchPjmOpsFeed = async (feed: string, params: Record<string, strin
   if (payload?.error) {
     throw new Error(payload.error);
   }
-  return payload as {
-    items: PjmOpsFeedItem[];
-    latestTimestamp: string | null;
-    feed: string;
+  return {
+    data: payload as {
+      items: PjmOpsFeedItem[];
+      latestTimestamp: string | null;
+      feed: string;
+    },
+    latestTimestamp: payload?.latestTimestamp ?? null,
   };
 };
