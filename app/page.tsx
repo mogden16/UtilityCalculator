@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -2231,7 +2231,7 @@ function Tests() {
 }
 
 // --- Page ---
-export default function EnergyProToolkit() {
+function EnergyProToolkit() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -2356,5 +2356,13 @@ export default function EnergyProToolkit() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function EnergyProToolkitPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading UtilityCalc…</div>}>
+      <EnergyProToolkit />
+    </Suspense>
   );
 }
