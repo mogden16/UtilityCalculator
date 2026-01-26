@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { ArrowLeftRight, Flame, Zap } from "lucide-react";
+import { PJMOpsDashboard } from "@/components/pjm-ops/PJMOpsDashboard";
 import {
   BarChart,
   Bar,
@@ -2230,7 +2231,7 @@ function Tests() {
 }
 
 // --- Page ---
-export default function EnergyProToolkit() {
+function EnergyProToolkit() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -2242,6 +2243,7 @@ export default function EnergyProToolkit() {
         "emissions",
         "load",
         "gasflow",
+        "pjmops",
         "convert",
         "ranges",
         "tests",
@@ -2317,6 +2319,7 @@ export default function EnergyProToolkit() {
           <TabsTrigger value="emissions">Emissions Comparison</TabsTrigger>
           <TabsTrigger value="load">Load Estimator</TabsTrigger>
           <TabsTrigger value="gasflow">Gas Flow</TabsTrigger>
+          <TabsTrigger value="pjmops">PJM Ops</TabsTrigger>
           <TabsTrigger value="convert" className="flex-shrink-0">
             Conversions
           </TabsTrigger>
@@ -2339,6 +2342,9 @@ export default function EnergyProToolkit() {
         <TabsContent value="gasflow" forceMount>
           <GasFlow />
         </TabsContent>
+        <TabsContent value="pjmops" forceMount>
+          <PJMOpsDashboard />
+        </TabsContent>
         <TabsContent value="convert" forceMount>
           <Conversions />
         </TabsContent>
@@ -2350,5 +2356,13 @@ export default function EnergyProToolkit() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function EnergyProToolkitPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading UtilityCalc…</div>}>
+      <EnergyProToolkit />
+    </Suspense>
   );
 }
