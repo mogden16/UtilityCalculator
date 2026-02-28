@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1",
+    "vercel": "latest",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
