@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "pages:build": "npx @cloudflare/next-on-pages@1",
     "start": "next start"
   },
   "dependencies": {
@@ -17,13 +18,14 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.545.0",
-    "next": "15.5.4",
+    "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "recharts": "^3.2.1",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
