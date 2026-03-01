@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import { ArrowLeftRight, Flame, Zap } from "lucide-react";
+import { ArrowLeftRight, Flame, Info, Zap } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -33,6 +33,43 @@ import {
   mapPjmFuelToFuelKey,
   prettyFuelLabel,
 } from "@/lib/emissions";
+
+// --- Reusable info popover (tap/click — works on mobile + desktop) ---
+function InfoTip({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleOutside(e: MouseEvent | TouchEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative inline-flex">
+      <button
+        type="button"
+        aria-label="More info"
+        onClick={() => setOpen((v) => !v)}
+        className="text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <Info className="h-4 w-4 shrink-0" />
+      </button>
+      {open && (
+        <div className="absolute left-1/2 top-full z-50 mt-2 w-64 -translate-x-1/2 rounded-md border bg-popover p-3 text-xs leading-relaxed text-popover-foreground shadow-md">
+          {text}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // --- Helpers & constants ---
 const BTU_PER_TON = 12000;
@@ -87,7 +124,7 @@ const formatEfficiency = (value: number) => value.toFixed(2);
 
 const ARCHETYPES = [
   // Residential / light commercial space heat
-  { key: "res_furnace", name: "Residential furnace", range: [40000, 120000], note: "80–98% AFUE" },
+  { key: "res_furnace", name: "Residential furnace", range: [40000, 120000], note: "80–98% AFUE (seasonal efficiency rating)" },
   { key: "unit_heater", name: "Unit heater (suspended)", range: [30000, 400000], note: "Warehouse/garage" },
   { key: "res_boiler", name: "Residential boiler", range: [60000, 200000], note: "Hydronic" },
 
@@ -114,9 +151,9 @@ const ARCHETYPES = [
   // Packaged HVAC with gas heat
   {
     key: "rtu_gas_heat",
-    name: "Commercial RTU (gas heat section)",
+    name: "Commercial rooftop unit (gas heat section)",
     range: [100000, 1200000],
-    note: "Packaged HVAC",
+    note: "Packaged HVAC system installed on the building roof",
   },
 
   // Boilers (commercial/institutional)
@@ -134,7 +171,7 @@ const ARCHETYPES = [
   },
 
   // Process & make-up air
-  { key: "paint_booth", name: "Paint booth MUA", range: [1000000, 5000000], note: "Auto/body" },
+  { key: "paint_booth", name: "Paint booth make-up air heater", range: [1000000, 5000000], note: "Heats fresh replacement air for auto body/paint spray booths" },
   {
     key: "industrial_proc",
     name: "Industrial process heater",
@@ -161,15 +198,15 @@ const ARCHETYPES = [
   // CHP / Fuel cells (thermal shown in BTU/hr; electric noted)
   {
     key: "chp_engine",
-    name: "CHP (engine/turbine)",
+    name: "Combined Heat & Power (engine/turbine)",
     range: [1000000, 10000000],
-    note: "Thermal 1–10 MMBtu/hr; Electric ~200 kW–5 MW",
+    note: "Generates electricity and useful heat from one fuel source. Thermal 1–10 million BTU/hr; Electric ~200 kW–5 MW",
   },
   {
     key: "fuel_cell",
-    name: "Fuel cell CHP",
+    name: "Fuel cell (combined heat & power)",
     range: [300000, 6000000],
-    note: "Thermal 0.3–6 MMBtu/hr; Electric ~100 kW–2 MW",
+    note: "Generates electricity and heat from hydrogen or natural gas. Thermal 0.3–6 million BTU/hr; Electric ~100 kW–2 MW",
   },
 ] as const;
 
@@ -393,39 +430,39 @@ function Converter() {
   const fuelInputRateRows: ResultRow[] = [
     { key: "btuh-input", label: "BTU/hr (Input)", value: fmt0(calc.btuh_input) },
     { key: "mbtu-input", label: "MBtu/hr (Input)", value: fmt0(calc.mbtu_per_hr_input) },
-    { key: "cfh", label: "CFH", value: fmt0(calc.cfh) },
-    { key: "mcfh", label: "MCFH", value: fmt3(calc.mcfh) },
-    { key: "therm-hr", label: "Therm/hr", value: fmt0(calc.therm_per_hr) },
-    { key: "dth-hr", label: "DTH/hr", value: fmt0(calc.dth_per_hr) },
-    { key: "oil-gph", label: "No. 2 Oil (gal/hr)", value: fmt2(calc.oil_gph) },
-    { key: "diesel-gph", label: "Diesel (gal/hr)", value: fmt2(calc.diesel_gph) },
+    { key: "cfh", label: "CFH (cubic feet/hr gas)", value: fmt0(calc.cfh) },
+    { key: "mcfh", label: "MCFH (1,000 cubic feet/hr gas)", value: fmt3(calc.mcfh) },
+    { key: "therm-hr", label: "Therm/hr (100k BTU/hr)", value: fmt0(calc.therm_per_hr) },
+    { key: "dth-hr", label: "DTH/hr (dekatherm = 1M BTU/hr)", value: fmt0(calc.dth_per_hr) },
+    { key: "oil-gph", label: "No. 2 Heating Oil (gal/hr)", value: fmt2(calc.oil_gph) },
+    { key: "diesel-gph", label: "Diesel fuel (gal/hr)", value: fmt2(calc.diesel_gph) },
   ];
 
   const deliveredOutputRateRows: ResultRow[] = [
     { key: "btuh-output", label: "BTU/hr (Output)", value: fmt0(calc.btuh_output) },
     { key: "kw", label: "kW", value: fmt0(calc.kW) },
     { key: "mw", label: "MW", value: fmt3(calc.mw) },
-    { key: "tons", label: "Tons", value: fmt0(calc.tons) },
-    { key: "hp", label: "HP", value: fmt0(calc.hp) },
-    { key: "mlb-hr", label: "MLBs/hr", value: fmt0(calc.mlb_per_hr) },
+    { key: "tons", label: "Tons (cooling)", value: fmt0(calc.tons) },
+    { key: "hp", label: "HP (horsepower)", value: fmt0(calc.hp) },
+    { key: "mlb-hr", label: "MLB/hr (1,000 lb steam/hr)", value: fmt0(calc.mlb_per_hr) },
   ];
 
   const fuelEnergyOverTimeRows: ResultRow[] = [
     { key: "btu-total-input", label: "BTU", value: fmt0(calc.totalBtusInput) },
     { key: "mbtu-total-input", label: "MBtu", value: fmt0(calc.totalMBtuInput) },
-    { key: "mcf-total", label: "MCF", value: fmt0(calc.totalMCF) },
-    { key: "therms-total", label: "Therms", value: fmt0(calc.totalTherms) },
-    { key: "dth-total", label: "DTH", value: fmt0(calc.totalDTH) },
-    { key: "oil-total", label: "No. 2 Oil (gal)", value: fmt2(calc.totalOilGallons) },
-    { key: "diesel-total", label: "Diesel (gal)", value: fmt2(calc.totalDieselGallons) },
+    { key: "mcf-total", label: "MCF (1,000 cubic feet gas)", value: fmt0(calc.totalMCF) },
+    { key: "therms-total", label: "Therms (100k BTU each)", value: fmt0(calc.totalTherms) },
+    { key: "dth-total", label: "DTH (dekatherms = 1M BTU each)", value: fmt0(calc.totalDTH) },
+    { key: "oil-total", label: "No. 2 Heating Oil (gal)", value: fmt2(calc.totalOilGallons) },
+    { key: "diesel-total", label: "Diesel fuel (gal)", value: fmt2(calc.totalDieselGallons) },
   ];
 
   const deliveredEnergyOverTimeRows: ResultRow[] = [
     { key: "btu-total-output", label: "BTU", value: fmt0(calc.totalBtusOutput) },
     { key: "kwh-total", label: "kWh", value: fmt0(calc.totalKWh) },
     { key: "mwh-total", label: "MWh", value: fmt3(calc.totalKWh / 1000) },
-    { key: "tons-total", label: "Tons", value: fmt0(calc.totalTons) },
-    { key: "mlb-total", label: "MLB", value: fmt0(calc.totalMLB) },
+    { key: "tons-total", label: "Ton-hours (cooling)", value: fmt0(calc.totalTons) },
+    { key: "mlb-total", label: "MLB (1,000 lb steam)", value: fmt0(calc.totalMLB) },
   ].filter((row) => row.value !== "–");
 
   const handleDetailModeChange = (mode: "simple" | "detailed") => {
@@ -454,6 +491,10 @@ function Converter() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">Energy Toolkit</h3>
+        <InfoTip text="Enter an energy or power value in any unit and see it converted to all common equivalents — useful when comparing equipment specs, utility bills, or engineering documents that use different units." />
+      </div>
       {/* Inputs */}
       <Card>
         <CardContent className="mt-4">
@@ -470,20 +511,20 @@ function Converter() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="BTU/hr">BTU/hr (Demand)</SelectItem>
-                  <SelectItem value="kW">kW (Demand)</SelectItem>
-                  <SelectItem value="MW">MW (Demand)</SelectItem>
-                  <SelectItem value="Ton">Ton (Cooling Demand)</SelectItem>
-                  <SelectItem value="HP">HP (Mechanical)</SelectItem>
-                  <SelectItem value="Therm/hr">Therm/hr (Energy Rate)</SelectItem>
-                  <SelectItem value="DTH/hr">DTH/hr (Energy Rate)</SelectItem>
-                  <SelectItem value="Steam MLB/hr">MLB/hr (Steam Flow Rate)</SelectItem>
-                  <SelectItem value="No. 2 Oil (gal/hr)">No. 2 Oil (gal/hr)</SelectItem>
-                  <SelectItem value="Diesel (gal/hr)">Diesel (gal/hr)</SelectItem>
-                  <SelectItem value="MBtu/hr">MBtu/hr (Energy Rate)</SelectItem>
-                  <SelectItem value="MMBtu/hr">MMBtu/hr (Energy Rate)</SelectItem>
-                  <SelectItem value="CFH">CFH (Gas Flow Rate)</SelectItem>
-                  <SelectItem value="MCFH">MCFH (Gas Flow Rate)</SelectItem>
+                  <SelectItem value="BTU/hr">BTU/hr — British Thermal Units per hour</SelectItem>
+                  <SelectItem value="kW">kW — kilowatts (electrical power)</SelectItem>
+                  <SelectItem value="MW">MW — megawatts (1,000 kilowatts)</SelectItem>
+                  <SelectItem value="Ton">Ton — cooling tons (12,000 BTU/hr each)</SelectItem>
+                  <SelectItem value="HP">HP — mechanical horsepower</SelectItem>
+                  <SelectItem value="Therm/hr">Therm/hr — therms per hour (100k BTU each)</SelectItem>
+                  <SelectItem value="DTH/hr">DTH/hr — dekatherms per hour (1M BTU each)</SelectItem>
+                  <SelectItem value="Steam MLB/hr">MLB/hr — thousand lbs of steam per hour</SelectItem>
+                  <SelectItem value="No. 2 Oil (gal/hr)">No. 2 Heating Oil (gal/hr)</SelectItem>
+                  <SelectItem value="Diesel (gal/hr)">Diesel fuel (gal/hr)</SelectItem>
+                  <SelectItem value="MBtu/hr">MBtu/hr — thousand BTU per hour</SelectItem>
+                  <SelectItem value="MMBtu/hr">MMBtu/hr — million BTU per hour</SelectItem>
+                  <SelectItem value="CFH">CFH — cubic feet of gas per hour</SelectItem>
+                  <SelectItem value="MCFH">MCFH — thousand cubic feet of gas per hour</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -513,7 +554,9 @@ function Converter() {
                 </SelectContent>
               </Select>
               <p className="mt-1 text-xs text-muted-foreground">
-                Select whether the entered value represents input fuel or delivered output energy.
+                <strong>Input Fuel</strong> = total energy consumed (what you pay for).{" "}
+                <strong>Delivered Output</strong> = useful heat or cooling your space actually receives.
+                Example: a 90%-efficient furnace consuming 100,000 BTU/hr of gas (input) delivers 90,000 BTU/hr of heat (output).
               </p>
             </div>
 
@@ -521,7 +564,9 @@ function Converter() {
               <Label>Efficiency (%)</Label>
               <Input value={efficiency} onChange={(e) => setEfficiency(e.target.value)} />
               <p className="mt-1 text-xs text-muted-foreground">
-                Represents system efficiency. Used to convert between input fuel and delivered output energy.
+                How much of the fuel&apos;s energy becomes useful heat or cooling. Enter as a percentage
+                (e.g., 90 for a typical gas furnace). Heat pumps can exceed 100% because they move
+                heat rather than create it — enter the COP (e.g., 300 for a 3.0 COP heat pump).
               </p>
             </div>
 
@@ -536,12 +581,15 @@ function Converter() {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs text-xs leading-relaxed">
-                    <div className="font-semibold mb-1 text-foreground">Classification thresholds</div>
+                    <div className="font-semibold mb-1 text-foreground">What size system is this?</div>
                     <ul className="list-disc list-inside text-muted-foreground">
-                      <li>Residential — &lt; 300,000 BTU/hr</li>
-                      <li>Commercial — 300,000 to 3,000,000 BTU/hr</li>
-                      <li>Industrial — &gt; 3,000,000 BTU/hr</li>
+                      <li><strong>Residential</strong> (under 300k BTU/hr) — single-family homes, apartments</li>
+                      <li><strong>Commercial</strong> (300k–3M BTU/hr) — offices, schools, restaurants</li>
+                      <li><strong>Industrial</strong> (over 3M BTU/hr) — factories, large facilities</li>
                     </ul>
+                    <p className="mt-1 text-muted-foreground">
+                      Helps cross-check whether your number makes sense for your building type.
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -554,10 +602,11 @@ function Converter() {
                   <AccordionContent>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <Label>Gas HHV (MBTU/MCF)</Label>
+                        <Label>Gas Energy Content (HHV)</Label>
                         <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Default {DEFAULT_HHV_MBTU_PER_MCF} ≈ 1,035 BTU/CF
+                          Higher Heating Value — total energy per 1,000 cubic feet of natural gas.
+                          Default {DEFAULT_HHV_MBTU_PER_MCF} MMBtu/MCF works for most US pipeline gas.
                         </p>
                       </div>
                       <div>
@@ -577,11 +626,9 @@ function Converter() {
       </Card>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">Results</h3>
-          <p className="text-xs text-muted-foreground">
-            Demand values are rates. Energy values reflect totals over the selected time basis.
-          </p>
+          <InfoTip text="Demand values are rates. Energy values reflect totals over the selected time basis." />
         </div>
         <div className="flex items-center gap-2 rounded-md border bg-muted/30 p-1 text-xs">
           <Button
@@ -785,8 +832,11 @@ function GasFlow() {
           lookups and pressure drop tools in this tab.
         </p>
         <p className="text-xs">
-          Have a specific worksheet you rely on? Drop a note so we can prioritize building it into this
-          experience.
+          Have a specific worksheet you rely on?{" "}
+          <a href="https://github.com/mogden16/UtilityCalculator/issues" target="_blank" rel="noopener noreferrer" className="underline text-foreground hover:text-blue-500">
+            Open a GitHub issue
+          </a>{" "}
+          so we can prioritize building it into this experience.
         </p>
       </CardContent>
     </Card>
@@ -799,12 +849,9 @@ function Ranges() {
     <div className="space-y-6">
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div>
+          <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">Typical Gas Appliance Input Ranges</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Representative BTU/hr inputs for common combustion equipment. Use these to contextualize
-              load calculations, installed nameplate values, or replacement opportunities.
-            </p>
+            <InfoTip text="How much gas common appliances and equipment typically use, measured in BTU/hr (the rate of energy consumption). Use these ranges as a sanity check — if your calculated load is far outside these ranges for the equipment type, double-check your inputs." />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -822,10 +869,10 @@ function Ranges() {
             ))}
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Tip: Compare your calculated peak load or installed capacity to these references as a
-            sanity check before committing to equipment selections.
-          </p>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span>Tip</span>
+            <InfoTip text="Compare your calculated peak load or installed capacity to these references as a sanity check before committing to equipment selections." />
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -899,6 +946,10 @@ function LoadEstimator() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">Load Estimator</h3>
+        <InfoTip text="Estimate how much heating and cooling capacity your building needs based on its size and condition. This gives a rough starting point — not a replacement for a professional load calculation (Manual J)." />
+      </div>
       {/* Inputs */}
       <Card>
         <CardContent className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -921,8 +972,10 @@ function LoadEstimator() {
               </SelectContent>
             </Select>
           </div>
-          <div className="self-end text-xs text-muted-foreground">
-            Rule-of-thumb for Philadelphia climate.
+          <div className="self-end text-xs text-muted-foreground rounded-md border border-amber-500/30 bg-amber-500/10 p-2">
+            <strong>Climate note:</strong> These defaults are sized for the Philadelphia, PA area.
+            Colder climates need higher heating factors; warmer climates need higher cooling factors.
+            Use the override fields below to adjust.
           </div>
         </CardContent>
       </Card>
@@ -958,7 +1011,7 @@ function LoadEstimator() {
       <Card>
         <CardContent className="mt-4 grid gap-3 sm:grid-cols-4">
           <Readout label="Heating (BTU/hr)" value={fmt0(out.heat)} />
-          <Readout label="Heating (MBH)" value={fmt0(out.mbh)} />
+          <Readout label="Heating (MBH = 1,000 BTU/hr)" value={fmt0(out.mbh)} />
           <Readout label="Cooling (BTU/hr)" value={fmt0(out.cool)} />
           <Readout label="Cooling (Tons)" value={fmt0(out.tons)} />
         </CardContent>
@@ -967,12 +1020,9 @@ function LoadEstimator() {
       {/* Chart */}
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold">Modeled Load by Building Condition</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Each bar shows the total heating and cooling load in BTU/hr for the modeled square
-              footage using the default multipliers or your overrides for the selected condition.
-            </p>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">Estimated Heating & Cooling Needs by Building Condition</h3>
+            <InfoTip text='Each bar shows how many BTU/hr of heating or cooling your building would need at peak conditions. A "tight/new" building with good insulation needs less; an "older/leaky" building needs more.' />
           </div>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -1138,12 +1188,9 @@ function RateSourceCard({
   return (
     <Card>
       <CardContent className="mt-4 space-y-4">
-        <div>
+        <div className="flex items-center gap-2">
           <h3 className="text-base font-semibold">{title}</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Select a preset or custom label. Presets preload a typical delivered efficiency that you can
-            adjust after entering the billing rate for this energy source.
-          </p>
+          <InfoTip text="Select a preset or custom label. Presets preload a typical delivered efficiency that you can adjust after entering the billing rate for this energy source." />
         </div>
 
         <div>
@@ -1185,8 +1232,10 @@ function RateSourceCard({
             placeholder="0.90"
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Enter as a decimal fraction, COP, or percentage (e.g., 0.90, 3.20, or 90%). Presets use
-            typical efficiencies for each technology, but you can override them.
+            How efficiently this equipment turns fuel into useful heat. Enter as a decimal (0.90 = 90%)
+            or a whole-number percentage (90). Values above 10 are treated as percentages. For heat
+            pumps, the preset COP is already loaded (e.g., 2.8 = 280% effective, because heat pumps
+            move existing heat rather than burning fuel). You can override any preset.
           </p>
         </div>
       </CardContent>
@@ -1251,17 +1300,23 @@ function EnergyComparison() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">Cost Comparison</h3>
+        <InfoTip text="Compare the real cost of heating with different fuels or equipment. Enter your usage and the rate you pay for each energy source, and this tool normalizes them to a common basis so you can see which option is actually cheaper." />
+      </div>
       <Card>
         <CardContent className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
-            <Label>Gas HHV (MMBtu/MCF)</Label>
+            <Label>Gas Energy Content (MMBtu per 1,000 cu ft)</Label>
             <Input value={hhv} onChange={(e) => setHhv(e.target.value)} />
             <p className="text-xs text-muted-foreground mt-1">
-              Defaults to {DEFAULT_HHV_MBTU_PER_MCF}. Adjust to match your territory billing factor.
+              How much energy is in each unit of natural gas (Higher Heating Value).
+              Default {DEFAULT_HHV_MBTU_PER_MCF} works for most US pipeline gas. Your utility
+              may use a slightly different number on your bill.
             </p>
           </div>
           <div>
-            <Label>Modeled Load</Label>
+            <Label>Annual Energy Usage</Label>
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <Input value={usageValue} onChange={(event) => setUsageValue(event.target.value)} />
               <Select value={usageUnit} onValueChange={(value) => setUsageUnit(value as EnergyUnit)}>
@@ -1278,8 +1333,8 @@ function EnergyComparison() {
               </Select>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Enter the shared load to evaluate. Usage is converted to delivered MMBtu for each
-              option.
+              How much energy you use in a year (or season). You can find this on your utility bills.
+              For example, enter 1,200 therms if that&apos;s your annual gas use, or 10,000 kWh for electricity.
             </p>
           </div>
         </CardContent>
@@ -1300,12 +1355,9 @@ function EnergyComparison() {
 
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div>
+          <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">Cost Summary</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Rate inputs are converted to $/MMBtu, scaled to the shared load, and adjusted by each
-              source's delivered efficiency.
-            </p>
+            <InfoTip text="Rate inputs are converted to $/MMBtu, scaled to the shared load, and adjusted by each source's delivered efficiency." />
           </div>
 
           <div className="overflow-x-auto">
@@ -1596,13 +1648,15 @@ function EmissionsComparison() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">Emissions</h3>
+        <InfoTip text="How does the carbon footprint of grid electricity compare to burning natural gas on-site? This tool pulls live data from the PJM power grid and shows emissions side-by-side, including the impact of methane leaks in the gas supply chain." />
+      </div>
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold">PJM Generation Emissions</h3>
-            <p className="text-sm text-muted-foreground">
-              Live grid mix and carbon intensity from the PJM Data Miner feed.
-            </p>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">Power Grid Emissions (PJM Region)</h3>
+            <InfoTip text="Live fuel mix and carbon intensity for the PJM power grid, which serves ~65 million people across 13 mid-Atlantic and Midwest states (PA, NJ, DE, MD, VA, OH, IL, and others). If you live outside this area, the numbers won't match your local grid, but the methodology is the same." />
           </div>
 
           {loading && (
@@ -1688,7 +1742,7 @@ function EmissionsComparison() {
               <div className="mt-2 grid gap-4 md:grid-cols-2">
                 <div className="border rounded-xl p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">Natural Gas Customer Emissions</h3>
+                    <h3 className="font-semibold">Natural Gas Emissions (Burning Gas On-Site)</h3>
                     <Select value={selectedLeakScenario} onValueChange={(v) => setSelectedLeakScenario(v as LeakScenarioKey)}>
                       <SelectTrigger className="w-[220px]">
                         <SelectValue placeholder="Leakage scenario" />
@@ -1702,8 +1756,9 @@ function EmissionsComparison() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Constant assumptions: 1.035 MMBtu per MCF, 117 lb CO₂ per MMBtu combustion.
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Methodology</span>
+                    <InfoTip text='Natural gas (methane) leaks from wells, pipelines, and equipment before reaching your burner. Methane is a potent greenhouse gas, so even small leaks add significantly to total climate impact. "CO₂e" means CO₂ equivalent — the amount of CO₂ that would cause the same warming. Base assumptions: 1.035 MMBtu per MCF, 117 lb CO₂ per MMBtu combustion.' />
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
@@ -1739,9 +1794,9 @@ function EmissionsComparison() {
                 </div>
 
                 <div className="border rounded-xl p-4 space-y-3">
-                  <h3 className="font-semibold">Electric vs. Gas Comparison</h3>
+                  <h3 className="font-semibold">Carbon Intensity: Electric vs. Gas Heat</h3>
                   <div className="space-y-2">
-                    <Label htmlFor="pjm-scenario-select">PJM scenario</Label>
+                    <Label htmlFor="pjm-scenario-select">Grid scenario (what power plants are running)</Label>
                     <Select
                       value={selectedPjmScenario}
                       onValueChange={(value) => setSelectedPjmScenario(value as PjmScenarioKey)}
@@ -1769,7 +1824,7 @@ function EmissionsComparison() {
                       </thead>
                       <tbody>
                         <tr className="border-b border-border/60">
-                          <td className="px-3 py-2">PJM electricity (delivered)</td>
+                          <td className="px-3 py-2">Grid electricity (after power line losses)</td>
                           <td className="px-3 py-2 text-right font-mono text-foreground">
                             {pjmScenarioEmissions.totalDeliveredLbPerMwh
                               ? fmt3(pjmScenarioEmissions.totalDeliveredLbPerMwh / 1000)
@@ -1777,11 +1832,11 @@ function EmissionsComparison() {
                           </td>
                         </tr>
                         <tr className="border-b border-border/60">
-                          <td className="px-3 py-2">Natural gas (direct CO₂ only)</td>
+                          <td className="px-3 py-2">Natural gas (burning only, no upstream leaks)</td>
                           <td className="px-3 py-2 text-right font-mono text-muted-foreground">{fmt3(gasBreakdown.directCo2LbPerKwh)}</td>
                         </tr>
                         <tr>
-                          <td className="px-3 py-2">Natural gas (including leakage)</td>
+                          <td className="px-3 py-2">Natural gas (total, including methane pipeline leakage)</td>
                           <td className="px-3 py-2 text-right font-mono text-foreground">{fmt3(gasBreakdown.totalCo2eLbPerKwh)}</td>
                         </tr>
                       </tbody>
@@ -1804,10 +1859,19 @@ function EmissionsComparison() {
                             </li>
                           ))}
                         </ul>
+                        <p className="text-xs mt-1">
+                          Note: Biomass is listed as 0 because CO₂ from burning plant material is &quot;biogenic&quot; —
+                          the carbon was recently absorbed from the atmosphere by plants, so burning it is treated as
+                          carbon-neutral. This is a common accounting convention but is debated among scientists.
+                        </p>
                       </div>
                       <div>
-                        <div className="font-medium text-foreground">Transmission & distribution loss</div>
-                        <div>{fmt2(DEFAULT_T_AND_D_LOSS_FRACTION * 100)}% assumed loss.</div>
+                        <div className="font-medium text-foreground">Transmission & distribution (T&D) loss</div>
+                        <div>
+                          {fmt2(DEFAULT_T_AND_D_LOSS_FRACTION * 100)}% assumed loss. Electricity loses some
+                          energy as heat traveling through power lines from the plant to your building.
+                          The US average is about 5%.
+                        </div>
                       </div>
                       <div>
                         <div className="font-medium text-foreground">Natural gas constants</div>
@@ -1921,8 +1985,8 @@ const CONVERSION_CATEGORY_DEFINITIONS: Record<ConversionCategoryKey, CategoryDef
       },
       kwh: {
         label: "kWh",
-        toBase: (value) => value * 3_412,
-        fromBase: (value) => value / 3_412,
+        toBase: (value) => value * BTU_PER_KW,
+        fromBase: (value) => value / BTU_PER_KW,
       },
       oilno2: {
         label: "No. 2 Oil (gal)",
@@ -1947,23 +2011,23 @@ const CONVERSION_CATEGORY_DEFINITIONS: Record<ConversionCategoryKey, CategoryDef
       },
       kw: {
         label: "kW",
-        toBase: (value) => value * 3_412,
-        fromBase: (value) => value / 3_412,
+        toBase: (value) => value * BTU_PER_KW,
+        fromBase: (value) => value / BTU_PER_KW,
       },
       mw: {
         label: "MW",
-        toBase: (value) => value * 3_412_000,
-        fromBase: (value) => value / 3_412_000,
+        toBase: (value) => value * BTU_PER_KW * 1_000,
+        fromBase: (value) => value / (BTU_PER_KW * 1_000),
       },
       ton: {
         label: "Ton",
-        toBase: (value) => value * 12_000,
-        fromBase: (value) => value / 12_000,
+        toBase: (value) => value * BTU_PER_TON,
+        fromBase: (value) => value / BTU_PER_TON,
       },
       hp: {
         label: "HP",
-        toBase: (value) => value * 2_544,
-        fromBase: (value) => value / 2_544,
+        toBase: (value) => value * BTU_PER_HP,
+        fromBase: (value) => value / BTU_PER_HP,
       },
     },
   },
@@ -2004,6 +2068,7 @@ const CONVERSION_CATEGORY_DEFINITIONS: Record<ConversionCategoryKey, CategoryDef
       },
       scfh: {
         label: "SCFH",
+        description: "Standard cubic feet per hour (at 60°F, 14.7 psia). Same as CFH at standard conditions.",
         toBase: (value) => value,
         fromBase: (value) => value,
       },
@@ -2109,10 +2174,9 @@ function Conversions() {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        <div className="space-y-2 text-center">
-          <p className="text-muted-foreground">
-            Quickly convert between common energy, power, temperature, flow, and pressure units.
-          </p>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">Unit Converter</h3>
+          <InfoTip text="Quickly convert between common energy, power, temperature, flow, and pressure units." />
         </div>
 
         <Card>
@@ -2216,112 +2280,111 @@ function Conversions() {
 // --- Tests ---
 function Tests() {
   return (
-    <div className="space-y-2 text-sm text-muted-foreground">
-      <ul className="list-disc list-inside">
-        <li>1 ton = 12,000 BTU/hr</li>
-        <li>1 kW = 3,412 BTU/hr</li>
-        <li>1 HP ≈ 2,544 BTU/hr</li>
-        <li>1 Therm = 100,000 BTU</li>
-        <li>1 DTH = 1,000,000 BTU</li>
-        <li>1 MLB = 1,000,000 BTU (rounded)</li>
-      </ul>
-    </div>
+    <Card>
+      <CardContent className="mt-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">Reference Conversion Constants</h3>
+          <InfoTip text="Standard conversion factors used throughout this site. Useful as a quick reference or to verify the calculations above." />
+        </div>
+        <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+          <li><strong>1 Ton of cooling</strong> = 12,000 BTU/hr (the heat needed to melt one ton of ice in 24 hours)</li>
+          <li><strong>1 Kilowatt (kW)</strong> = 3,412.14 BTU/hr</li>
+          <li><strong>1 Horsepower (HP)</strong> ≈ 2,544 BTU/hr</li>
+          <li><strong>1 Therm</strong> = 100,000 BTU (common natural gas billing unit)</li>
+          <li><strong>1 Dekatherm (DTH)</strong> = 1,000,000 BTU = 10 Therms = 1 MMBtu</li>
+          <li><strong>1 MLB</strong> ≈ 1,000,000 BTU (thousand pounds of steam; actual value varies with steam pressure and temperature)</li>
+          <li><strong>1 MCF</strong> ≈ 1,035,000 BTU (thousand cubic feet of natural gas; varies with gas composition)</li>
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
 
 // --- Page ---
-export default function EnergyProToolkit() {
+export default function EnergyProToolkitPage() {
+  return (
+    <Suspense>
+      <EnergyProToolkit />
+    </Suspense>
+  );
+}
+
+const TAB_VALUES = [
+  "converter",
+  "energy",
+  "emissions",
+  "load",
+  "gasflow",
+  "convert",
+  "ranges",
+  "tests",
+] as const;
+
+type TabValue = (typeof TAB_VALUES)[number];
+
+const DEFAULT_TAB: TabValue = "converter";
+
+function isTabValue(value: string | null): value is TabValue {
+  return !!value && (TAB_VALUES as readonly string[]).includes(value);
+}
+
+function EnergyProToolkit() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const tabValues = useMemo(
-    () =>
-      [
-        "converter",
-        "energy",
-        "emissions",
-        "load",
-        "gasflow",
-        "convert",
-        "ranges",
-        "tests",
-      ] as const,
-    []
-  );
-  type TabValue = (typeof tabValues)[number];
-  const defaultTab: TabValue = "converter";
-  const isTabValue = (value: string | null): value is TabValue =>
-    !!value && tabValues.includes(value as TabValue);
-  const [activeTab, setActiveTab] = useState<TabValue>(() => {
-    if (typeof window === "undefined") {
-      return defaultTab;
-    }
-    const initialParam = new URLSearchParams(window.location.search).get("tab");
-    return isTabValue(initialParam) ? initialParam : defaultTab;
-  });
+
+  // URL is the single source of truth for the active tab.
+  const queryTab = searchParams.get("tab");
+  const activeTab: TabValue = isTabValue(queryTab) ? queryTab : DEFAULT_TAB;
+
   const previousTabRef = useRef<TabValue>(activeTab);
 
-  // Sync active tab from query string so back/forward buttons update the UI.
-  useEffect(() => {
-    const queryTab = searchParams.get("tab");
-    if (isTabValue(queryTab) && queryTab !== activeTab) {
-      setActiveTab(queryTab);
-      return;
-    }
-    if (!queryTab && activeTab !== defaultTab) {
-      setActiveTab(defaultTab);
-    }
-  }, [activeTab, defaultTab, searchParams]);
+  // When the user clicks a tab, update the URL (which in turn updates activeTab).
+  const handleTabChange = (value: string) => {
+    const nextTab = value as TabValue;
+    // Save scroll position of the tab we're leaving.
+    sessionStorage.setItem(`tabScroll:${activeTab}`, String(window.scrollY));
 
-  // Update the URL query string without a full navigation.
-  useEffect(() => {
-    const currentQuery = searchParams.toString();
-    const nextParams = new URLSearchParams(currentQuery);
-    if (activeTab === defaultTab) {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (nextTab === DEFAULT_TAB) {
       nextParams.delete("tab");
     } else {
-      nextParams.set("tab", activeTab);
+      nextParams.set("tab", nextTab);
     }
     const nextQuery = nextParams.toString();
-    const currentUrl = currentQuery ? `${pathname}?${currentQuery}` : pathname;
-    const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    if (nextUrl !== currentUrl) {
-      router.replace(nextUrl, { scroll: false });
-    }
-  }, [activeTab, defaultTab, pathname, router, searchParams]);
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  };
 
-  // Store and restore scroll positions per tab in sessionStorage.
+  // Restore scroll position when the active tab changes (including back/forward navigation).
   useEffect(() => {
-    const previousTab = previousTabRef.current;
-    if (previousTab !== activeTab) {
-      sessionStorage.setItem(`tabScroll:${previousTab}`, String(window.scrollY));
+    if (previousTabRef.current !== activeTab) {
+      const savedScroll = sessionStorage.getItem(`tabScroll:${activeTab}`);
+      const scrollTarget = savedScroll ? Number(savedScroll) : 0;
+      requestAnimationFrame(() => {
+        window.scrollTo(0, Number.isFinite(scrollTarget) ? scrollTarget : 0);
+      });
+      previousTabRef.current = activeTab;
     }
-    const savedScroll = sessionStorage.getItem(`tabScroll:${activeTab}`);
-    const scrollTarget = savedScroll ? Number(savedScroll) : 0;
-    requestAnimationFrame(() => {
-      window.scrollTo(0, Number.isFinite(scrollTarget) ? scrollTarget : 0);
-    });
-    previousTabRef.current = activeTab;
   }, [activeTab]);
 
   return (
     <div className="space-y-6 pb-6">
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as TabValue)}
+        onValueChange={handleTabChange}
         className="w-full"
       >
         <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
-          <TabsTrigger value="converter">Converter</TabsTrigger>
-          <TabsTrigger value="energy">Energy Comparison</TabsTrigger>
-          <TabsTrigger value="emissions">Emissions Comparison</TabsTrigger>
+          <TabsTrigger value="converter">Energy Toolkit</TabsTrigger>
+          <TabsTrigger value="energy">Cost Comparison</TabsTrigger>
+          <TabsTrigger value="emissions">Emissions</TabsTrigger>
           <TabsTrigger value="load">Load Estimator</TabsTrigger>
           <TabsTrigger value="gasflow">Gas Flow</TabsTrigger>
           <TabsTrigger value="convert" className="flex-shrink-0">
-            Conversions
+            Unit Converter
           </TabsTrigger>
-          <TabsTrigger value="ranges">Typical Ranges</TabsTrigger>
-          <TabsTrigger value="tests">Tests</TabsTrigger>
+          <TabsTrigger value="ranges">Equipment Reference</TabsTrigger>
+          <TabsTrigger value="tests">Reference</TabsTrigger>
         </TabsList>
 
         <TabsContent value="converter" forceMount>

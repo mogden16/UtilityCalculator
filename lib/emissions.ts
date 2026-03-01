@@ -25,8 +25,8 @@ export const DEFAULT_T_AND_D_LOSS_FRACTION = 0.05; // 5 percent
 
 export const FUEL_DISPLAY_LABELS: Record<FuelKey, string> = {
   coal: "Coal",
-  ngcc: "Natural Gas (CC)",
-  ngsc: "Natural Gas (SC)",
+  ngcc: "Natural Gas (Combined Cycle)",
+  ngsc: "Natural Gas (Simple Cycle)",
   oil: "Oil",
   nuclear: "Nuclear",
   wind: "Wind",
@@ -118,9 +118,9 @@ export interface LeakScenarioConfig {
 }
 
 export const LEAK_SCENARIOS: Record<LeakScenarioKey, LeakScenarioConfig> = {
-  low: { label: "Low (1 percent, GWP 25)", leakFraction: 0.01, gwp: 25 },
-  medium: { label: "Medium (3 percent, GWP 82)", leakFraction: 0.03, gwp: 82 },
-  high: { label: "High (5 percent, GWP 100)", leakFraction: 0.05, gwp: 100 },
+  low: { label: "Low leakage (1% leaked, 100-yr warming impact)", leakFraction: 0.01, gwp: 25 },
+  medium: { label: "Medium leakage (3% leaked, 20-yr warming impact)", leakFraction: 0.03, gwp: 82 },
+  high: { label: "High leakage (5% leaked, worst-case warming)", leakFraction: 0.05, gwp: 100 },
 };
 
 export interface GasEmissionsBreakdown {
