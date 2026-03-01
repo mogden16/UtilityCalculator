@@ -2303,85 +2303,69 @@ export default function EnergyProToolkitPage() {
   );
 }
 
+const TAB_VALUES = [
+  "converter",
+  "energy",
+  "emissions",
+  "load",
+  "gasflow",
+  "convert",
+  "ranges",
+  "tests",
+] as const;
+
+type TabValue = (typeof TAB_VALUES)[number];
+
+const DEFAULT_TAB: TabValue = "converter";
+
+function isTabValue(value: string | null): value is TabValue {
+  return !!value && (TAB_VALUES as readonly string[]).includes(value);
+}
+
 function EnergyProToolkit() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const tabValues = useMemo(
-    () =>
-      [
-        "converter",
-        "energy",
-        "emissions",
-        "load",
-        "gasflow",
-        "convert",
-        "ranges",
-        "tests",
-      ] as const,
-    []
-  );
-  type TabValue = (typeof tabValues)[number];
-  const defaultTab: TabValue = "converter";
-  const isTabValue = (value: string | null): value is TabValue =>
-    !!value && tabValues.includes(value as TabValue);
-  const [activeTab, setActiveTab] = useState<TabValue>(() => {
-    if (typeof window === "undefined") {
-      return defaultTab;
-    }
-    const initialParam = new URLSearchParams(window.location.search).get("tab");
-    return isTabValue(initialParam) ? initialParam : defaultTab;
-  });
+
+  // URL is the single source of truth for the active tab.
+  const queryTab = searchParams.get("tab");
+  const activeTab: TabValue = isTabValue(queryTab) ? queryTab : DEFAULT_TAB;
+
   const previousTabRef = useRef<TabValue>(activeTab);
 
-  // Sync active tab from query string so back/forward buttons update the UI.
-  useEffect(() => {
-    const queryTab = searchParams.get("tab");
-    if (isTabValue(queryTab) && queryTab !== activeTab) {
-      setActiveTab(queryTab);
-      return;
-    }
-    if (!queryTab && activeTab !== defaultTab) {
-      setActiveTab(defaultTab);
-    }
-  }, [activeTab, defaultTab, searchParams]);
+  // When the user clicks a tab, update the URL (which in turn updates activeTab).
+  const handleTabChange = (value: string) => {
+    const nextTab = value as TabValue;
+    // Save scroll position of the tab we're leaving.
+    sessionStorage.setItem(`tabScroll:${activeTab}`, String(window.scrollY));
 
-  // Update the URL query string without a full navigation.
-  useEffect(() => {
-    const currentQuery = searchParams.toString();
-    const nextParams = new URLSearchParams(currentQuery);
-    if (activeTab === defaultTab) {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    if (nextTab === DEFAULT_TAB) {
       nextParams.delete("tab");
     } else {
-      nextParams.set("tab", activeTab);
+      nextParams.set("tab", nextTab);
     }
     const nextQuery = nextParams.toString();
-    const currentUrl = currentQuery ? `${pathname}?${currentQuery}` : pathname;
-    const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    if (nextUrl !== currentUrl) {
-      router.replace(nextUrl, { scroll: false });
-    }
-  }, [activeTab, defaultTab, pathname, router, searchParams]);
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  };
 
-  // Store and restore scroll positions per tab in sessionStorage.
+  // Restore scroll position when the active tab changes (including back/forward navigation).
   useEffect(() => {
-    const previousTab = previousTabRef.current;
-    if (previousTab !== activeTab) {
-      sessionStorage.setItem(`tabScroll:${previousTab}`, String(window.scrollY));
+    if (previousTabRef.current !== activeTab) {
+      const savedScroll = sessionStorage.getItem(`tabScroll:${activeTab}`);
+      const scrollTarget = savedScroll ? Number(savedScroll) : 0;
+      requestAnimationFrame(() => {
+        window.scrollTo(0, Number.isFinite(scrollTarget) ? scrollTarget : 0);
+      });
+      previousTabRef.current = activeTab;
     }
-    const savedScroll = sessionStorage.getItem(`tabScroll:${activeTab}`);
-    const scrollTarget = savedScroll ? Number(savedScroll) : 0;
-    requestAnimationFrame(() => {
-      window.scrollTo(0, Number.isFinite(scrollTarget) ? scrollTarget : 0);
-    });
-    previousTabRef.current = activeTab;
   }, [activeTab]);
 
   return (
     <div className="space-y-6 pb-6">
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as TabValue)}
+        onValueChange={handleTabChange}
         className="w-full"
       >
         <TabsList className="w-full overflow-x-auto flex-nowrap whitespace-nowrap sm:flex-wrap px-2">
