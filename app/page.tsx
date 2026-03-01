@@ -10,7 +10,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import { ArrowLeftRight, Flame, Zap } from "lucide-react";
+import { ArrowLeftRight, Flame, Info, Zap } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -33,6 +33,22 @@ import {
   mapPjmFuelToFuelKey,
   prettyFuelLabel,
 } from "@/lib/emissions";
+
+// --- Reusable info tooltip ---
+function InfoTip({ text }: { text: string }) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Info className="inline h-4 w-4 text-muted-foreground cursor-help shrink-0" />
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs text-xs leading-relaxed">
+          {text}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 // --- Helpers & constants ---
 const BTU_PER_TON = 12000;
@@ -454,10 +470,10 @@ function Converter() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">
-        Enter an energy or power value in any unit and see it converted to all common equivalents —
-        useful when comparing equipment specs, utility bills, or engineering documents that use different units.
-      </p>
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">Energy Toolkit</h3>
+        <InfoTip text="Enter an energy or power value in any unit and see it converted to all common equivalents — useful when comparing equipment specs, utility bills, or engineering documents that use different units." />
+      </div>
       {/* Inputs */}
       <Card>
         <CardContent className="mt-4">
@@ -814,13 +830,9 @@ function Ranges() {
     <div className="space-y-6">
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div>
+          <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">Typical Gas Appliance Input Ranges</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              How much gas common appliances and equipment typically use, measured in BTU/hr
-              (the rate of energy consumption). Use these ranges as a sanity check — if your
-              calculated load is far outside these ranges for the equipment type, double-check your inputs.
-            </p>
+            <InfoTip text="How much gas common appliances and equipment typically use, measured in BTU/hr (the rate of energy consumption). Use these ranges as a sanity check — if your calculated load is far outside these ranges for the equipment type, double-check your inputs." />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -838,10 +850,10 @@ function Ranges() {
             ))}
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Tip: Compare your calculated peak load or installed capacity to these references as a
-            sanity check before committing to equipment selections.
-          </p>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span>Tip</span>
+            <InfoTip text="Compare your calculated peak load or installed capacity to these references as a sanity check before committing to equipment selections." />
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -915,11 +927,10 @@ function LoadEstimator() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">
-        Estimate how much heating and cooling capacity your building needs based on its size
-        and condition. This gives a rough starting point — not a replacement for a professional
-        load calculation (Manual J).
-      </p>
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">Load Estimator</h3>
+        <InfoTip text="Estimate how much heating and cooling capacity your building needs based on its size and condition. This gives a rough starting point — not a replacement for a professional load calculation (Manual J)." />
+      </div>
       {/* Inputs */}
       <Card>
         <CardContent className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -1277,11 +1288,10 @@ function EnergyComparison() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">
-        Compare the real cost of heating with different fuels or equipment. Enter your usage and
-        the rate you pay for each energy source, and this tool normalizes them to a common basis
-        so you can see which option is actually cheaper.
-      </p>
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">Cost Comparison</h3>
+        <InfoTip text="Compare the real cost of heating with different fuels or equipment. Enter your usage and the rate you pay for each energy source, and this tool normalizes them to a common basis so you can see which option is actually cheaper." />
+      </div>
       <Card>
         <CardContent className="mt-4 grid gap-4 sm:grid-cols-2">
           <div>
@@ -1629,21 +1639,15 @@ function EmissionsComparison() {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">
-        How does the carbon footprint of grid electricity compare to burning natural gas on-site?
-        This tool pulls live data from the PJM power grid and shows emissions side-by-side,
-        including the impact of methane leaks in the gas supply chain.
-      </p>
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold">Emissions</h3>
+        <InfoTip text="How does the carbon footprint of grid electricity compare to burning natural gas on-site? This tool pulls live data from the PJM power grid and shows emissions side-by-side, including the impact of methane leaks in the gas supply chain." />
+      </div>
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div>
+          <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">Power Grid Emissions (PJM Region)</h3>
-            <p className="text-sm text-muted-foreground">
-              Live fuel mix and carbon intensity for the PJM power grid, which serves ~65 million
-              people across 13 mid-Atlantic and Midwest states (PA, NJ, DE, MD, VA, OH, IL, and others).
-              If you live outside this area, the numbers won&apos;t match your local grid, but the
-              methodology is the same.
-            </p>
+            <InfoTip text="Live fuel mix and carbon intensity for the PJM power grid, which serves ~65 million people across 13 mid-Atlantic and Midwest states (PA, NJ, DE, MD, VA, OH, IL, and others). If you live outside this area, the numbers won't match your local grid, but the methodology is the same." />
           </div>
 
           {loading && (
@@ -2164,10 +2168,9 @@ function Conversions() {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        <div className="space-y-2 text-center">
-          <p className="text-muted-foreground">
-            Quickly convert between common energy, power, temperature, flow, and pressure units.
-          </p>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">Unit Converter</h3>
+          <InfoTip text="Quickly convert between common energy, power, temperature, flow, and pressure units." />
         </div>
 
         <Card>
@@ -2273,12 +2276,9 @@ function Tests() {
   return (
     <Card>
       <CardContent className="mt-4 space-y-4">
-        <div>
+        <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">Reference Conversion Constants</h3>
-          <p className="text-sm text-muted-foreground">
-            Standard conversion factors used throughout this site. Useful as a quick reference
-            or to verify the calculations above.
-          </p>
+          <InfoTip text="Standard conversion factors used throughout this site. Useful as a quick reference or to verify the calculations above." />
         </div>
         <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
           <li><strong>1 Ton of cooling</strong> = 12,000 BTU/hr (the heat needed to melt one ton of ice in 24 hours)</li>
