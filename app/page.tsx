@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -2295,7 +2295,15 @@ function Tests() {
 }
 
 // --- Page ---
-export default function EnergyProToolkit() {
+export default function EnergyProToolkitPage() {
+  return (
+    <Suspense>
+      <EnergyProToolkit />
+    </Suspense>
+  );
+}
+
+function EnergyProToolkit() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
