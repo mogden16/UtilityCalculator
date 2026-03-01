@@ -34,19 +34,40 @@ import {
   prettyFuelLabel,
 } from "@/lib/emissions";
 
-// --- Reusable info tooltip ---
+// --- Reusable info popover (tap/click — works on mobile + desktop) ---
 function InfoTip({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleOutside(e: MouseEvent | TouchEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+    };
+  }, [open]);
+
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Info className="inline h-4 w-4 text-muted-foreground cursor-help shrink-0" />
-        </TooltipTrigger>
-        <TooltipContent className="max-w-xs text-xs leading-relaxed">
+    <div ref={ref} className="relative inline-flex">
+      <button
+        type="button"
+        aria-label="More info"
+        onClick={() => setOpen((v) => !v)}
+        className="text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <Info className="h-4 w-4 shrink-0" />
+      </button>
+      {open && (
+        <div className="absolute left-1/2 top-full z-50 mt-2 w-64 -translate-x-1/2 rounded-md border bg-popover p-3 text-xs leading-relaxed text-popover-foreground shadow-md">
           {text}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -605,11 +626,9 @@ function Converter() {
       </Card>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">Results</h3>
-          <p className="text-xs text-muted-foreground">
-            Demand values are rates. Energy values reflect totals over the selected time basis.
-          </p>
+          <InfoTip text="Demand values are rates. Energy values reflect totals over the selected time basis." />
         </div>
         <div className="flex items-center gap-2 rounded-md border bg-muted/30 p-1 text-xs">
           <Button
@@ -1001,13 +1020,9 @@ function LoadEstimator() {
       {/* Chart */}
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div>
+          <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">Estimated Heating & Cooling Needs by Building Condition</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Each bar shows how many BTU/hr of heating or cooling your building would need at peak
-              conditions. A &quot;tight/new&quot; building with good insulation needs less; an
-              &quot;older/leaky&quot; building needs more.
-            </p>
+            <InfoTip text='Each bar shows how many BTU/hr of heating or cooling your building would need at peak conditions. A "tight/new" building with good insulation needs less; an "older/leaky" building needs more.' />
           </div>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -1173,12 +1188,9 @@ function RateSourceCard({
   return (
     <Card>
       <CardContent className="mt-4 space-y-4">
-        <div>
+        <div className="flex items-center gap-2">
           <h3 className="text-base font-semibold">{title}</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Select a preset or custom label. Presets preload a typical delivered efficiency that you can
-            adjust after entering the billing rate for this energy source.
-          </p>
+          <InfoTip text="Select a preset or custom label. Presets preload a typical delivered efficiency that you can adjust after entering the billing rate for this energy source." />
         </div>
 
         <div>
@@ -1343,12 +1355,9 @@ function EnergyComparison() {
 
       <Card>
         <CardContent className="mt-4 space-y-4">
-          <div>
+          <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">Cost Summary</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              Rate inputs are converted to $/MMBtu, scaled to the shared load, and adjusted by each
-              source's delivered efficiency.
-            </p>
+            <InfoTip text="Rate inputs are converted to $/MMBtu, scaled to the shared load, and adjusted by each source's delivered efficiency." />
           </div>
 
           <div className="overflow-x-auto">
@@ -1747,12 +1756,9 @@ function EmissionsComparison() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Natural gas (methane) leaks from wells, pipelines, and equipment before reaching
-                    your burner. Methane is a potent greenhouse gas, so even small leaks add
-                    significantly to total climate impact. &quot;CO₂e&quot; means CO₂ equivalent — the
-                    amount of CO₂ that would cause the same warming. Base assumptions: 1.035 MMBtu
-                    per MCF, 117 lb CO₂ per MMBtu combustion.
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Methodology</span>
+                    <InfoTip text='Natural gas (methane) leaks from wells, pipelines, and equipment before reaching your burner. Methane is a potent greenhouse gas, so even small leaks add significantly to total climate impact. "CO₂e" means CO₂ equivalent — the amount of CO₂ that would cause the same warming. Base assumptions: 1.035 MMBtu per MCF, 117 lb CO₂ per MMBtu combustion.' />
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
