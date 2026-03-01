@@ -40,6 +40,7 @@ export default function RootLayout({
         <div className="min-h-screen flex flex-col">
           <header className="safe-top sticky top-0 z-50 bg-background border-b flex justify-between items-center p-3">
             <span className="text-base font-semibold sm:text-lg">UtilityCalculator</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline ml-2">Convert, compare, and estimate energy loads</span>
             <ThemeToggle />
           </header>
           <main className="flex-1 overflow-y-auto p-3">
