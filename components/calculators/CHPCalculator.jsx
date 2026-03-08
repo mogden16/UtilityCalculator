@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import {
   ResponsiveContainer,
   PieChart,
@@ -62,7 +61,6 @@ const roundSize = (kw) => {
 export default function CHPCalculator() {
   const [mode, setMode] = useState("simple");
   const [inputs, setInputs] = useState({
-    facility_name: "",
     building_type: "hospital",
     square_footage: "120000",
     annual_electric_kwh: "8500000",
@@ -79,13 +77,32 @@ export default function CHPCalculator() {
     existing_backup_gen: "no",
   });
 
-  const [showValidation, setShowValidation] = useState(false);
-
   const onChange = (key, value) => {
     setInputs((prev) => ({ ...prev, [key]: value }));
   };
 
+  const isSimple = mode === "simple";
+
+  const hasValidationErrors = toNum(inputs.annual_electric_kwh) <= 0 || toNum(inputs.square_footage) <= 0;
+
   const results = useMemo(() => {
+    if (hasValidationErrors) {
+      return {
+        annualGas: toNum(inputs.annual_gas_dth),
+        recommendedKw: 0,
+        annualGeneration: 0,
+        chpGasDth: 0,
+        recoverableHeatMmbtu: 0,
+        electricCostAvoided: 0,
+        gasCostIncrease: 0,
+        netAnnualSavings: 0,
+        installedCost: 0,
+        simplePayback: Infinity,
+        capacityFactor: 0,
+        electricOffset: 0,
+      };
+    }
+
     const building = BUILDING_ARCHETYPES[inputs.building_type] ?? BUILDING_ARCHETYPES.other;
     const tech = TECHNOLOGY[inputs.technology] ?? TECHNOLOGY.recip_engine;
 
@@ -100,16 +117,12 @@ export default function CHPCalculator() {
     const estimatedHours = building.hours;
     const estimatedThermalBaseload = annualHeatMmbtu / Math.max(estimatedHours, 1);
 
-    const peakDemandKw = mode === "simple" ? estimatedPeakDemand : toNum(inputs.peak_demand_kw) || estimatedPeakDemand;
-    const hoursOfOperation =
-      mode === "simple" ? estimatedHours : toNum(inputs.hours_of_operation) || estimatedHours;
+    const peakDemandKw = isSimple ? estimatedPeakDemand : toNum(inputs.peak_demand_kw) || estimatedPeakDemand;
+    const hoursOfOperation = isSimple ? estimatedHours : toNum(inputs.hours_of_operation) || estimatedHours;
     const thermalBaseload =
-      mode === "simple"
-        ? estimatedThermalBaseload
-        : toNum(inputs.thermal_baseload_mmbtu_hr) || estimatedThermalBaseload;
+      isSimple ? estimatedThermalBaseload : toNum(inputs.thermal_baseload_mmbtu_hr) || estimatedThermalBaseload;
 
     const avgLoadKw = annualElectric / Math.max(hoursOfOperation, 1);
-
     const heatRecoveryPerKw = (tech.heat_rate * tech.thermal_efficiency) / 1_000_000;
 
     const rawRecommendedKw = Math.min(
@@ -142,13 +155,7 @@ export default function CHPCalculator() {
     const electricOffset = annualElectric > 0 ? (annualGeneration / annualElectric) * 100 : 0;
 
     return {
-      estimatedPeakDemand,
-      estimatedThermalBaseload,
-      estimatedHours,
-      peakDemandKw,
-      thermalBaseload,
-      hoursOfOperation,
-      avgLoadKw,
+      annualGas,
       recommendedKw,
       annualGeneration,
       chpGasDth,
@@ -160,11 +167,8 @@ export default function CHPCalculator() {
       simplePayback,
       capacityFactor,
       electricOffset,
-      annualGas,
     };
-  }, [inputs, mode]);
-
-  const hasValidationErrors = toNum(inputs.annual_electric_kwh) <= 0 || toNum(inputs.square_footage) <= 0;
+  }, [inputs, isSimple, hasValidationErrors]);
 
   const gasComparisonData = [
     { name: "Before CHP", value: results.annualGas },
@@ -188,12 +192,20 @@ export default function CHPCalculator() {
         <CardHeader className="pb-3">
           <CardTitle className="text-2xl">CHP Feasibility Calculator</CardTitle>
           <div className="mt-4 inline-flex w-fit rounded-lg border p-1">
-            <Button variant={mode === "simple" ? "default" : "ghost"} onClick={() => setMode("simple")}>
+            <button
+              type="button"
+              className={`rounded px-3 py-1 text-sm font-medium ${isSimple ? "bg-primary text-primary-foreground" : ""}`}
+              onClick={() => setMode("simple")}
+            >
               SIMPLE
-            </Button>
-            <Button variant={mode === "advanced" ? "default" : "ghost"} onClick={() => setMode("advanced")}>
+            </button>
+            <button
+              type="button"
+              className={`rounded px-3 py-1 text-sm font-medium ${!isSimple ? "bg-primary text-primary-foreground" : ""}`}
+              onClick={() => setMode("advanced")}
+            >
               ADVANCED
-            </Button>
+            </button>
           </div>
         </CardHeader>
       </Card>
@@ -205,10 +217,6 @@ export default function CHPCalculator() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Facility Name</Label>
-                <Input value={inputs.facility_name} onChange={(e) => onChange("facility_name", e.target.value)} />
-              </div>
               <div className="space-y-2">
                 <Label>Building Type</Label>
                 <Select value={inputs.building_type} onValueChange={(value) => onChange("building_type", value)}>
@@ -265,7 +273,7 @@ export default function CHPCalculator() {
               </div>
             </div>
 
-            {mode === "advanced" && (
+            {!isSimple && (
               <div className="mt-2 grid gap-4 rounded-md border p-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Peak Demand (kW)</Label>
@@ -315,13 +323,11 @@ export default function CHPCalculator() {
               </div>
             )}
 
-            {showValidation && hasValidationErrors && (
+            {hasValidationErrors && (
               <div className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700">
                 Validation errors: Annual electric kWh and square footage must be greater than zero.
               </div>
             )}
-
-            <Button onClick={() => setShowValidation(true)}>Run CHP Screening</Button>
           </CardContent>
         </Card>
 
