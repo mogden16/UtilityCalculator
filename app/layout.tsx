@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 
-import ThemeToggle from "@/components/theme-toggle";
 
 export const metadata: Metadata = {
   title: "UtilityCalc – Energy & Utility Toolkit",
@@ -38,16 +37,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-background text-foreground antialiased">
         <div className="min-h-screen flex flex-col">
-          <header className="safe-top sticky top-0 z-50 bg-background border-b flex justify-between items-center p-3">
+          <header className="safe-top sticky top-0 z-50 flex items-center justify-between border-b bg-background p-3">
             <span className="text-base font-semibold sm:text-lg">UtilityCalculator</span>
-            <span className="text-xs text-muted-foreground hidden sm:inline ml-2">Convert, compare, and estimate energy loads</span>
+            <span className="ml-2 hidden text-xs text-muted-foreground sm:inline">
+              Convert, compare, and estimate energy loads
+            </span>
             <ThemeToggle />
-          </header>
-          <main className="flex-1 overflow-y-auto p-3">
-            <div className="mx-auto w-full max-w-6xl">{children}</div>
-          </main>
-        </div>
-      </body>
-    </html>
-  );
-}

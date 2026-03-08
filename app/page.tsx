@@ -22,6 +22,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { BTU_PER_KW } from "@/lib/energy";
+import CHPCalculator from "@/components/calculators/CHPCalculator";
 import {
   computeFuelEmissionsRows,
   computeGasEmissionsForScenario,
@@ -2314,6 +2315,7 @@ const TAB_VALUES = [
   "energy",
   "emissions",
   "load",
+  "chp",
   "gasflow",
   "convert",
   "ranges",
@@ -2379,6 +2381,7 @@ function EnergyProToolkit() {
           <TabsTrigger value="energy">Cost Comparison</TabsTrigger>
           <TabsTrigger value="emissions">Emissions</TabsTrigger>
           <TabsTrigger value="load">Load Estimator</TabsTrigger>
+          <TabsTrigger value="chp">CHP Feasibility</TabsTrigger>
           <TabsTrigger value="gasflow">Gas Flow</TabsTrigger>
           <TabsTrigger value="convert" className="flex-shrink-0">
             Unit Converter
@@ -2398,6 +2401,9 @@ function EnergyProToolkit() {
         </TabsContent>
         <TabsContent value="load" forceMount>
           <LoadEstimator />
+        </TabsContent>
+        <TabsContent value="chp" forceMount>
+          <CHPCalculator />
         </TabsContent>
         <TabsContent value="gasflow" forceMount>
           <GasFlow />
