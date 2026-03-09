@@ -19,27 +19,52 @@ import {
   Legend,
 } from "recharts";
 
-const BUILDING_ARCHETYPES = {
-  hospital: { load_factor: 0.75, thermal_intensity: 90, hours: 8760 },
-  hotel: { load_factor: 0.65, thermal_intensity: 45, hours: 8760 },
-  multifamily: { load_factor: 0.55, thermal_intensity: 35, hours: 8760 },
-  university: { load_factor: 0.6, thermal_intensity: 60, hours: 6500 },
-  office: { load_factor: 0.35, thermal_intensity: 20, hours: 3000 },
-  data_center: { load_factor: 0.95, thermal_intensity: 10, hours: 8760 },
-  manufacturing: { load_factor: 0.7, thermal_intensity: 65, hours: 6000 },
-  other: { load_factor: 0.5, thermal_intensity: 40, hours: 5000 },
-};
-
-const TECHNOLOGY = {
-  microturbine: { heat_rate: 11500, thermal_efficiency: 0.44, installed_cost_per_kw: 3200 },
-  recip_engine: { heat_rate: 9800, thermal_efficiency: 0.4, installed_cost_per_kw: 2500 },
-  fuel_cell: { heat_rate: 8900, thermal_efficiency: 0.32, installed_cost_per_kw: 5500 },
+const TECHNOLOGY_DEFAULTS = {
+  microturbine: {
+    label: "Microturbine",
+    electric_efficiency: 0.3,
+    thermal_efficiency: 0.45,
+    overall_efficiency: 0.75,
+    installed_cost_per_kw: 3200,
+  },
+  recip_engine: {
+    label: "Reciprocating Engine",
+    electric_efficiency: 0.35,
+    thermal_efficiency: 0.4,
+    overall_efficiency: 0.75,
+    installed_cost_per_kw: 2500,
+  },
+  gas_turbine: {
+    label: "Gas Turbine",
+    electric_efficiency: 0.32,
+    thermal_efficiency: 0.4,
+    overall_efficiency: 0.72,
+    installed_cost_per_kw: 2200,
+  },
+  fuel_cell: {
+    label: "Fuel Cell",
+    electric_efficiency: 0.45,
+    thermal_efficiency: 0.35,
+    overall_efficiency: 0.8,
+    installed_cost_per_kw: 5500,
+  },
+  combined_cycle: {
+    label: "Combined Cycle",
+    electric_efficiency: 0.55,
+    thermal_efficiency: 0.3,
+    overall_efficiency: 0.85,
+    installed_cost_per_kw: 1800,
+  },
 };
 
 const fmt0 = (n) => (Number.isFinite(n) ? Math.round(n).toLocaleString() : "-");
 const fmt1 = (n) =>
   Number.isFinite(n)
     ? n.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+    : "-";
+const fmt2 = (n) =>
+  Number.isFinite(n)
+    ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : "-";
 const fmtCurrency = (n) =>
   Number.isFinite(n)
@@ -59,10 +84,8 @@ const roundSize = (kw) => {
 };
 
 export default function CHPCalculator() {
-  const [mode, setMode] = useState("simple");
+  const [mode, setMode] = useState("simplified");
   const [inputs, setInputs] = useState({
-    building_type: "hospital",
-    square_footage: "120000",
     annual_electric_kwh: "8500000",
     annual_gas_dth: "95000",
     electric_rate: "0.12",
@@ -75,78 +98,67 @@ export default function CHPCalculator() {
     incentive_per_kw: "0",
     itc_fraction: "0",
     existing_backup_gen: "no",
+    electric_efficiency: "",
+    thermal_efficiency: "",
   });
 
-  const onChange = (key, value) => {
-    setInputs((prev) => ({ ...prev, [key]: value }));
-  };
+  const onChange = (key, value) => setInputs((prev) => ({ ...prev, [key]: value }));
 
-  const isSimple = mode === "simple";
-
-  const hasValidationErrors = toNum(inputs.annual_electric_kwh) <= 0 || toNum(inputs.square_footage) <= 0;
+  const isSimplified = mode === "simplified";
+  const annualElectric = toNum(inputs.annual_electric_kwh);
+  const annualGas = toNum(inputs.annual_gas_dth);
+  const hasValidationErrors = annualElectric <= 0;
 
   const results = useMemo(() => {
-    if (hasValidationErrors) {
-      return {
-        annualGas: toNum(inputs.annual_gas_dth),
-        recommendedKw: 0,
-        annualGeneration: 0,
-        chpGasDth: 0,
-        recoverableHeatMmbtu: 0,
-        electricCostAvoided: 0,
-        gasCostIncrease: 0,
-        netAnnualSavings: 0,
-        installedCost: 0,
-        simplePayback: Infinity,
-        capacityFactor: 0,
-        electricOffset: 0,
-      };
-    }
+    const defaults = TECHNOLOGY_DEFAULTS[inputs.technology] ?? TECHNOLOGY_DEFAULTS.recip_engine;
+    const electricEfficiency = toNum(inputs.electric_efficiency) || defaults.electric_efficiency;
+    const thermalEfficiency = toNum(inputs.thermal_efficiency) || defaults.thermal_efficiency;
 
-    const building = BUILDING_ARCHETYPES[inputs.building_type] ?? BUILDING_ARCHETYPES.other;
-    const tech = TECHNOLOGY[inputs.technology] ?? TECHNOLOGY.recip_engine;
+    const safeElecEff = Math.max(electricEfficiency, 0.05);
+    const heatRate = 3412 / safeElecEff;
 
-    const annualElectric = toNum(inputs.annual_electric_kwh);
-    const squareFootage = toNum(inputs.square_footage);
-    const annualGas = toNum(inputs.annual_gas_dth);
     const electricRate = toNum(inputs.electric_rate);
     const gasRate = toNum(inputs.gas_rate);
 
-    const estimatedPeakDemand = annualElectric / (8760 * (building.load_factor || 1));
-    const annualHeatMmbtu = (squareFootage * building.thermal_intensity) / 1000;
-    const estimatedHours = building.hours;
-    const estimatedThermalBaseload = annualHeatMmbtu / Math.max(estimatedHours, 1);
+    const avgLoadKwSimplified = annualElectric / 8760;
+    const estimatedPeakDemand = avgLoadKwSimplified / 0.6;
+    const estimatedRunHours = 8000;
+    const estimatedThermalBaseload = annualGas / Math.max(estimatedRunHours, 1);
 
-    const peakDemandKw = isSimple ? estimatedPeakDemand : toNum(inputs.peak_demand_kw) || estimatedPeakDemand;
-    const hoursOfOperation = isSimple ? estimatedHours : toNum(inputs.hours_of_operation) || estimatedHours;
+    const avgLoadKw = isSimplified
+      ? avgLoadKwSimplified
+      : annualElectric / Math.max(toNum(inputs.hours_of_operation) || estimatedRunHours, 1);
+
+    const peakDemandKw = isSimplified ? estimatedPeakDemand : toNum(inputs.peak_demand_kw) || estimatedPeakDemand;
+    const hoursOfOperation = isSimplified ? estimatedRunHours : toNum(inputs.hours_of_operation) || estimatedRunHours;
     const thermalBaseload =
-      isSimple ? estimatedThermalBaseload : toNum(inputs.thermal_baseload_mmbtu_hr) || estimatedThermalBaseload;
+      isSimplified
+        ? estimatedThermalBaseload
+        : toNum(inputs.thermal_baseload_mmbtu_hr) || estimatedThermalBaseload;
 
-    const avgLoadKw = annualElectric / Math.max(hoursOfOperation, 1);
-    const heatRecoveryPerKw = (tech.heat_rate * tech.thermal_efficiency) / 1_000_000;
+    const heatRecoveryPerKw = (heatRate * Math.max(thermalEfficiency, 0.05)) / 1_000_000;
 
-    const rawRecommendedKw = Math.min(
-      avgLoadKw,
-      peakDemandKw * 0.8,
-      thermalBaseload / Math.max(heatRecoveryPerKw, 0.00001)
-    );
+    const recommendedKwRaw = isSimplified
+      ? Math.min(avgLoadKwSimplified * 0.6, thermalBaseload / Math.max(heatRecoveryPerKw, 0.00001))
+      : Math.min(avgLoadKw, peakDemandKw * 0.8, thermalBaseload / Math.max(heatRecoveryPerKw, 0.00001));
 
-    const recommendedKw = roundSize(Math.max(rawRecommendedKw, 0));
+    const recommendedKw = hasValidationErrors ? 0 : roundSize(Math.max(recommendedKwRaw, 0));
 
     const runtimeFraction = 0.9;
     const annualGeneration = recommendedKw * hoursOfOperation * runtimeFraction;
-    const chpGasDth = (annualGeneration * tech.heat_rate) / 1_000_000;
+    const chpGasDth = (annualGeneration * heatRate) / 1_000_000;
     const recoverableHeatMmbtu = annualGeneration * heatRecoveryPerKw;
 
     const electricCostAvoided = annualGeneration * electricRate;
     const gasCostIncrease = chpGasDth * gasRate;
     const netAnnualSavings = electricCostAvoided - gasCostIncrease;
 
-    const grossInstalledCost = recommendedKw * tech.installed_cost_per_kw;
+    const grossInstalledCost = recommendedKw * defaults.installed_cost_per_kw;
     const incentive = recommendedKw * toNum(inputs.incentive_per_kw);
     const postIncentiveCost = Math.max(grossInstalledCost - incentive, 0);
     const installedCost = Math.max(postIncentiveCost * (1 - toNum(inputs.itc_fraction)), 0);
     const simplePayback = netAnnualSavings > 0 ? installedCost / netAnnualSavings : Infinity;
+
     const capacityFactor =
       recommendedKw > 0 && hoursOfOperation > 0
         ? (annualGeneration / (recommendedKw * hoursOfOperation)) * 100
@@ -155,6 +167,13 @@ export default function CHPCalculator() {
     const electricOffset = annualElectric > 0 ? (annualGeneration / annualElectric) * 100 : 0;
 
     return {
+      techLabel: defaults.label,
+      electricEfficiency,
+      thermalEfficiency,
+      avgLoadKw,
+      estimatedPeakDemand,
+      estimatedRunHours,
+      estimatedThermalBaseload,
       annualGas,
       recommendedKw,
       annualGeneration,
@@ -168,7 +187,7 @@ export default function CHPCalculator() {
       capacityFactor,
       electricOffset,
     };
-  }, [inputs, isSimple, hasValidationErrors]);
+  }, [annualElectric, annualGas, hasValidationErrors, inputs, isSimplified]);
 
   const gasComparisonData = [
     { name: "Before CHP", value: results.annualGas },
@@ -191,21 +210,24 @@ export default function CHPCalculator() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-2xl">CHP Feasibility Calculator</CardTitle>
-          <div className="mt-4 inline-flex w-fit rounded-lg border p-1">
-            <button
-              type="button"
-              className={`rounded px-3 py-1 text-sm font-medium ${isSimple ? "bg-primary text-primary-foreground" : ""}`}
-              onClick={() => setMode("simple")}
-            >
-              SIMPLE
-            </button>
-            <button
-              type="button"
-              className={`rounded px-3 py-1 text-sm font-medium ${!isSimple ? "bg-primary text-primary-foreground" : ""}`}
-              onClick={() => setMode("advanced")}
-            >
-              ADVANCED
-            </button>
+          <div className="mt-3">
+            <p className="mb-2 text-sm text-muted-foreground">Mode:</p>
+            <div className="inline-flex w-fit rounded-lg border p-1">
+              <button
+                type="button"
+                className={`rounded px-3 py-1 text-sm font-medium ${isSimplified ? "bg-primary text-primary-foreground" : ""}`}
+                onClick={() => setMode("simplified")}
+              >
+                Simplified
+              </button>
+              <button
+                type="button"
+                className={`rounded px-3 py-1 text-sm font-medium ${!isSimplified ? "bg-primary text-primary-foreground" : ""}`}
+                onClick={() => setMode("advanced")}
+              >
+                Advanced
+              </button>
+            </div>
           </div>
         </CardHeader>
       </Card>
@@ -218,26 +240,6 @@ export default function CHPCalculator() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label>Building Type</Label>
-                <Select value={inputs.building_type} onValueChange={(value) => onChange("building_type", value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.keys(BUILDING_ARCHETYPES).map((key) => (
-                      <SelectItem key={key} value={key}>
-                        {key.replace("_", " ")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Square Footage *</Label>
-                <Input value={inputs.square_footage} onChange={(e) => onChange("square_footage", e.target.value)} />
-              </div>
-              <div className="space-y-2">
                 <Label>Annual Electric (kWh) *</Label>
                 <Input
                   value={inputs.annual_electric_kwh}
@@ -249,6 +251,23 @@ export default function CHPCalculator() {
                 <Label>Annual Gas (Dth)</Label>
                 <Input value={inputs.annual_gas_dth} onChange={(e) => onChange("annual_gas_dth", e.target.value)} />
               </div>
+
+              <div className="space-y-2">
+                <Label>Technology Type</Label>
+                <Select value={inputs.technology} onValueChange={(value) => onChange("technology", value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(TECHNOLOGY_DEFAULTS).map(([key, tech]) => (
+                      <SelectItem key={key} value={key}>
+                        {tech.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label>Electric Rate ($/kWh)</Label>
                 <Input value={inputs.electric_rate} onChange={(e) => onChange("electric_rate", e.target.value)} />
@@ -258,22 +277,9 @@ export default function CHPCalculator() {
                 <Label>Gas Rate ($/Dth)</Label>
                 <Input value={inputs.gas_rate} onChange={(e) => onChange("gas_rate", e.target.value)} />
               </div>
-              <div className="space-y-2">
-                <Label>Technology</Label>
-                <Select value={inputs.technology} onValueChange={(value) => onChange("technology", value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="microturbine">Microturbine</SelectItem>
-                    <SelectItem value="recip_engine">Recip Engine</SelectItem>
-                    <SelectItem value="fuel_cell">Fuel Cell</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
-            {!isSimple && (
+            {!isSimplified && (
               <div className="mt-2 grid gap-4 rounded-md border p-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Peak Demand (kW)</Label>
@@ -323,34 +329,73 @@ export default function CHPCalculator() {
               </div>
             )}
 
+            <div className="grid gap-4 rounded-md border p-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <p className="text-sm font-medium">Technology Assumptions</p>
+                <p className="text-xs text-muted-foreground">
+                  Typical total CHP efficiency ranges are often around 65–80% with heat recovery.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Electric Efficiency (fraction)</Label>
+                <Input
+                  value={inputs.electric_efficiency}
+                  onChange={(e) => onChange("electric_efficiency", e.target.value)}
+                  placeholder={String(results.electricEfficiency || "")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Thermal Efficiency (fraction)</Label>
+                <Input
+                  value={inputs.thermal_efficiency}
+                  onChange={(e) => onChange("thermal_efficiency", e.target.value)}
+                  placeholder={String(results.thermalEfficiency || "")}
+                />
+              </div>
+            </div>
+
             {hasValidationErrors && (
               <div className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700">
-                Validation errors: Annual electric kWh and square footage must be greater than zero.
+                Validation error: Annual electric kWh must be greater than zero.
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Results Dashboard</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2">
-            <Metric label="Recommended CHP Size (kW)" value={fmt0(results.recommendedKw)} />
-            <Metric label="Annual Generation (kWh)" value={fmt0(results.annualGeneration)} />
-            <Metric label="CHP Gas Consumption (Dth)" value={fmt0(results.chpGasDth)} />
-            <Metric label="Recoverable Heat (MMBtu)" value={fmt0(results.recoverableHeatMmbtu)} />
-            <Metric label="Electric Cost Avoided" value={fmtCurrency(results.electricCostAvoided)} />
-            <Metric label="Gas Cost Increase" value={fmtCurrency(results.gasCostIncrease)} />
-            <Metric label="Net Annual Savings" value={fmtCurrency(results.netAnnualSavings)} />
-            <Metric label="Installed Cost" value={fmtCurrency(results.installedCost)} />
-            <Metric
-              label="Simple Payback (years)"
-              value={Number.isFinite(results.simplePayback) ? fmt1(results.simplePayback) : "N/A"}
-            />
-            <Metric label="Capacity Factor (%)" value={fmt1(results.capacityFactor)} />
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Estimated Facility Characteristics</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-2">
+              <Metric label="Estimated Peak Demand (kW)" value={fmt0(results.estimatedPeakDemand)} />
+              <Metric label="Average Electric Load (kW)" value={fmt1(results.avgLoadKw)} />
+              <Metric label="Estimated CHP Run Hours" value={fmt0(results.estimatedRunHours)} />
+              <Metric label="Estimated Thermal Baseload (MMBtu/hr)" value={fmt2(results.estimatedThermalBaseload)} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Results Dashboard</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-2">
+              <Metric label="Recommended CHP Size (kW)" value={fmt0(results.recommendedKw)} />
+              <Metric label="Annual Generation (kWh)" value={fmt0(results.annualGeneration)} />
+              <Metric label="CHP Gas Consumption (Dth)" value={fmt0(results.chpGasDth)} />
+              <Metric label="Recoverable Heat (MMBtu)" value={fmt0(results.recoverableHeatMmbtu)} />
+              <Metric label="Electric Cost Avoided" value={fmtCurrency(results.electricCostAvoided)} />
+              <Metric label="Gas Cost Increase" value={fmtCurrency(results.gasCostIncrease)} />
+              <Metric label="Net Annual Savings" value={fmtCurrency(results.netAnnualSavings)} />
+              <Metric label="Installed Cost" value={fmtCurrency(results.installedCost)} />
+              <Metric
+                label="Simple Payback (years)"
+                value={Number.isFinite(results.simplePayback) ? fmt1(results.simplePayback) : "N/A"}
+              />
+              <Metric label="Capacity Factor (%)" value={fmt1(results.capacityFactor)} />
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
