@@ -6,3 +6,8 @@ pages_build_output_dir = ".vercel/output/static"
 
 # nodejs_compat enables Node APIs required by Next.js when running on Cloudflare Workers.
 compatibility_flags = ["nodejs_compat"]
+
+[build]
+# Pin Vercel CLI to a known-available version before running next-on-pages conversion.
+# This avoids transient failures when next-on-pages resolves an unavailable latest vercel version.
+command = "npx vercel@50.28.0 build && npx @cloudflare/next-on-pages@1 --skip-build"
