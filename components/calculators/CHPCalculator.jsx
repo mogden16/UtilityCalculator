@@ -34,34 +34,32 @@ const BUILDING_ARCHETYPES = {
 const TECHNOLOGY = {
   microturbine: {
     label: "Microturbine",
-    heat_rate: 11500,
-    thermal_efficiency: 0.44,
     installed_cost_per_kw: 3200,
   },
   recip_engine: {
-    label: "Recip Engine",
-    heat_rate: 9800,
-    thermal_efficiency: 0.4,
+    label: "Reciprocating Engine",
     installed_cost_per_kw: 2500,
   },
   turbine: {
     label: "Turbine",
-    heat_rate: 10500,
-    thermal_efficiency: 0.36,
     installed_cost_per_kw: 2900,
   },
   fuel_cell: {
     label: "Fuel Cell",
-    heat_rate: 8900,
-    thermal_efficiency: 0.32,
     installed_cost_per_kw: 5500,
   },
   combined_cycle: {
     label: "Combined Cycle",
-    heat_rate: 7600,
-    thermal_efficiency: 0.3,
     installed_cost_per_kw: 4200,
   },
+};
+
+const TECHNOLOGY_EFFICIENCY_DEFAULTS = {
+  microturbine: { electrical: 28, thermal: 44 },
+  recip_engine: { electrical: 37, thermal: 45 },
+  turbine: { electrical: 34, thermal: 36 },
+  fuel_cell: { electrical: 47, thermal: 32 },
+  combined_cycle: { electrical: 50, thermal: 30 },
 };
 
 const roundCHPSize = (kw) => {
@@ -87,6 +85,8 @@ const defaultInputs = {
   electric_rate: 0.12,
   gas_rate: 11,
   technology: "recip_engine",
+  electrical_efficiency: TECHNOLOGY_EFFICIENCY_DEFAULTS.recip_engine.electrical,
+  thermal_efficiency: TECHNOLOGY_EFFICIENCY_DEFAULTS.recip_engine.thermal,
   square_footage: 150000,
   use_sqft_override: false,
   peak_demand_kw: 1800,
@@ -102,7 +102,20 @@ export default function CHPCalculator() {
   const [mode, setMode] = useState("simple");
   const [inputs, setInputs] = useState(defaultInputs);
 
-  const onChange = (key, value) => setInputs((prev) => ({ ...prev, [key]: value }));
+  const onChange = (key, value) => {
+    if (key === "technology") {
+      const defaults = TECHNOLOGY_EFFICIENCY_DEFAULTS[value] || TECHNOLOGY_EFFICIENCY_DEFAULTS.recip_engine;
+      setInputs((prev) => ({
+        ...prev,
+        technology: value,
+        electrical_efficiency: defaults.electrical,
+        thermal_efficiency: defaults.thermal,
+      }));
+      return;
+    }
+
+    setInputs((prev) => ({ ...prev, [key]: value }));
+  };
 
   const result = useMemo(() => {
     const annualElectric = toNumber(inputs.annual_electric_kwh);
@@ -117,6 +130,9 @@ export default function CHPCalculator() {
 
     const archetype = BUILDING_ARCHETYPES[inputs.building_type] || BUILDING_ARCHETYPES.other;
     const tech = TECHNOLOGY[inputs.technology] || TECHNOLOGY.recip_engine;
+    const electricalEfficiency = Math.max(0.01, toNumber(inputs.electrical_efficiency) / 100);
+    const thermalEfficiency = Math.max(0, toNumber(inputs.thermal_efficiency) / 100);
+    const heatRate = 3412 / electricalEfficiency;
 
     const estimatedPeakDemand = annualElectric / (8760 * archetype.load_factor);
     const annualHeatMMBtu = annualGas;
@@ -135,7 +151,7 @@ export default function CHPCalculator() {
           : thermalFromGas
         : Math.max(0, toNumber(inputs.thermal_baseload_mmbtu_hr));
 
-    const heatRecoveryPerKW = (tech.heat_rate * tech.thermal_efficiency) / 1_000_000;
+    const heatRecoveryPerKW = (heatRate * thermalEfficiency) / 1_000_000;
     const avgLoadKW = annualElectric / hoursOfOperation;
     let candidateKW = Math.min(avgLoadKW, peakDemandKW * 0.8, thermalBaseload / heatRecoveryPerKW);
 
@@ -145,8 +161,8 @@ export default function CHPCalculator() {
 
     const recommendedKW = roundCHPSize(Math.max(0, candidateKW));
     const annualGenerationKWh = recommendedKW * hoursOfOperation;
-    const chpGasConsumptionDth = (annualGenerationKWh * tech.heat_rate) / 1_000_000;
-    const recoverableHeatMMBtu = (annualGenerationKWh * tech.heat_rate * tech.thermal_efficiency) / 1_000_000;
+    const chpGasConsumptionDth = (annualGenerationKWh * heatRate) / 1_000_000;
+    const recoverableHeatMMBtu = (annualGenerationKWh * heatRate * thermalEfficiency) / 1_000_000;
     const electricCostAvoided = annualGenerationKWh * electricRate;
     const gasCostIncrease = Math.max(0, chpGasConsumptionDth - annualGas) * gasRate;
     const netAnnualSavings = electricCostAvoided - gasCostIncrease;
@@ -246,11 +262,21 @@ export default function CHPCalculator() {
               <SelectContent>
                 {Object.entries(TECHNOLOGY).map(([key, tech]) => (
                   <SelectItem key={key} value={key}>
-                    {tech.label} (ηth {Math.round(tech.thermal_efficiency * 100)}%)
+                    {tech.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Electrical Efficiency (%)</Label>
+            <Input value={inputs.electrical_efficiency} onChange={(e) => onChange("electrical_efficiency", e.target.value)} />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Thermal Efficiency (%)</Label>
+            <Input value={inputs.thermal_efficiency} onChange={(e) => onChange("thermal_efficiency", e.target.value)} />
           </div>
 
           <div className="space-y-2">
