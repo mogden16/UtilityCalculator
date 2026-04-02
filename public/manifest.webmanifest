@@ -1,0 +1,21 @@
+{
+  "name": "Utility Calculator",
+  "short_name": "UtilityCalc",
+  "description": "Static engineering calculators for thermal demand, gas flow, and energy cost comparisons.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

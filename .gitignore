@@ -36,12 +36,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local IDE
+.idea/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
-# python
-__pycache__/
-.pytest_cache/
-.venv/
-.mypy_cache/
+# test artifacts
+playwright-report/
+test-results/
