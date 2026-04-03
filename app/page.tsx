@@ -7,7 +7,7 @@ import { TOOL_ROUTES } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Utility Calculator",
-  description: "Static engineering calculators for thermal loads, gas demand, and utility rate comparisons.",
+  description: "Engineering calculators for thermal loads, CHP screening, gas demand, and utility rate comparisons.",
 };
 
 const ICONS = {
@@ -23,13 +23,13 @@ export default function HomePage() {
     <div className="space-y-10 pb-8">
       <section className="rounded-3xl border border-border/70 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-10 text-slate-50 shadow-sm">
         <div className="mx-auto max-w-4xl space-y-5">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-300">Static Engineering Toolkit</p>
+          <p className="text-sm uppercase tracking-[0.2em] text-slate-300">Engineering Toolkit</p>
           <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-            Utility workflows split into focused pages instead of one overloaded calculator wall.
+            Utility workflows split into focused pages, with live PJM data where server-side logic actually helps.
           </h1>
           <p className="max-w-2xl text-base leading-7 text-slate-300">
             Pick the route that matches the engineering question you are solving: load conversion, cost comparison,
-            load estimation, gas flow, or general unit conversion.
+            CHP feasibility, load estimation, gas flow, or general unit conversion.
           </p>
         </div>
       </section>
@@ -63,12 +63,12 @@ export default function HomePage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>What changed in this refactor</CardTitle>
-            <CardDescription>The app now matches a static Cloudflare Pages deployment model.</CardDescription>
+            <CardDescription>The app keeps the route split, tests, and domain modules, while restoring server-backed PJM data.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Each calculator is a dedicated route, so the browser no longer loads every widget and chart at once.</p>
             <p>Core equations now live in typed domain modules under <code>lib/</code>, which allows real tests.</p>
-            <p>The repo is ready for CI, static export, and browser smoke testing instead of relying on manual checks.</p>
+            <p>The repo is ready for CI, browser smoke testing, and a Cloudflare Worker deployment for live grid data.</p>
           </CardContent>
         </Card>
 

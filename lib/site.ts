@@ -3,7 +3,7 @@ export const TOOL_ROUTES = [
     href: "/",
     label: "Overview",
     shortLabel: "Overview",
-    description: "Landing page for the static engineering toolkit.",
+    description: "Landing page for the engineering toolkit.",
     icon: "calculator",
   },
   {
@@ -19,6 +19,13 @@ export const TOOL_ROUTES = [
     shortLabel: "Cost Compare",
     description: "Normalize utility rates to delivered MMBtu and compare heating options fairly.",
     icon: "scale",
+  },
+  {
+    href: "/chp",
+    label: "CHP Feasibility",
+    shortLabel: "CHP",
+    description: "Screen combined heat and power sizing, economics, and compare against live PJM grid emissions.",
+    icon: "flame",
   },
   {
     href: "/load-estimator",

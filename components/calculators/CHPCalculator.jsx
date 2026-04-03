@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { CHPGridEmissionsPanel } from "@/components/calculators/CHPGridEmissionsPanel";
 import {
   Bar,
   BarChart,
@@ -219,7 +220,7 @@ export default function CHPCalculator() {
     <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
       <Card>
         <CardHeader className="space-y-4">
-          <CardTitle className="text-2xl">CHP Feasibility Calculator</CardTitle>
+          <h1 className="text-2xl font-semibold">CHP Feasibility Calculator</h1>
           <div className="inline-flex rounded-md border p-1">
             <Button variant={!isAdvanced ? "default" : "ghost"} onClick={() => setMode("simple")}>SIMPLE</Button>
             <Button variant={isAdvanced ? "default" : "ghost"} onClick={() => setMode("advanced")}>ADVANCED</Button>
@@ -426,6 +427,8 @@ export default function CHPCalculator() {
               </CardContent>
             </Card>
           </div>
+
+          <CHPGridEmissionsPanel />
         </>
       )}
     </div>

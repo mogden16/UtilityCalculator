@@ -18,12 +18,11 @@ const geistMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://utilitycalc.pages.dev"),
   title: {
     default: "Utility Calculator",
     template: "%s | Utility Calculator",
   },
-  description: "Static engineering calculators for thermal demand, gas flow, and utility cost comparisons.",
+  description: "Engineering calculators for thermal demand, CHP screening, gas flow, and utility cost comparisons.",
 };
 
 export const viewport: Viewport = {
@@ -52,7 +51,7 @@ export default function RootLayout({
                 <div>
                   <div className="text-base font-semibold sm:text-lg">Utility Calculator</div>
                   <p className="text-xs text-muted-foreground">
-                    Static engineering tools for thermal and utility calculations.
+                    Engineering tools for thermal, CHP, and utility calculations.
                   </p>
                 </div>
                 <ThemeToggle />
