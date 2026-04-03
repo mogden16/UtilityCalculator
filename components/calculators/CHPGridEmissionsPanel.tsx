@@ -130,7 +130,10 @@ export function CHPGridEmissionsPanel() {
 
     try {
       const response = await fetch("/api/pjm-gen-emissions", { cache: "no-store" });
-      const payload = (await response.json()) as EmissionsApiResponse;
+      const contentType = response.headers.get("content-type") ?? "";
+      const payload = contentType.includes("application/json")
+        ? ((await response.json()) as EmissionsApiResponse)
+        : ({ error: await response.text() } as EmissionsApiResponse);
 
       if (!response.ok) {
         throw new Error(payload.error || `Request failed with status ${response.status}`);

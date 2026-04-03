@@ -9,7 +9,7 @@ Engineering calculators for thermal load conversion, CHP feasibility, utility co
 - Tailwind CSS 4
 - Vitest for domain-unit tests
 - Playwright for browser smoke testing
-- Cloudflare Workers via OpenNext for deployment and server routes
+- Cloudflare Pages static export with a Pages Function for the PJM proxy
 
 ## Routes
 
@@ -36,29 +36,24 @@ npm run build
 npm run test:e2e
 ```
 
-`npm run preview` runs the app in the Cloudflare Workers runtime through OpenNext.
-On Windows, OpenNext preview is unreliable; the Playwright smoke test uses `next start` locally and keeps the Cloudflare preview path in CI.
+`npm run build` writes the static site to `out/`.
 
-## Cloudflare deployment
+## Cloudflare Pages deployment
 
-- Runtime: Cloudflare Workers with the OpenNext adapter
-- Preview locally: `npm run preview`
-- Deploy: `npm run deploy`
-- Wrangler config: `wrangler.jsonc`
+- Framework preset: `Next.js (Static HTML Export)`
+- Build command: `npm run build`
+- Build output directory: `out`
+- Server-side PJM proxy: `functions/api/pjm-gen-emissions.ts`
+
+If your Pages project still runs `npx @cloudflare/next-on-pages@1`, change it. This repo is not using that build path.
 
 ### Required secret
 
-The live PJM grid route expects one of these server-side secrets to be configured in Cloudflare:
+The live PJM grid route expects one of these server-side secrets to be configured in the Pages project environment:
 
 - `PJM_API_KEY`
 - `PJM_DATA_MINER_API_KEY`
 - `PJM_DATAMINER_API_KEY`
-
-Example:
-
-```bash
-npx wrangler secret put PJM_API_KEY
-```
 
 ## Engineering note
 
