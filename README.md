@@ -15,7 +15,8 @@ Engineering calculators for thermal load conversion, CHP feasibility, utility co
 
 - `/load-converter` converts between input fuel, delivered output, and common thermal demand units.
 - `/energy-cost-comparison` normalizes unlike energy sources to delivered MMBtu.
-- `/chp` screens CHP sizing/economics and compares against live PJM generation emissions.
+- `/chp` screens CHP sizing and economics for onsite generation projects.
+- `/emissions` reviews live PJM grid emissions, fuel mix, and electric-versus-gas comparisons.
 - `/load-estimator` provides a rule-of-thumb heating and cooling estimate with explicit heuristic language.
 - `/gas-flow` translates demand into CFH, MCFH, therm per hour, and Dth per hour.
 - `/unit-conversions` handles general engineering conversions.
@@ -49,11 +50,11 @@ If your Pages project still runs `npx @cloudflare/next-on-pages@1`, change it. T
 
 ### Required secret
 
-The live PJM grid route expects one of these server-side secrets to be configured in the Pages project environment:
+The live PJM grid route expects `PJM_DATAMINER_API_KEY` to be configured in the Pages project environment.
 
-- `PJM_API_KEY`
-- `PJM_DATA_MINER_API_KEY`
 - `PJM_DATAMINER_API_KEY`
+
+The function still accepts the older aliases `PJM_API_KEY` and `PJM_DATA_MINER_API_KEY` as fallback, but `PJM_DATAMINER_API_KEY` is now the canonical name.
 
 ## Engineering note
 

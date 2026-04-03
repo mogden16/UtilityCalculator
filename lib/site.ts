@@ -24,8 +24,15 @@ export const TOOL_ROUTES = [
     href: "/chp",
     label: "CHP Feasibility",
     shortLabel: "CHP",
-    description: "Screen combined heat and power sizing, economics, and compare against live PJM grid emissions.",
+    description: "Screen combined heat and power sizing and economics for onsite generation projects.",
     icon: "flame",
+  },
+  {
+    href: "/emissions",
+    label: "Emissions",
+    shortLabel: "Emissions",
+    description: "Review live PJM grid emissions, fuel mix, and compare delivered electricity against natural gas scenarios.",
+    icon: "cloud",
   },
   {
     href: "/load-estimator",

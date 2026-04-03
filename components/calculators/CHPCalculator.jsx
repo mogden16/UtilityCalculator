@@ -1,12 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { CHPGridEmissionsPanel } from "@/components/calculators/CHPGridEmissionsPanel";
 import {
   Bar,
   BarChart,
@@ -427,8 +427,20 @@ export default function CHPCalculator() {
               </CardContent>
             </Card>
           </div>
-
-          <CHPGridEmissionsPanel />
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Grid Emissions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                Live PJM fuel mix and electricity-vs-gas emissions comparisons now live on the dedicated emissions page
+                so the CHP workflow stays focused on sizing and economics.
+              </p>
+              <Button asChild variant="outline">
+                <Link href="/emissions">Open Emissions</Link>
+              </Button>
+            </CardContent>
+          </Card>
         </>
       )}
     </div>

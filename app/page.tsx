@@ -1,17 +1,18 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowRight, Calculator, Flame, Gauge, Scale, Thermometer } from "lucide-react";
+import { ArrowRight, Calculator, Cloud, Flame, Gauge, Scale, Thermometer } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TOOL_ROUTES } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Utility Calculator",
-  description: "Engineering calculators for thermal loads, CHP screening, gas demand, and utility rate comparisons.",
+  description: "Engineering calculators for thermal loads, CHP screening, gas demand, utility rate comparisons, and emissions review.",
 };
 
 const ICONS = {
   calculator: Calculator,
+  cloud: Cloud,
   flame: Flame,
   gauge: Gauge,
   scale: Scale,
@@ -25,11 +26,11 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl space-y-5">
           <p className="text-sm uppercase tracking-[0.2em] text-slate-300">Engineering Toolkit</p>
           <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-            Utility workflows split into focused pages, with live PJM data where server-side logic actually helps.
+            Utility workflows split into focused pages, with emissions analysis separated from CHP sizing.
           </h1>
           <p className="max-w-2xl text-base leading-7 text-slate-300">
             Pick the route that matches the engineering question you are solving: load conversion, cost comparison,
-            CHP feasibility, load estimation, gas flow, or general unit conversion.
+            CHP feasibility, emissions, load estimation, gas flow, or general unit conversion.
           </p>
         </div>
       </section>
@@ -63,12 +64,12 @@ export default function HomePage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>What changed in this refactor</CardTitle>
-            <CardDescription>The app keeps the route split, tests, and domain modules, while restoring server-backed PJM data.</CardDescription>
+            <CardDescription>The app keeps the route split, tests, and domain modules, while separating live PJM emissions into its own workflow.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>Each calculator is a dedicated route, so the browser no longer loads every widget and chart at once.</p>
             <p>Core equations now live in typed domain modules under <code>lib/</code>, which allows real tests.</p>
-            <p>The repo is ready for CI, browser smoke testing, and a Cloudflare Worker deployment for live grid data.</p>
+            <p>The repo is ready for CI, browser smoke testing, and a Pages Functions proxy for live grid data.</p>
           </CardContent>
         </Card>
 

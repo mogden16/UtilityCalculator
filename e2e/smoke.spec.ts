@@ -5,7 +5,7 @@ test("core routes render and navigation works", async ({ page }) => {
 
   await expect(
     page.getByRole("heading", {
-      name: "Utility workflows split into focused pages, with live PJM data where server-side logic actually helps.",
+      name: /Utility workflows split into focused pages/i,
     }),
   ).toBeVisible();
 
@@ -18,6 +18,10 @@ test("core routes render and navigation works", async ({ page }) => {
   await nav.getByRole("link", { name: "CHP", exact: true }).click();
   await expect(page).toHaveURL(/\/chp\/?$/);
   await expect(page.getByRole("heading", { name: "CHP Feasibility Calculator" })).toBeVisible();
+
+  await nav.getByRole("link", { name: "Emissions", exact: true }).click();
+  await expect(page).toHaveURL(/\/emissions\/?$/);
+  await expect(page.getByRole("heading", { name: "Emissions", exact: true })).toBeVisible();
 
   await nav.getByRole("link", { name: "Gas Flow", exact: true }).click();
   await expect(page).toHaveURL(/\/gas-flow\/?$/);
