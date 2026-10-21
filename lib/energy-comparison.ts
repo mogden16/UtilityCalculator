@@ -1,4 +1,4 @@
-import { BTU_PER_KW, DEFAULT_HHV_MMBTU_PER_MCF } from "@/lib/energy";
+import { BTU_PER_GALLON_OIL_NO2, BTU_PER_KW, DEFAULT_HHV_MMBTU_PER_MCF } from "@/lib/energy";
 import { nonNegative, parseNumberish } from "@/lib/number";
 
 export type EnergyContext = {
@@ -16,15 +16,15 @@ export const LABEL_OPTIONS = [
   "District Steam",
 ] as const;
 
-export const PRESET_SOURCE_METADATA: Record<string, { defaultEfficiency: number }> = {
-  "Natural Gas Furnace": { defaultEfficiency: 0.9 },
-  "Propane Furnace": { defaultEfficiency: 0.9 },
-  "Electric Resistance": { defaultEfficiency: 1 },
-  "Air-Source Heat Pump": { defaultEfficiency: 2.8 },
-  "Ground-Source Heat Pump": { defaultEfficiency: 3.5 },
-  "Fuel Oil Boiler": { defaultEfficiency: 0.87 },
-  "Steam Boiler": { defaultEfficiency: 0.8 },
-  "District Steam": { defaultEfficiency: 0.82 },
+export const PRESET_SOURCE_METADATA: Record<string, { defaultEfficiency: number; defaultRateUnit: EnergyUnit }> = {
+  "Natural Gas Furnace": { defaultEfficiency: 0.9, defaultRateUnit: "mcf" },
+  "Propane Furnace": { defaultEfficiency: 0.9, defaultRateUnit: "dth" },
+  "Electric Resistance": { defaultEfficiency: 1, defaultRateUnit: "kwh" },
+  "Air-Source Heat Pump": { defaultEfficiency: 2.8, defaultRateUnit: "kwh" },
+  "Ground-Source Heat Pump": { defaultEfficiency: 3.5, defaultRateUnit: "kwh" },
+  "Fuel Oil Boiler": { defaultEfficiency: 0.87, defaultRateUnit: "oil_gallon" },
+  "Steam Boiler": { defaultEfficiency: 0.8, defaultRateUnit: "mlb" },
+  "District Steam": { defaultEfficiency: 0.82, defaultRateUnit: "mlb" },
 };
 
 export const ENERGY_UNITS = {
@@ -33,30 +33,42 @@ export const ENERGY_UNITS = {
     rateLabel: "$/MCF",
     description: "Thousand cubic feet of natural gas",
     toMMBtu: (value: number, ctx: EnergyContext) => value * ctx.hhv,
+    fromMMBtu: (value: number, ctx: EnergyContext) => value / ctx.hhv,
   },
   therm: {
     label: "Therm",
     rateLabel: "$/Therm",
     description: "Therms of natural gas",
     toMMBtu: (value: number) => value * 0.1,
+    fromMMBtu: (value: number) => value / 0.1,
   },
   dth: {
     label: "Dth",
     rateLabel: "$/Dth",
     description: "Dekatherms",
     toMMBtu: (value: number) => value,
+    fromMMBtu: (value: number) => value,
   },
   mlb: {
     label: "MLB",
     rateLabel: "$/MLB",
     description: "Thousand pounds of steam",
     toMMBtu: (value: number) => value,
+    fromMMBtu: (value: number) => value,
   },
   kwh: {
     label: "kWh",
     rateLabel: "$/kWh",
     description: "Kilowatt-hours of electricity",
     toMMBtu: (value: number) => (value * BTU_PER_KW) / 1_000_000,
+    fromMMBtu: (value: number) => (value * 1_000_000) / BTU_PER_KW,
+  },
+  oil_gallon: {
+    label: "No. 2 oil gal",
+    rateLabel: "$/gal #2 oil",
+    description: "Gallons of No. 2 heating oil",
+    toMMBtu: (value: number) => (value * BTU_PER_GALLON_OIL_NO2) / 1_000_000,
+    fromMMBtu: (value: number) => (value * 1_000_000) / BTU_PER_GALLON_OIL_NO2,
   },
 } as const;
 
@@ -78,6 +90,13 @@ export type EnergySummary = {
   totalCost: number;
   efficiency: number;
   costPerDelivered: number;
+  equivalentUsage: number;
+  equivalentUsageUnit: EnergyUnit;
+};
+
+export type EnergyComparisonResult = {
+  primary: EnergySummary;
+  comparison: EnergySummary;
 };
 
 export function formatEfficiency(value: number): string {
@@ -98,17 +117,17 @@ function normalizeEfficiency(value: number | string): number {
   return raw > 0 ? raw : 1;
 }
 
-export function computeEnergySummary(source: RateSourceInput, usageValue: number | string, usageUnit: EnergyUnit, hhv: number | string): EnergySummary {
-  const context = resolveContext(hhv);
+function buildEnergySummary(
+  source: RateSourceInput,
+  inputMMBtu: number,
+  deliveredMMBtu: number,
+  context: EnergyContext,
+): EnergySummary {
   const rateValue = nonNegative(parseNumberish(source.rate));
-  const usageAmount = nonNegative(parseNumberish(usageValue));
   const unitRate = ENERGY_UNITS[source.rateUnit];
-  const unitUsage = ENERGY_UNITS[usageUnit];
   const rateUnitMMBtu = unitRate.toMMBtu(1, context);
-  const deliveredMMBtu = unitUsage.toMMBtu(usageAmount, context);
   const ratePerMMBtu = rateUnitMMBtu > 0 ? rateValue / rateUnitMMBtu : 0;
   const efficiency = normalizeEfficiency(source.efficiency);
-  const inputMMBtu = deliveredMMBtu / Math.max(efficiency, 0.000001);
   const totalCost = ratePerMMBtu * inputMMBtu;
 
   return {
@@ -119,7 +138,40 @@ export function computeEnergySummary(source: RateSourceInput, usageValue: number
     totalCost,
     efficiency,
     costPerDelivered: deliveredMMBtu > 0 ? totalCost / deliveredMMBtu : 0,
+    equivalentUsage: unitRate.fromMMBtu(inputMMBtu, context),
+    equivalentUsageUnit: source.rateUnit,
   };
+}
+
+export function computeEnergyComparison(
+  primarySource: RateSourceInput,
+  comparisonSource: RateSourceInput,
+  usageValue: number | string,
+  usageUnit: EnergyUnit,
+  hhv: number | string,
+): EnergyComparisonResult {
+  const context = resolveContext(hhv);
+  const usageAmount = nonNegative(parseNumberish(usageValue));
+  const primaryInputMMBtu = ENERGY_UNITS[usageUnit].toMMBtu(usageAmount, context);
+  const primaryEfficiency = normalizeEfficiency(primarySource.efficiency);
+  const deliveredMMBtu = primaryInputMMBtu * primaryEfficiency;
+  const comparisonEfficiency = normalizeEfficiency(comparisonSource.efficiency);
+  const comparisonInputMMBtu = deliveredMMBtu / Math.max(comparisonEfficiency, 0.000001);
+
+  return {
+    primary: buildEnergySummary(primarySource, primaryInputMMBtu, deliveredMMBtu, context),
+    comparison: buildEnergySummary(comparisonSource, comparisonInputMMBtu, deliveredMMBtu, context),
+  };
+}
+
+export function computeEnergySummary(
+  source: RateSourceInput,
+  usageValue: number | string,
+  usageUnit: EnergyUnit,
+  hhv: number | string,
+): EnergySummary {
+  const result = computeEnergyComparison(source, source, usageValue, usageUnit, hhv);
+  return result.primary;
 }
 
 export function getComparisonMetrics(summaryA: EnergySummary, summaryB: EnergySummary) {

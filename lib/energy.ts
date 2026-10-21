@@ -4,6 +4,7 @@ export const BTU_PER_HP = 2544.4336;
 export const BTU_PER_THERM = 100000;
 export const BTU_PER_DTH = 1_000_000;
 export const BTU_PER_MLB = 1_000_000;
+export const BTU_PER_GALLON_OIL_NO2 = 138_500;
 export const DEFAULT_HHV_MMBTU_PER_MCF = 1.035;
 export const RESIDENTIAL_THRESHOLD_BTUH = 300000;
 export const COMMERCIAL_THRESHOLD_BTUH = 3_000_000;
