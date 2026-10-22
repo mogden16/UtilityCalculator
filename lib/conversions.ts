@@ -1,4 +1,10 @@
 import { parseFiniteOrNaN } from "@/lib/number";
+import {
+  BTU_PER_GALLON_OIL_NO2,
+  BTU_PER_KW,
+  BTU_PER_MLB,
+  DEFAULT_HHV_MMBTU_PER_MCF,
+} from "@/lib/energy";
 
 const TEMPERATURE_OFFSETS = {
   freezingFahrenheit: 32,
@@ -27,8 +33,29 @@ export const CONVERSION_CATEGORY_DEFINITIONS: Record<ConversionCategoryKey, Cate
       btu: { label: "BTU", toBase: (value) => value, fromBase: (value) => value },
       therm: { label: "Therm", toBase: (value) => value * 100000, fromBase: (value) => value / 100000 },
       dth: { label: "Dth", toBase: (value) => value * 1000000, fromBase: (value) => value / 1000000 },
+      mlb: { label: "MLB", toBase: (value) => value * BTU_PER_MLB, fromBase: (value) => value / BTU_PER_MLB },
       mmbtu: { label: "MMBtu", toBase: (value) => value * 1000000, fromBase: (value) => value / 1000000 },
-      kwh: { label: "kWh", toBase: (value) => value * 3412, fromBase: (value) => value / 3412 },
+      mcf: {
+        label: "MCF",
+        toBase: (value) => value * DEFAULT_HHV_MMBTU_PER_MCF * 1000000,
+        fromBase: (value) => value / DEFAULT_HHV_MMBTU_PER_MCF / 1000000,
+      },
+      bcf: {
+        label: "BCF",
+        toBase: (value) => value * DEFAULT_HHV_MMBTU_PER_MCF * 1000000000000,
+        fromBase: (value) => value / DEFAULT_HHV_MMBTU_PER_MCF / 1000000000000,
+      },
+      ccf: {
+        label: "CCF",
+        toBase: (value) => value * DEFAULT_HHV_MMBTU_PER_MCF * 100000,
+        fromBase: (value) => value / DEFAULT_HHV_MMBTU_PER_MCF / 100000,
+      },
+      kwh: { label: "kWh", toBase: (value) => value * BTU_PER_KW, fromBase: (value) => value / BTU_PER_KW },
+      oilno2: {
+        label: "No. 2 Oil (gal)",
+        toBase: (value) => value * BTU_PER_GALLON_OIL_NO2,
+        fromBase: (value) => value / BTU_PER_GALLON_OIL_NO2,
+      },
     },
   },
   power: {
@@ -36,7 +63,8 @@ export const CONVERSION_CATEGORY_DEFINITIONS: Record<ConversionCategoryKey, Cate
     placeholder: "Enter power value",
     units: {
       btuperhour: { label: "BTU/hr", toBase: (value) => value, fromBase: (value) => value },
-      kw: { label: "kW", toBase: (value) => value * 3412, fromBase: (value) => value / 3412 },
+      kw: { label: "kW", toBase: (value) => value * BTU_PER_KW, fromBase: (value) => value / BTU_PER_KW },
+      mw: { label: "MW", toBase: (value) => value * BTU_PER_KW * 1000, fromBase: (value) => value / BTU_PER_KW / 1000 },
       ton: { label: "Ton", toBase: (value) => value * 12000, fromBase: (value) => value / 12000 },
       hp: { label: "HP", toBase: (value) => value * 2544, fromBase: (value) => value / 2544 },
     },

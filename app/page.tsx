@@ -39,7 +39,7 @@ export default function HomePage() {
         {TOOL_ROUTES.filter((tool) => tool.href !== "/").map((tool) => {
           const Icon = ICONS[tool.icon];
           return (
-            <Link key={tool.href} href={tool.href} className="group">
+            <Link key={tool.href} href={tool.href} prefetch={false} className="group">
               <Card className="h-full border-border/70 transition hover:border-slate-400 hover:shadow-md">
                 <CardHeader className="space-y-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100">

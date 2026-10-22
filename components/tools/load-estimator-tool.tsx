@@ -1,16 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import { MetricCard } from "@/components/metric-card";
 import { ToolPageShell } from "@/components/tool-page-shell";
@@ -49,6 +39,7 @@ export function LoadEstimatorTool() {
     () => buildLoadScenarioChart(estimate.area, scenario, estimate.heatingFactor, estimate.coolingFactor),
     [estimate.area, estimate.coolingFactor, estimate.heatingFactor, scenario],
   );
+  const maxChartLoad = Math.max(...chartData.flatMap((row) => [row.heating, row.cooling]), 1);
 
   return (
     <ToolPageShell
@@ -69,13 +60,13 @@ export function LoadEstimatorTool() {
       <Card>
         <CardContent className="grid gap-4 p-6 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label>Square footage</Label>
-            <Input value={sqft} onChange={(event) => setSqft(event.target.value)} />
+            <Label htmlFor="load-sqft">Square footage</Label>
+            <Input id="load-sqft" value={sqft} onChange={(event) => setSqft(event.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Building condition</Label>
+            <Label htmlFor="load-scenario">Building condition</Label>
             <Select value={scenario} onValueChange={(value) => setScenario(value as LoadScenarioKey)}>
-              <SelectTrigger>
+              <SelectTrigger id="load-scenario">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -97,16 +88,18 @@ export function LoadEstimatorTool() {
       <Card>
         <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Heating factor override (BTU/hr per ft^2)</Label>
+            <Label htmlFor="load-heating-factor">Heating factor override (BTU/hr per ft^2)</Label>
             <Input
+              id="load-heating-factor"
               value={heatingOverride}
               onChange={(event) => setHeatingOverride(event.target.value)}
               placeholder={String(estimate.defaultHeatingFactor)}
             />
           </div>
           <div className="space-y-2">
-            <Label>Cooling factor override (BTU/hr per ft^2)</Label>
+            <Label htmlFor="load-cooling-factor">Cooling factor override (BTU/hr per ft^2)</Label>
             <Input
+              id="load-cooling-factor"
               value={coolingOverride}
               onChange={(event) => setCoolingOverride(event.target.value)}
               placeholder={String(estimate.defaultCoolingFactor)}
@@ -131,24 +124,30 @@ export function LoadEstimatorTool() {
               comparison.
             </p>
           </div>
-          <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 12 }}>
-                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.15} />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(value) => formatWhole(Number(value))} />
-                <RechartsTooltip
-                  formatter={(value: number | string, name: string) => [
-                    `${formatWhole(Number(value))} BTU/hr`,
-                    name,
-                  ]}
-                  contentStyle={{ borderRadius: 12 }}
-                />
-                <Legend />
-                <Bar dataKey="heating" fill="#f59e0b" name="Heating load" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="cooling" fill="#2563eb" name="Cooling load" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div
+            className="space-y-5"
+            role="img"
+            aria-label="Heating and cooling loads by building condition"
+          >
+            <div className="flex gap-5 text-xs text-muted-foreground" aria-hidden="true">
+              <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" />Heating load</span>
+              <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-blue-600" />Cooling load</span>
+            </div>
+            {chartData.map((row) => (
+              <div key={row.name} className="space-y-2">
+                <div className="text-sm font-medium">{row.name}</div>
+                <div className="grid grid-cols-[5.5rem_1fr] items-center gap-3 text-xs">
+                  <span className="text-muted-foreground">{formatWhole(row.heating)}</span>
+                  <div className="h-3 rounded-full bg-muted" title={`${formatWhole(row.heating)} BTU/hr heating`}>
+                    <div className="h-3 rounded-full bg-amber-500" style={{ width: `${(row.heating / maxChartLoad) * 100}%` }} />
+                  </div>
+                  <span className="text-muted-foreground">{formatWhole(row.cooling)}</span>
+                  <div className="h-3 rounded-full bg-muted" title={`${formatWhole(row.cooling)} BTU/hr cooling`}>
+                    <div className="h-3 rounded-full bg-blue-600" style={{ width: `${(row.cooling / maxChartLoad) * 100}%` }} />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

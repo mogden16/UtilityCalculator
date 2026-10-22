@@ -22,10 +22,12 @@ import { DEFAULT_HHV_MMBTU_PER_MCF } from "@/lib/energy";
 import { formatCurrency, formatFixed } from "@/lib/format";
 
 function SourceCard({
+  idPrefix,
   title,
   state,
   onChange,
 }: {
+  idPrefix: string;
   title: string;
   state: RateSourceInput;
   onChange: (next: RateSourceInput) => void;
@@ -44,7 +46,7 @@ function SourceCard({
         </div>
 
         <div className="space-y-2">
-          <Label>Source label</Label>
+          <Label htmlFor={`${idPrefix}-source-preset`}>Source label</Label>
           <Select
             value={selectValue}
             onValueChange={(value) => {
@@ -62,7 +64,7 @@ function SourceCard({
               });
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger id={`${idPrefix}-source-preset`}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -76,6 +78,8 @@ function SourceCard({
           </Select>
           {selectValue === "Custom" ? (
             <Input
+              id={`${idPrefix}-source-custom`}
+              aria-label={`${title} custom source label`}
               value={state.name}
               onChange={(event) => onChange({ ...state, name: event.target.value })}
               placeholder="Custom source label"
@@ -85,16 +89,16 @@ function SourceCard({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Rate</Label>
-            <Input value={state.rate} onChange={(event) => onChange({ ...state, rate: event.target.value })} />
+            <Label htmlFor={`${idPrefix}-rate`}>Rate</Label>
+            <Input id={`${idPrefix}-rate`} value={state.rate} onChange={(event) => onChange({ ...state, rate: event.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label>Rate unit</Label>
+            <Label htmlFor={`${idPrefix}-rate-unit`}>Rate unit</Label>
             <Select
               value={state.rateUnit}
               onValueChange={(value) => onChange({ ...state, rateUnit: value as EnergyUnit })}
             >
-              <SelectTrigger>
+              <SelectTrigger id={`${idPrefix}-rate-unit`}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -112,8 +116,9 @@ function SourceCard({
         </div>
 
         <div className="space-y-2">
-          <Label>Delivered efficiency</Label>
+          <Label htmlFor={`${idPrefix}-efficiency`}>Delivered efficiency</Label>
           <Input
+            id={`${idPrefix}-efficiency`}
             value={state.efficiency}
             onChange={(event) => onChange({ ...state, efficiency: event.target.value })}
             placeholder="0.90"
@@ -163,18 +168,18 @@ export function EnergyCostComparisonTool() {
       <Card>
         <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Gas HHV (MMBtu/MCF)</Label>
-            <Input value={hhv} onChange={(event) => setHhv(event.target.value)} />
+            <Label htmlFor="energy-hhv">Gas HHV (MMBtu/MCF)</Label>
+            <Input id="energy-hhv" value={hhv} onChange={(event) => setHhv(event.target.value)} />
             <p className="text-xs text-muted-foreground">
               Adjust this if your gas tariff uses a different billing factor.
             </p>
           </div>
           <div className="space-y-2">
-            <Label>Known primary-source usage</Label>
+            <Label htmlFor="energy-usage">Known primary-source usage</Label>
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-              <Input value={usageValue} onChange={(event) => setUsageValue(event.target.value)} />
+              <Input id="energy-usage" value={usageValue} onChange={(event) => setUsageValue(event.target.value)} />
               <Select value={usageUnit} onValueChange={(value) => setUsageUnit(value as EnergyUnit)}>
-                <SelectTrigger>
+                <SelectTrigger id="energy-usage-unit" aria-label="Known usage unit">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -194,8 +199,8 @@ export function EnergyCostComparisonTool() {
       </Card>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <SourceCard title="Primary source" state={sourceA} onChange={setSourceA} />
-        <SourceCard title="Comparison source" state={sourceB} onChange={setSourceB} />
+        <SourceCard idPrefix="primary" title="Primary source" state={sourceA} onChange={setSourceA} />
+        <SourceCard idPrefix="comparison" title="Comparison source" state={sourceB} onChange={setSourceB} />
       </div>
 
       <Card>

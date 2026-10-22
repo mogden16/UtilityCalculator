@@ -42,13 +42,13 @@ export function GasFlowTool() {
       <Card>
         <CardContent className="grid gap-4 p-6 sm:grid-cols-2 xl:grid-cols-5">
           <div className="space-y-2">
-            <Label>Demand value</Label>
-            <Input value={value} onChange={(event) => setValue(event.target.value)} />
+            <Label htmlFor="gas-flow-value">Demand value</Label>
+            <Input id="gas-flow-value" value={value} onChange={(event) => setValue(event.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Demand unit</Label>
+            <Label htmlFor="gas-flow-unit">Demand unit</Label>
             <Select value={unit} onValueChange={(next) => setUnit(next as GasFlowUnit)}>
-              <SelectTrigger>
+              <SelectTrigger id="gas-flow-unit">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -61,9 +61,9 @@ export function GasFlowTool() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Reference</Label>
+            <Label htmlFor="gas-flow-reference">Reference</Label>
             <Select value={reference} onValueChange={(next) => setReference(next as EnergyReference)}>
-              <SelectTrigger>
+              <SelectTrigger id="gas-flow-reference">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -73,12 +73,12 @@ export function GasFlowTool() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Efficiency (%)</Label>
-            <Input value={efficiencyPercent} onChange={(event) => setEfficiencyPercent(event.target.value)} />
+            <Label htmlFor="gas-flow-efficiency">Efficiency (%)</Label>
+            <Input id="gas-flow-efficiency" value={efficiencyPercent} onChange={(event) => setEfficiencyPercent(event.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Gas HHV (MMBtu/MCF)</Label>
-            <Input value={hhv} onChange={(event) => setHhv(event.target.value)} />
+            <Label htmlFor="gas-flow-hhv">Gas HHV (MMBtu/MCF)</Label>
+            <Input id="gas-flow-hhv" value={hhv} onChange={(event) => setHhv(event.target.value)} />
           </div>
         </CardContent>
       </Card>
@@ -86,8 +86,8 @@ export function GasFlowTool() {
       <Card>
         <CardContent className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-2">
-            <Label>Modeled hours</Label>
-            <Input value={hours} onChange={(event) => setHours(event.target.value)} />
+            <Label htmlFor="gas-flow-hours">Modeled hours</Label>
+            <Input id="gas-flow-hours" value={hours} onChange={(event) => setHours(event.target.value)} />
           </div>
           <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 text-sm text-muted-foreground sm:col-span-2">
             This route converts demand to flow. It does not size pipe, pressure regulators, or pressure-drop limits. Use

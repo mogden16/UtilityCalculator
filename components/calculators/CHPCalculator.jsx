@@ -7,19 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 const BUILDING_ARCHETYPES = {
   hospital: { load_factor: 0.75, thermal_intensity: 90, hours: 8500 },
@@ -209,10 +196,9 @@ export default function CHPCalculator() {
     { name: "CHP Gas (Dth)", value: result.chpGasConsumptionDth || 0 },
   ];
 
-  const offsetPie = [
-    { name: "Electric Offset", value: Math.max(0, Math.min(100, result.electricOffsetPct || 0)) },
-    { name: "Remaining", value: Math.max(0, 100 - (result.electricOffsetPct || 0)) },
-  ];
+  const electricOffset = Math.max(0, Math.min(100, result.electricOffsetPct || 0));
+  const maxGasUse = Math.max(...gasUseData.map((entry) => entry.value), 1);
+  const maxSavingsMagnitude = Math.max(...savingsData.map((entry) => Math.abs(entry.value)), 1);
 
   const isAdvanced = mode === "advanced";
 
@@ -228,9 +214,9 @@ export default function CHPCalculator() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-2">
-            <Label>Building Type</Label>
+            <Label htmlFor="chp-building-type">Building Type</Label>
             <Select value={inputs.building_type} onValueChange={(value) => onChange("building_type", value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger id="chp-building-type"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {Object.keys(BUILDING_ARCHETYPES).map((k) => (
                   <SelectItem key={k} value={k}>{k.replace("_", " ")}</SelectItem>
@@ -240,26 +226,26 @@ export default function CHPCalculator() {
           </div>
 
           <div className="space-y-2">
-            <Label>Annual Electric (kWh)</Label>
-            <Input value={inputs.annual_electric_kwh} onChange={(e) => onChange("annual_electric_kwh", e.target.value)} />
+            <Label htmlFor="chp-annual-electric">Annual Electric (kWh)</Label>
+            <Input id="chp-annual-electric" value={inputs.annual_electric_kwh} onChange={(e) => onChange("annual_electric_kwh", e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Annual Gas (Dth)</Label>
-            <Input value={inputs.annual_gas_dth} onChange={(e) => onChange("annual_gas_dth", e.target.value)} />
+            <Label htmlFor="chp-annual-gas">Annual Gas (Dth)</Label>
+            <Input id="chp-annual-gas" value={inputs.annual_gas_dth} onChange={(e) => onChange("annual_gas_dth", e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Electric Rate ($/kWh)</Label>
-            <Input value={inputs.electric_rate} onChange={(e) => onChange("electric_rate", e.target.value)} />
+            <Label htmlFor="chp-electric-rate">Electric Rate ($/kWh)</Label>
+            <Input id="chp-electric-rate" value={inputs.electric_rate} onChange={(e) => onChange("electric_rate", e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Gas Rate ($/Dth)</Label>
-            <Input value={inputs.gas_rate} onChange={(e) => onChange("gas_rate", e.target.value)} />
+            <Label htmlFor="chp-gas-rate">Gas Rate ($/Dth)</Label>
+            <Input id="chp-gas-rate" value={inputs.gas_rate} onChange={(e) => onChange("gas_rate", e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label>Technology</Label>
+            <Label htmlFor="chp-technology">Technology</Label>
             <Select value={inputs.technology} onValueChange={(value) => onChange("technology", value)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger id="chp-technology"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {Object.entries(TECHNOLOGY).map(([key, tech]) => (
                   <SelectItem key={key} value={key}>
@@ -271,18 +257,18 @@ export default function CHPCalculator() {
           </div>
 
           <div className="space-y-2">
-            <Label>Electrical Efficiency (%)</Label>
-            <Input value={inputs.electrical_efficiency} onChange={(e) => onChange("electrical_efficiency", e.target.value)} />
+            <Label htmlFor="chp-electrical-efficiency">Electrical Efficiency (%)</Label>
+            <Input id="chp-electrical-efficiency" value={inputs.electrical_efficiency} onChange={(e) => onChange("electrical_efficiency", e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label>Thermal Efficiency (%)</Label>
-            <Input value={inputs.thermal_efficiency} onChange={(e) => onChange("thermal_efficiency", e.target.value)} />
+            <Label htmlFor="chp-thermal-efficiency">Thermal Efficiency (%)</Label>
+            <Input id="chp-thermal-efficiency" value={inputs.thermal_efficiency} onChange={(e) => onChange("thermal_efficiency", e.target.value)} />
           </div>
 
           <div className="space-y-2">
-            <Label>Square Footage (required)</Label>
-            <Input value={inputs.square_footage} onChange={(e) => onChange("square_footage", e.target.value)} />
+            <Label htmlFor="chp-square-footage">Square Footage (required)</Label>
+            <Input id="chp-square-footage" value={inputs.square_footage} onChange={(e) => onChange("square_footage", e.target.value)} />
           </div>
 
           {!isAdvanced && (
@@ -299,21 +285,21 @@ export default function CHPCalculator() {
           {isAdvanced && (
             <>
               <div className="space-y-2">
-                <Label>Peak Demand (kW)</Label>
-                <Input value={inputs.peak_demand_kw} onChange={(e) => onChange("peak_demand_kw", e.target.value)} />
+                <Label htmlFor="chp-peak-demand">Peak Demand (kW)</Label>
+                <Input id="chp-peak-demand" value={inputs.peak_demand_kw} onChange={(e) => onChange("peak_demand_kw", e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Thermal Baseload (MMBtu/hr)</Label>
-                <Input value={inputs.thermal_baseload_mmbtu_hr} onChange={(e) => onChange("thermal_baseload_mmbtu_hr", e.target.value)} />
+                <Label htmlFor="chp-thermal-baseload">Thermal Baseload (MMBtu/hr)</Label>
+                <Input id="chp-thermal-baseload" value={inputs.thermal_baseload_mmbtu_hr} onChange={(e) => onChange("thermal_baseload_mmbtu_hr", e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Hours of Operation</Label>
-                <Input value={inputs.hours_of_operation} onChange={(e) => onChange("hours_of_operation", e.target.value)} />
+                <Label htmlFor="chp-hours-operation">Hours of Operation</Label>
+                <Input id="chp-hours-operation" value={inputs.hours_of_operation} onChange={(e) => onChange("hours_of_operation", e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Existing Heating System</Label>
+                <Label htmlFor="chp-existing-heating-system">Existing Heating System</Label>
                 <Select value={inputs.existing_heating_system} onValueChange={(value) => onChange("existing_heating_system", value)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="chp-existing-heating-system"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="boiler">Boiler</SelectItem>
                     <SelectItem value="furnace">Furnace</SelectItem>
@@ -323,17 +309,17 @@ export default function CHPCalculator() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Incentive ($/kW)</Label>
-                <Input value={inputs.incentive_per_kw} onChange={(e) => onChange("incentive_per_kw", e.target.value)} />
+                <Label htmlFor="chp-incentive">Incentive ($/kW)</Label>
+                <Input id="chp-incentive" value={inputs.incentive_per_kw} onChange={(e) => onChange("incentive_per_kw", e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>ITC Fraction</Label>
-                <Input value={inputs.itc_fraction} onChange={(e) => onChange("itc_fraction", e.target.value)} />
+                <Label htmlFor="chp-itc-fraction">ITC Fraction</Label>
+                <Input id="chp-itc-fraction" value={inputs.itc_fraction} onChange={(e) => onChange("itc_fraction", e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Existing Backup Gen</Label>
+                <Label htmlFor="chp-existing-backup-gen">Existing Backup Gen</Label>
                 <Select value={inputs.existing_backup_gen} onValueChange={(value) => onChange("existing_backup_gen", value)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="chp-existing-backup-gen"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="no">No</SelectItem>
                     <SelectItem value="yes">Yes</SelectItem>
@@ -377,53 +363,38 @@ export default function CHPCalculator() {
           </Card>
 
           <div className="grid gap-4 lg:grid-cols-3">
-            <Card className="h-[300px]">
+            <Card>
               <CardHeader><CardTitle className="text-base">Electric Offset %</CardTitle></CardHeader>
-              <CardContent className="h-[230px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={offsetPie} dataKey="value" nameKey="name" outerRadius={80}>
-                      <Cell fill="#22c55e" />
-                      <Cell fill="#d1d5db" />
-                    </Pie>
-                    <Tooltip formatter={(value) => `${fmt2(value)}%`} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              <CardContent className="space-y-4" role="img" aria-label={`${fmt2(electricOffset)} percent electric offset`}>
+                <div className="text-4xl font-semibold">{fmt2(electricOffset)}%</div>
+                <div className="h-4 overflow-hidden rounded-full bg-muted">
+                  <div className="h-full rounded-full bg-green-500" style={{ width: `${electricOffset}%` }} />
+                </div>
+                <p className="text-xs text-muted-foreground">Estimated annual electric use served by CHP.</p>
               </CardContent>
             </Card>
 
-            <Card className="h-[300px]">
+            <Card>
               <CardHeader><CardTitle className="text-base">Gas Use Comparison</CardTitle></CardHeader>
-              <CardContent className="h-[230px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={gasUseData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis />
-                    <Tooltip formatter={(value) => fmt0(value)} />
-                    <Bar dataKey="value" fill="#0ea5e9" />
-                  </BarChart>
-                </ResponsiveContainer>
+              <CardContent className="space-y-4" role="img" aria-label="Baseline and CHP gas use comparison">
+                {gasUseData.map((entry) => (
+                  <div key={entry.name} className="space-y-1.5">
+                    <div className="flex justify-between gap-3 text-sm"><span>{entry.name}</span><span className="font-mono">{fmt0(entry.value)}</span></div>
+                    <div className="h-3 rounded-full bg-muted"><div className="h-3 rounded-full bg-sky-500" style={{ width: `${(entry.value / maxGasUse) * 100}%` }} /></div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
 
-            <Card className="h-[300px]">
+            <Card>
               <CardHeader><CardTitle className="text-base">Annual Savings Breakdown</CardTitle></CardHeader>
-              <CardContent className="h-[230px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={savingsData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                    <YAxis />
-                    <Tooltip formatter={(value) => fmtCurrency(value)} />
-                    <Bar dataKey="value">
-                      {savingsData.map((entry) => (
-                        <Cell key={entry.name} fill={entry.value >= 0 ? "#22c55e" : "#ef4444"} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+              <CardContent className="space-y-4" role="img" aria-label="Annual CHP savings breakdown">
+                {savingsData.map((entry) => (
+                  <div key={entry.name} className="space-y-1.5">
+                    <div className="flex justify-between gap-3 text-sm"><span>{entry.name}</span><span className="font-mono">{fmtCurrency(entry.value)}</span></div>
+                    <div className="h-3 rounded-full bg-muted"><div className={`h-3 rounded-full ${entry.value >= 0 ? "bg-green-500" : "bg-red-500"}`} style={{ width: `${(Math.abs(entry.value) / maxSavingsMagnitude) * 100}%` }} /></div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
@@ -437,7 +408,7 @@ export default function CHPCalculator() {
                 so the CHP workflow stays focused on sizing and economics.
               </p>
               <Button asChild variant="outline">
-                <Link href="/emissions">Open Emissions</Link>
+                <Link href="/emissions" prefetch={false}>Open Emissions</Link>
               </Button>
             </CardContent>
           </Card>

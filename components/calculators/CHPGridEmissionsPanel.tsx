@@ -334,7 +334,7 @@ export function CHPGridEmissionsPanel() {
             <div className="flex items-center justify-between gap-3">
               <h3 className="font-semibold">Natural Gas Customer Emissions</h3>
               <Select value={selectedLeakScenario} onValueChange={(value) => setSelectedLeakScenario(value as LeakScenarioKey)}>
-                <SelectTrigger className="w-[230px]">
+                <SelectTrigger className="w-[230px]" aria-label="Methane leakage scenario">
                   <SelectValue placeholder="Leakage scenario" />
                 </SelectTrigger>
                 <SelectContent>

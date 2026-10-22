@@ -55,9 +55,9 @@ export function UnitConversionsTool() {
       <Card>
         <CardContent className="space-y-6 p-6">
           <div className="space-y-2">
-            <Label>Conversion category</Label>
+            <Label htmlFor="conversion-category">Conversion category</Label>
             <Select value={category} onValueChange={(value) => setCategory(value as ConversionCategoryKey)}>
-              <SelectTrigger className="max-w-xs">
+              <SelectTrigger id="conversion-category" className="max-w-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -73,17 +73,18 @@ export function UnitConversionsTool() {
           <div className="grid gap-6 md:grid-cols-[1fr_auto_1fr] md:items-end">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Input value</Label>
+                <Label htmlFor="conversion-input">Input value</Label>
                 <Input
+                  id="conversion-input"
                   value={inputValue}
                   onChange={(event) => setInputValue(event.target.value)}
                   placeholder={CONVERSION_CATEGORY_DEFINITIONS[category].placeholder}
                 />
               </div>
               <div className="space-y-2">
-                <Label>From unit</Label>
+                <Label htmlFor="conversion-from-unit">From unit</Label>
                 <Select value={fromUnit} onValueChange={setFromUnit}>
-                  <SelectTrigger>
+                  <SelectTrigger id="conversion-from-unit">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -115,17 +116,18 @@ export function UnitConversionsTool() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Output value</Label>
+                <Label htmlFor="conversion-output">Output value</Label>
                 <Input
+                  id="conversion-output"
                   readOnly
                   value={conversion === undefined ? "" : formatConversionResult(conversion)}
                   placeholder="0.00"
                 />
               </div>
               <div className="space-y-2">
-                <Label>To unit</Label>
+                <Label htmlFor="conversion-to-unit">To unit</Label>
                 <Select value={toUnit} onValueChange={setToUnit}>
-                  <SelectTrigger>
+                  <SelectTrigger id="conversion-to-unit">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

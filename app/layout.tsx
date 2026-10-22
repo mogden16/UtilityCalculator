@@ -50,7 +50,7 @@ export default function RootLayout({
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <div className="text-base font-semibold sm:text-lg">Utility Calculator</div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="hidden text-xs text-muted-foreground sm:block">
                     Engineering tools for thermal, CHP, and utility calculations.
                   </p>
                 </div>

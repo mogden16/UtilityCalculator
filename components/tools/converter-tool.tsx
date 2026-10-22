@@ -73,9 +73,9 @@ export function ConverterTool() {
               <Input id="converter-value" value={value} onChange={(event) => setValue(event.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Unit</Label>
+              <Label htmlFor="converter-unit">Unit</Label>
               <Select value={unit} onValueChange={(next) => setUnit(next as ConverterUnit)}>
-                <SelectTrigger>
+                <SelectTrigger id="converter-unit">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -88,9 +88,9 @@ export function ConverterTool() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Reference</Label>
+              <Label htmlFor="converter-reference">Reference</Label>
               <Select value={energyReference} onValueChange={(next) => setEnergyReference(next as EnergyReference)}>
-                <SelectTrigger>
+                <SelectTrigger id="converter-reference">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
