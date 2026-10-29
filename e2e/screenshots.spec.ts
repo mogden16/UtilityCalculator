@@ -18,3 +18,14 @@ for (const width of [390, 1440]) {
     await context.close();
   });
 }
+
+test("capture homepage dark mode at 390px", async ({ browser }) => {
+  const output = path.join(process.cwd(), "artifacts", "screenshots");
+  await mkdir(output, { recursive: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: "dark" });
+  const page = await context.newPage();
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await page.screenshot({ path: path.join(output, "home-dark-390.png"), fullPage: true });
+  await context.close();
+});

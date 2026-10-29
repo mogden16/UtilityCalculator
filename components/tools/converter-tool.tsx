@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { ArrowRight, Flame, Gauge } from "lucide-react";
 
@@ -32,11 +31,6 @@ export function ConverterTool({ view = "demand" }: { view?: "demand" | "flow" })
 
   return (
     <ToolPageShell eyebrow="Gas demand" title={view === "flow" ? "Gas Flow & Demand" : "Gas Demand & Conversions"} description="Enter either equipment input or useful output. Gas demand, delivered load, and operating totals update together.">
-      <div className="flex gap-2" aria-label="Gas demand workflow views">
-        <Link href="/load-converter" prefetch={false} className={`inline-flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium ${view === "demand" ? "bg-primary text-primary-foreground" : "bg-card"}`}>Load &amp; energy</Link>
-        <Link href="/gas-flow" prefetch={false} className={`inline-flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium ${view === "flow" ? "bg-primary text-primary-foreground" : "bg-card"}`}>Gas flow</Link>
-      </div>
-
       <Card><CardContent className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-5">
         <div className="space-y-1.5"><Label htmlFor="converter-value">Demand value</Label><Input id="converter-value" inputMode="decimal" value={value} onChange={(event) => setValue(event.target.value)} aria-invalid={!valid} /></div>
         <div className="space-y-1.5"><Label htmlFor="converter-unit">Unit</Label><Select value={unit} onValueChange={(next) => setUnit(next as ConverterUnit)}><SelectTrigger id="converter-unit"><SelectValue /></SelectTrigger><SelectContent>{CONVERTER_UNIT_OPTIONS.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent></Select></div>

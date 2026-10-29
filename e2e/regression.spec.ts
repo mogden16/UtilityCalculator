@@ -128,3 +128,23 @@ test("homepage search finds calculators by calculation term", async ({ page }) =
   await expect(page.locator("main").getByRole("link", { name: /Energy Savings/ })).toBeVisible();
   await expect(page.locator("main").getByRole("link", { name: /Gas Demand/ })).toHaveCount(0);
 });
+
+test("homepage follows the shared light and dark color scheme", async ({ page }) => {
+  await page.goto("/");
+  const gasDemandCard = page.locator("main").getByRole("link", { name: /Gas Demand/ });
+  const lightCardColor = await gasDemandCard.evaluate((element) => getComputedStyle(element).backgroundColor);
+  expect(lightCardColor).not.toBe("rgb(0, 0, 0)");
+
+  await page.getByRole("button", { name: "Toggle theme" }).click();
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  const darkCardColor = await gasDemandCard.evaluate((element) => getComputedStyle(element).backgroundColor);
+  expect(darkCardColor).not.toBe(lightCardColor);
+});
+
+test("gas demand routes do not show the retired workflow switcher", async ({ page }) => {
+  for (const path of ["/load-converter", "/gas-flow"]) {
+    await page.goto(path);
+    await expect(page.getByRole("navigation", { name: "Gas demand workflow views" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Load & energy", exact: true })).toHaveCount(0);
+  }
+});
