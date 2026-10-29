@@ -1,4 +1,4 @@
-import { BTU_PER_GALLON_OIL_NO2, BTU_PER_KW, DEFAULT_HHV_MMBTU_PER_MCF } from "@/lib/energy";
+import { BTU_PER_GALLON_OIL_NO2, BTU_PER_GALLON_PROPANE, BTU_PER_KW, DEFAULT_HHV_MMBTU_PER_MCF } from "@/lib/energy";
 import { nonNegative, parseNumberish } from "@/lib/number";
 
 export type EnergyContext = {
@@ -18,7 +18,7 @@ export const LABEL_OPTIONS = [
 
 export const PRESET_SOURCE_METADATA: Record<string, { defaultEfficiency: number; defaultRateUnit: EnergyUnit }> = {
   "Natural Gas Furnace": { defaultEfficiency: 0.9, defaultRateUnit: "mcf" },
-  "Propane Furnace": { defaultEfficiency: 0.9, defaultRateUnit: "dth" },
+  "Propane Furnace": { defaultEfficiency: 0.9, defaultRateUnit: "propane_gallon" },
   "Electric Resistance": { defaultEfficiency: 1, defaultRateUnit: "kwh" },
   "Air-Source Heat Pump": { defaultEfficiency: 2.8, defaultRateUnit: "kwh" },
   "Ground-Source Heat Pump": { defaultEfficiency: 3.5, defaultRateUnit: "kwh" },
@@ -69,6 +69,13 @@ export const ENERGY_UNITS = {
     description: "Gallons of No. 2 heating oil",
     toMMBtu: (value: number) => (value * BTU_PER_GALLON_OIL_NO2) / 1_000_000,
     fromMMBtu: (value: number) => (value * 1_000_000) / BTU_PER_GALLON_OIL_NO2,
+  },
+  propane_gallon: {
+    label: "Propane gal",
+    rateLabel: "$/gal propane",
+    description: "Gallons of propane",
+    toMMBtu: (value: number) => (value * BTU_PER_GALLON_PROPANE) / 1_000_000,
+    fromMMBtu: (value: number) => (value * 1_000_000) / BTU_PER_GALLON_PROPANE,
   },
 } as const;
 

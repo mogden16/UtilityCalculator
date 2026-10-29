@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { CalculationActions } from "@/components/calculation-actions";
+import { ResultSummary } from "@/components/result-summary";
 import { ToolPageShell } from "@/components/tool-page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,9 +48,26 @@ export function UnitConversionsTool() {
     });
   }, [category, fromUnit, inputValue, toUnit]);
 
+  const changeFromUnit = (nextUnit: string) => {
+    const numericValue = parseConversionInput(inputValue);
+    if (Number.isFinite(numericValue)) {
+      const preservedValue = convertMeasurement({ category, fromUnit, toUnit: nextUnit, value: numericValue });
+      setInputValue(String(preservedValue));
+    }
+    setFromUnit(nextUnit);
+  };
+
+  const reset = () => {
+    setCategory("energy");
+    const next = getDefaultUnitsForCategory("energy");
+    setFromUnit(next.fromUnit);
+    setToUnit(next.toUnit);
+    setInputValue("1");
+  };
+
   return (
     <ToolPageShell
-      eyebrow="Primary Tool"
+      eyebrow="Quick utility"
       title="Unit Conversions"
       description="Focused conversion workspace for energy, power, temperature, flow, and pressure."
     >
@@ -83,7 +102,7 @@ export function UnitConversionsTool() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="conversion-from-unit">From unit</Label>
-                <Select value={fromUnit} onValueChange={setFromUnit}>
+                <Select value={fromUnit} onValueChange={changeFromUnit}>
                   <SelectTrigger id="conversion-from-unit">
                     <SelectValue />
                   </SelectTrigger>
@@ -143,6 +162,13 @@ export function UnitConversionsTool() {
           </div>
         </CardContent>
       </Card>
+      <ResultSummary
+        label="Converted value"
+        value={conversion === undefined ? "—" : formatConversionResult(conversion)}
+        unit={unitEntries.find(([key]) => key === toUnit)?.[1].label}
+        detail={`${inputValue || "—"} ${unitEntries.find(([key]) => key === fromUnit)?.[1].label} equals the displayed result.`}
+        actions={<CalculationActions compact copyText={`${inputValue} ${unitEntries.find(([key]) => key === fromUnit)?.[1].label} = ${conversion === undefined ? "—" : formatConversionResult(conversion)} ${unitEntries.find(([key]) => key === toUnit)?.[1].label}`} onReset={reset} />}
+      />
     </ToolPageShell>
   );
 }

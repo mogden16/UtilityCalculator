@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { convertMeasurement } from "@/lib/conversions";
+import { convertMeasurement, formatConversionResult } from "@/lib/conversions";
 
 describe("convertMeasurement", () => {
   it("converts therms to BTU", () => {
@@ -37,5 +37,9 @@ describe("convertMeasurement", () => {
       74.7292418773,
       8,
     );
+  });
+
+  it("does not display a small non-zero conversion as zero", () => {
+    expect(formatConversionResult(0.00001)).toBe("0.00001");
   });
 });

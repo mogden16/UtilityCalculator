@@ -2,8 +2,8 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 
-import { SiteNav } from "@/components/site-nav";
-import ThemeToggle from "@/components/theme-toggle";
+import { AppHeader } from "@/components/app-header";
+import { MobileBottomNav } from "@/components/site-nav";
 import { ThemeScript } from "@/components/theme-script";
 
 const geistSans = Space_Grotesk({
@@ -45,29 +45,17 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-background text-foreground antialiased">
         <div className="flex min-h-screen flex-col">
-          <header className="safe-top sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur">
-            <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-3 py-3">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <div className="text-base font-semibold sm:text-lg">Utility Calculator</div>
-                  <p className="hidden text-xs text-muted-foreground sm:block">
-                    Engineering tools for thermal, CHP, and utility calculations.
-                  </p>
-                </div>
-                <ThemeToggle />
-              </div>
-              <SiteNav />
-            </div>
-          </header>
-          <main className="flex-1 p-3">
-            <div className="mx-auto w-full max-w-6xl">{children}</div>
+          <AppHeader />
+          <main className="flex-1 px-3 pb-20 pt-4 sm:px-6 sm:pt-6 lg:pb-8">
+            <div className="mx-auto w-full max-w-7xl">{children}</div>
           </main>
-          <footer className="border-t border-border/70 px-3 py-6">
-            <div className="mx-auto max-w-6xl text-sm text-muted-foreground">
-              Deterministic conversions are calculated directly. Load estimation remains a rule-of-thumb workflow and
-              should be verified before final design decisions.
+          <footer className="hidden border-t border-border/70 px-6 py-5 lg:block">
+            <div className="mx-auto flex max-w-7xl justify-between gap-6 text-xs text-muted-foreground">
+              <span>Preliminary engineering screening. Verify tariff, equipment, and site assumptions before investment.</span>
+              <a href="/unit-conversions" className="font-medium text-foreground hover:underline">Quick conversions</a>
             </div>
           </footer>
+          <MobileBottomNav />
         </div>
       </body>
     </html>

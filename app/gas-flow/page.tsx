@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { GasFlowTool } from "@/components/tools/gas-flow-tool";
 
 export const metadata: Metadata = {
-  title: "Gas Flow",
+  title: "Gas Flow & Demand",
   description: "Translate thermal demand into CFH, MCFH, therm per hour, and Dth per hour for gas planning.",
 };
 

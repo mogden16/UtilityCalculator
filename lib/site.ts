@@ -1,16 +1,16 @@
 export const TOOL_ROUTES = [
   {
     href: "/",
-    label: "Overview",
-    shortLabel: "Overview",
-    description: "Landing page for the engineering toolkit.",
+    label: "Toolkit",
+    shortLabel: "Home",
+    description: "Utility engineering and customer solutions toolkit.",
     icon: "calculator",
   },
   {
     href: "/load-converter",
-    label: "Load Converter",
-    shortLabel: "Converter",
-    description: "Convert between input fuel, delivered output, and common thermal demand units.",
+    label: "Gas Demand",
+    shortLabel: "Gas Demand",
+    description: "Convert connected load, useful heat, gas flow, and operating totals.",
     icon: "calculator",
   },
   {
@@ -22,14 +22,14 @@ export const TOOL_ROUTES = [
   },
   {
     href: "/chp",
-    label: "CHP Feasibility",
+    label: "Onsite Generation",
     shortLabel: "CHP",
     description: "Screen combined heat and power sizing and economics for onsite generation projects.",
     icon: "flame",
   },
   {
     href: "/emissions",
-    label: "Emissions",
+    label: "Grid & Emissions",
     shortLabel: "Emissions",
     description: "Review live PJM grid emissions, fuel mix, and compare delivered electricity against natural gas scenarios.",
     icon: "cloud",
@@ -54,5 +54,43 @@ export const TOOL_ROUTES = [
     shortLabel: "Conversions",
     description: "General engineering conversions for energy, power, temperature, flow, and pressure.",
     icon: "gauge",
+  },
+] as const;
+
+export const PRIMARY_WORKFLOWS = [
+  {
+    href: "/load-converter",
+    label: "Gas Demand & Conversions",
+    description: "Move between equipment load, useful output, CFH, MCFH, therms, and Dth.",
+    icon: "flame",
+    result: "Gas demand and annual use",
+  },
+  {
+    href: "/energy-cost-comparison",
+    label: "Customer Energy Comparison",
+    description: "Compare fuels and electric heating on the same delivered-heat basis.",
+    icon: "scale",
+    result: "Annual cost and payback",
+  },
+  {
+    href: "/chp",
+    label: "Onsite Generation Feasibility",
+    description: "Screen CHP size, useful heat recovery, operating savings, and capital payback.",
+    icon: "zap",
+    result: "CHP size and simple payback",
+  },
+  {
+    href: "/load-estimator",
+    label: "Facility Load Screening",
+    description: "Bracket preliminary heating and cooling loads from building area and condition.",
+    icon: "building",
+    result: "Heating MBH and cooling tons",
+  },
+  {
+    href: "/emissions",
+    label: "Emissions & Grid Analysis",
+    description: "Review PJM status and compare heating emissions using explicit assumptions.",
+    icon: "cloud",
+    result: "Equal-heat emissions comparison",
   },
 ] as const;

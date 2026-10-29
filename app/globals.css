@@ -44,14 +44,14 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --radius: 0.75rem;
+  --background: oklch(0.985 0.006 240);
+  --foreground: oklch(0.2 0.025 242);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: oklch(0.42 0.13 238);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -118,9 +118,23 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(circle at top right, oklch(0.92 0.04 210 / 35%), transparent 32rem);
+    min-width: 320px;
   }
+  button, a, summary, [role="combobox"] { touch-action: manipulation; }
+  input[type="number"] { font-variant-numeric: tabular-nums; }
 }
 
 .safe-top {
   padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media print {
+  header, footer, nav, .no-print { display: none !important; }
+  main { padding: 0 !important; }
+  body { background: white !important; }
 }

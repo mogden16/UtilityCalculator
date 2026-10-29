@@ -1,6 +1,8 @@
 # Utility Calculator
 
-Engineering calculators for thermal load conversion, CHP feasibility, utility cost comparison, gas flow translation, and general unit conversion.
+A mobile-first utility engineering and customer-solutions toolkit for gas demand, equal-useful-heat cost comparison, CHP screening, facility loads, emissions, and general unit conversion.
+
+The public application is task-oriented. Repository history, architecture, and validation details live here rather than on the homepage. The full route audit is in [`docs/ux-audit-and-route-plan.md`](docs/ux-audit-and-route-plan.md).
 
 ## Stack
 
@@ -13,12 +15,12 @@ Engineering calculators for thermal load conversion, CHP feasibility, utility co
 
 ## Routes
 
-- `/load-converter` converts between input fuel, delivered output, and common thermal demand units.
+- `/load-converter` is the primary gas-demand and load-conversion workflow.
 - `/energy-cost-comparison` normalizes unlike energy sources to delivered MMBtu.
 - `/chp` screens CHP sizing and economics for onsite generation projects.
 - `/emissions` reviews live PJM grid emissions, fuel mix, and electric-versus-gas comparisons.
 - `/load-estimator` provides a rule-of-thumb heating and cooling estimate with explicit heuristic language.
-- `/gas-flow` translates demand into CFH, MCFH, therm per hour, and Dth per hour.
+- `/gas-flow` retains the legacy URL and opens the same unified gas-demand workflow with gas-flow emphasis.
 - `/unit-conversions` handles general engineering conversions.
 
 ## Local development
@@ -56,6 +58,20 @@ The live PJM grid route expects `PJM_DATAMINER_API_KEY` to be configured in the 
 
 The function still accepts the older aliases `PJM_API_KEY` and `PJM_DATA_MINER_API_KEY` as fallback, but `PJM_DATAMINER_API_KEY` is now the canonical name.
 
-## Engineering note
+### PJM redistribution gate
+
+PJM Data Miner terms restrict public redistribution without applicable membership or redistribution authorization. The browser therefore does not request or display the PJM feed by default. Only after authorization is documented should the build-time flag below be enabled:
+
+```bash
+NEXT_PUBLIC_PJM_REDISTRIBUTION_AUTHORIZED=true
+```
+
+Without that flag, the emissions workflow accepts a user-supplied, documented grid-average factor. It does not infer marginal emissions from generation mix.
+
+## Engineering notes
 
 The load estimator is intentionally labeled as heuristic. Use it for early screening, then verify with project-specific calculations before final design decisions.
+
+CHP results are preliminary screening estimates. The model separately calculates CHP fuel, available and utilized recovered heat, avoided boiler fuel, residual boiler fuel, electric energy and demand savings, maintenance, standby charges, capital, explicit incentives, and simple payback. Incentives default to zero and are never assumed eligible automatically.
+
+Shared engineering defaults are centralized in `lib/assumptions.ts`. The UI keeps important defaults editable and stores only the gas HHV assumption in browser-local storage; customer usage and cost inputs are not persisted.

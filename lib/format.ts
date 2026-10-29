@@ -13,7 +13,7 @@ export function formatFixed(value: number, digits = 1): string {
 
 export function formatCurrency(value: number): string {
   return Number.isFinite(value)
-    ? `$${value.toLocaleString(undefined, {
+    ? `${value < 0 ? "-" : ""}$${Math.abs(value).toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })}`

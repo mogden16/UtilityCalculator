@@ -2,7 +2,10 @@
 
 import { useMemo, useState } from "react";
 
+import { CalculationActions } from "@/components/calculation-actions";
+import { ResultSummary } from "@/components/result-summary";
 import { ToolPageShell } from "@/components/tool-page-shell";
+import { useSharedGasHhv } from "@/components/use-shared-engineering-assumptions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +37,7 @@ function SourceCard({
 }) {
   const isPreset = LABEL_OPTIONS.includes(state.name as (typeof LABEL_OPTIONS)[number]);
   const selectValue = isPreset ? state.name : "Custom";
+  const isHeatPump = state.name.toLowerCase().includes("heat pump");
 
   return (
     <Card>
@@ -116,14 +120,16 @@ function SourceCard({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor={`${idPrefix}-efficiency`}>Delivered efficiency</Label>
+          <Label htmlFor={`${idPrefix}-efficiency`}>{isHeatPump ? "Coefficient of performance (COP)" : "Thermal efficiency"}</Label>
           <Input
             id={`${idPrefix}-efficiency`}
             value={state.efficiency}
             onChange={(event) => onChange({ ...state, efficiency: event.target.value })}
             placeholder="0.90"
           />
-          <p className="text-xs text-muted-foreground">Enter a decimal, COP, or percent such as 0.90, 3.20, or 90.</p>
+          <p className="text-xs text-muted-foreground">
+            {isHeatPump ? "COP is useful heat output divided by electric input (for example, 3.20)." : "Efficiency is useful heat divided by fuel input (for example, 0.90 or 90%)."}
+          </p>
         </div>
       </CardContent>
     </Card>
@@ -131,7 +137,7 @@ function SourceCard({
 }
 
 export function EnergyCostComparisonTool() {
-  const [hhv, setHhv] = useState(String(DEFAULT_HHV_MMBTU_PER_MCF));
+  const [hhv, setHhv] = useSharedGasHhv(String(DEFAULT_HHV_MMBTU_PER_MCF));
   const [usageValue, setUsageValue] = useState("10");
   const [usageUnit, setUsageUnit] = useState<EnergyUnit>("mcf");
   const [sourceA, setSourceA] = useState<RateSourceInput>({
@@ -146,6 +152,7 @@ export function EnergyCostComparisonTool() {
     rateUnit: "oil_gallon",
     efficiency: formatEfficiency(PRESET_SOURCE_METADATA["Fuel Oil Boiler"].defaultEfficiency ?? 0.87),
   });
+  const [capitalCostDifference, setCapitalCostDifference] = useState("0");
 
   const summaries = useMemo(
     () => computeEnergyComparison(sourceA, sourceB, usageValue, usageUnit, hhv),
@@ -158,11 +165,23 @@ export function EnergyCostComparisonTool() {
     () => buildComparisonNarrative(summaryA, summaryB, comparison),
     [comparison, summaryA, summaryB],
   );
+  const annualSavings = summaryA.totalCost - summaryB.totalCost;
+  const capitalCost = Math.max(0, Number(capitalCostDifference.replace(/[,$\s]/g, "")) || 0);
+  const payback = annualSavings > 0 && capitalCost > 0 ? capitalCost / annualSavings : Number.POSITIVE_INFINITY;
+  const reset = () => {
+    setHhv(String(DEFAULT_HHV_MMBTU_PER_MCF));
+    setUsageValue("10");
+    setUsageUnit("mcf");
+    setSourceA({ name: "Natural Gas Furnace", rate: "12.00", rateUnit: "mcf", efficiency: "0.90" });
+    setSourceB({ name: "Fuel Oil Boiler", rate: "4.00", rateUnit: "oil_gallon", efficiency: "0.87" });
+    setCapitalCostDifference("0");
+  };
+  const copyText = `${summaryA.name} vs ${summaryB.name}\nDelivered load: ${formatFixed(summaryA.deliveredMMBtu, 2)} MMBtu\n${summaryA.name}: ${formatCurrency(summaryA.totalCost)}\n${summaryB.name}: ${formatCurrency(summaryB.totalCost)}\nSavings with ${summaryB.name}: ${formatCurrency(annualSavings)}`;
 
   return (
     <ToolPageShell
-      eyebrow="Primary Tool"
-      title="Energy Cost Comparison"
+      eyebrow="Customer energy"
+      title="Customer Energy Comparison"
       description="Convert known fuel use into the amount and cost of another energy source needed to deliver the same useful heat."
     >
       <Card>
@@ -171,11 +190,11 @@ export function EnergyCostComparisonTool() {
             <Label htmlFor="energy-hhv">Gas HHV (MMBtu/MCF)</Label>
             <Input id="energy-hhv" value={hhv} onChange={(event) => setHhv(event.target.value)} />
             <p className="text-xs text-muted-foreground">
-              Adjust this if your gas tariff uses a different billing factor.
+              Adjust this if your gas tariff uses a different billing factor. This non-customer assumption is reused locally in compatible tools.
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="energy-usage">Known primary-source usage</Label>
+            <Label htmlFor="energy-usage">Annual primary-source usage</Label>
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <Input id="energy-usage" value={usageValue} onChange={(event) => setUsageValue(event.target.value)} />
               <Select value={usageUnit} onValueChange={(value) => setUsageUnit(value as EnergyUnit)}>
@@ -197,6 +216,14 @@ export function EnergyCostComparisonTool() {
           </div>
         </CardContent>
       </Card>
+
+      <ResultSummary
+        label={`Equivalent ${summaryB.name} use`}
+        value={formatFixed(summaryB.equivalentUsage, 2)}
+        unit={ENERGY_UNIT_ENTRIES.find(([key]) => key === summaryB.equivalentUsageUnit)?.[1].label}
+        detail={`${formatFixed(summaryA.deliveredMMBtu, 2)} MMBtu useful heat · ${summaryB.name} cost ${formatCurrency(summaryB.totalCost)} · ${annualSavings >= 0 ? "Savings" : "Added cost"} ${formatCurrency(Math.abs(annualSavings))}`}
+        actions={<CalculationActions compact copyText={copyText} onReset={reset} />}
+      />
 
       <div className="grid gap-4 xl:grid-cols-2">
         <SourceCard idPrefix="primary" title="Primary source" state={sourceA} onChange={setSourceA} />
@@ -224,6 +251,17 @@ export function EnergyCostComparisonTool() {
       </Card>
 
       <Card>
+        <CardContent className="grid gap-4 p-5 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="equipment-capital">Incremental equipment capital cost</Label>
+            <Input id="equipment-capital" inputMode="decimal" value={capitalCostDifference} onChange={(event) => setCapitalCostDifference(event.target.value)} />
+          </div>
+          <div className="rounded-xl bg-muted/40 p-4"><p className="text-xs uppercase tracking-wide text-muted-foreground">Annual savings</p><p className="mt-2 font-mono text-xl font-semibold">{formatCurrency(annualSavings)}</p></div>
+          <div className="rounded-xl bg-muted/40 p-4"><p className="text-xs uppercase tracking-wide text-muted-foreground">Simple payback</p><p className="mt-2 font-mono text-xl font-semibold">{Number.isFinite(payback) ? `${formatFixed(payback, 1)} years` : "—"}</p></div>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardContent className="space-y-4 p-6">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">Normalized cost table</h2>
@@ -232,7 +270,7 @@ export function EnergyCostComparisonTool() {
             </p>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[720px] border-collapse text-sm">
               <thead>
                 <tr className="bg-muted/50 text-left">
@@ -261,6 +299,19 @@ export function EnergyCostComparisonTool() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="grid gap-3 md:hidden">
+            {[summaryA, summaryB].map((row) => (
+              <div key={row.name} className="rounded-xl border bg-muted/20 p-4 text-sm">
+                <p className="font-semibold">{row.name}</p>
+                <dl className="mt-3 grid grid-cols-2 gap-2">
+                  <dt className="text-muted-foreground">Equivalent use</dt><dd className="text-right font-mono">{formatFixed(row.equivalentUsage, 2)} {ENERGY_UNIT_ENTRIES.find(([key]) => key === row.equivalentUsageUnit)?.[1].label}</dd>
+                  <dt className="text-muted-foreground">Total cost</dt><dd className="text-right font-mono">{formatCurrency(row.totalCost)}</dd>
+                  <dt className="text-muted-foreground">$/delivered MMBtu</dt><dd className="text-right font-mono">{formatCurrency(row.costPerDelivered)}</dd>
+                </dl>
+              </div>
+            ))}
           </div>
 
           <div className="rounded-2xl border border-border/70 bg-muted/30 p-4">

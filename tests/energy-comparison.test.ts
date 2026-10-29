@@ -47,4 +47,27 @@ describe("computeEnergySummary", () => {
     expect(result.comparison.equivalentUsage).toBeCloseTo(77.306, 3);
     expect(result.comparison.totalCost).toBeCloseTo(309.22, 2);
   });
+
+  it("treats heat-pump COP as output divided by electric input, not as percent efficiency", () => {
+    const result = computeEnergyComparison(
+      { name: "Natural Gas Furnace", rate: 12, rateUnit: "mcf", efficiency: 0.9 },
+      { name: "Air-Source Heat Pump", rate: 0.15, rateUnit: "kwh", efficiency: 3 },
+      100,
+      "mcf",
+      1.035,
+    );
+    expect(result.comparison.efficiency).toBe(3);
+    expect(result.comparison.inputMMBtu).toBeCloseTo(result.primary.deliveredMMBtu / 3, 6);
+  });
+
+  it("supports propane gallons on the equal-useful-heat basis", () => {
+    const result = computeEnergyComparison(
+      { name: "Natural Gas Furnace", rate: 12, rateUnit: "mcf", efficiency: 0.9 },
+      { name: "Propane Furnace", rate: 3, rateUnit: "propane_gallon", efficiency: 0.9 },
+      1,
+      "mcf",
+      1.035,
+    );
+    expect(result.comparison.equivalentUsage).toBeCloseTo(1.035 / 0.091452, 6);
+  });
 });

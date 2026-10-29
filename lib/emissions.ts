@@ -7,7 +7,8 @@ export type FuelKey =
   | "wind"
   | "solar"
   | "hydro"
-  | "biomass";
+  | "biomass"
+  | "unknown";
 
 export const EMISSION_FACTORS_LB_PER_MWH: Record<FuelKey, number> = {
   coal: 2250,
@@ -19,6 +20,7 @@ export const EMISSION_FACTORS_LB_PER_MWH: Record<FuelKey, number> = {
   solar: 0,
   hydro: 0,
   biomass: 0, // treat biogenic CO2 as net zero for now
+  unknown: Number.NaN,
 };
 
 export const DEFAULT_T_AND_D_LOSS_FRACTION = 0.05; // 5 percent
@@ -33,6 +35,7 @@ export const FUEL_DISPLAY_LABELS: Record<FuelKey, string> = {
   solar: "Solar",
   hydro: "Hydro",
   biomass: "Biomass",
+  unknown: "Unknown / unclassified",
 };
 
 const LB_PER_KG = 2.20462;
@@ -42,7 +45,7 @@ export const KWH_PER_MMBTU = 293.1;
 export const METHANE_KG_PER_MMBTU = 19.2; // approximate methane mass energy density per MMBtu
 
 export function mapPjmFuelToFuelKey(raw: string | undefined): FuelKey {
-  if (!raw) return "biomass";
+  if (!raw) return "unknown";
   const candidate = raw.trim().toLowerCase();
 
   if (candidate.includes("coal")) return "coal";
@@ -54,7 +57,7 @@ export function mapPjmFuelToFuelKey(raw: string | undefined): FuelKey {
   if (candidate.includes("bio")) return "biomass";
   if (candidate.includes("gas") || candidate.includes("ng")) return "ngcc";
 
-  return "biomass";
+  return "unknown";
 }
 
 export interface FuelMixRow {
@@ -78,18 +81,22 @@ export function computeFuelEmissionsRows(
   totalMw: number;
   totalGenerationLbPerMwh: number;
   totalDeliveredLbPerMwh: number;
+  unknownMw: number;
+  isComplete: boolean;
 } {
   const safeLoss = Math.min(Math.max(tAndDLossFraction, 0), 0.95);
   const totalMw = rows.reduce((sum, row) => (Number.isFinite(row.mw) ? sum + row.mw : sum), 0);
 
   if (totalMw <= 0) {
-    return { rows: [], totalMw: 0, totalGenerationLbPerMwh: 0, totalDeliveredLbPerMwh: 0 };
+    return { rows: [], totalMw: 0, totalGenerationLbPerMwh: 0, totalDeliveredLbPerMwh: 0, unknownMw: 0, isComplete: true };
   }
 
   const enrichedRows: FuelEmissionsRow[] = rows.map((row) => {
     const shareFraction = row.mw / totalMw;
-    const emissionFactorLbPerMwh = EMISSION_FACTORS_LB_PER_MWH[row.fuelKey] ?? 0;
-    const contributionLbPerMwh = shareFraction * emissionFactorLbPerMwh;
+    const emissionFactorLbPerMwh = EMISSION_FACTORS_LB_PER_MWH[row.fuelKey];
+    const contributionLbPerMwh = Number.isFinite(emissionFactorLbPerMwh)
+      ? shareFraction * emissionFactorLbPerMwh
+      : Number.NaN;
     return {
       ...row,
       shareFraction,
@@ -100,13 +107,32 @@ export function computeFuelEmissionsRows(
   });
 
   const totalGenerationLbPerMwh = enrichedRows.reduce(
-    (sum, row) => sum + row.contributionLbPerMwh,
+    (sum, row) => Number.isFinite(row.contributionLbPerMwh) ? sum + row.contributionLbPerMwh : sum,
     0,
   );
 
   const totalDeliveredLbPerMwh = totalGenerationLbPerMwh / (1 - safeLoss || 1);
 
-  return { rows: enrichedRows, totalMw, totalGenerationLbPerMwh, totalDeliveredLbPerMwh };
+  const unknownMw = enrichedRows.reduce((sum, row) => Number.isFinite(row.emissionFactorLbPerMwh) ? sum : sum + row.mw, 0);
+  return { rows: enrichedRows, totalMw, totalGenerationLbPerMwh, totalDeliveredLbPerMwh, unknownMw, isComplete: unknownMw === 0 };
+}
+
+export function compareHeatingEmissions(input: {
+  deliveredHeatMmbtu: number;
+  gasEfficiency: number;
+  heatPumpCop: number;
+  gridLbCo2ePerMwh: number;
+  upstreamGasLbCo2ePerMmbtu?: number;
+}) {
+  const deliveredHeatMmbtu = Math.max(0, input.deliveredHeatMmbtu);
+  const gasEfficiency = Math.max(0.01, input.gasEfficiency);
+  const heatPumpCop = Math.max(0.01, input.heatPumpCop);
+  const gasInputMmbtu = deliveredHeatMmbtu / gasEfficiency;
+  const directGasLb = gasInputMmbtu * DIRECT_CO2_LB_PER_MMBTU;
+  const upstreamGasLb = gasInputMmbtu * Math.max(0, input.upstreamGasLbCo2ePerMmbtu ?? 0);
+  const electricInputKwh = (deliveredHeatMmbtu * KWH_PER_MMBTU) / heatPumpCop;
+  const gridAverageLb = (electricInputKwh / 1_000) * Math.max(0, input.gridLbCo2ePerMwh);
+  return { deliveredHeatMmbtu, gasInputMmbtu, directGasLb, upstreamGasLb, totalGasLb: directGasLb + upstreamGasLb, electricInputKwh, gridAverageLb };
 }
 
 export type LeakScenarioKey = "low" | "medium" | "high";

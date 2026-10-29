@@ -139,10 +139,9 @@ export function convertMeasurement(input: {
 }
 
 export function formatConversionResult(value: number) {
-  return Number.isFinite(value)
-    ? value.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    : "";
+  if (!Number.isFinite(value)) return "";
+  const absolute = Math.abs(value);
+  return value.toLocaleString(undefined, absolute > 0 && absolute < 0.01
+    ? { minimumFractionDigits: 0, maximumFractionDigits: 8 }
+    : { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 }

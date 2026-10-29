@@ -4,6 +4,7 @@ import {
   DEFAULT_T_AND_D_LOSS_FRACTION,
   computeFuelEmissionsRows,
   computeGasEmissionsForScenario,
+  compareHeatingEmissions,
   mapPjmFuelToFuelKey,
 } from "@/lib/emissions";
 
@@ -12,6 +13,21 @@ describe("emissions helpers", () => {
     expect(mapPjmFuelToFuelKey("Natural Gas")).toBe("ngcc");
     expect(mapPjmFuelToFuelKey("NUCLEAR")).toBe("nuclear");
     expect(mapPjmFuelToFuelKey("Coal")).toBe("coal");
+    expect(mapPjmFuelToFuelKey("Other")).toBe("unknown");
+  });
+
+  it("does not silently assign zero emissions to an unknown fuel", () => {
+    const summary = computeFuelEmissionsRows([{ fuelKey: "unknown", label: "Other", mw: 25 }]);
+    expect(summary.isComplete).toBe(false);
+    expect(summary.unknownMw).toBe(25);
+    expect(summary.rows[0].emissionFactorLbPerMwh).toBeNaN();
+  });
+
+  it("compares heating options on equal delivered heat using efficiency and COP", () => {
+    const result = compareHeatingEmissions({ deliveredHeatMmbtu: 100, gasEfficiency: 0.9, heatPumpCop: 3, gridLbCo2ePerMwh: 800 });
+    expect(result.gasInputMmbtu).toBeCloseTo(111.111, 3);
+    expect(result.electricInputKwh).toBeCloseTo(9_770, 0);
+    expect(result.directGasLb).toBeGreaterThan(result.gridAverageLb);
   });
 
   it("computes weighted PJM emissions and delivered emissions", () => {

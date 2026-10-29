@@ -1,222 +1,74 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ArrowDown, ArrowRight, Flame, Info, Zap } from "lucide-react";
+import Link from "next/link";
+import { useMemo, useState, type ReactNode } from "react";
+import { ArrowRight, Flame, Gauge } from "lucide-react";
 
-import { MetricCard } from "@/components/metric-card";
+import { CalculationActions } from "@/components/calculation-actions";
+import { ResultSummary } from "@/components/result-summary";
 import { ToolPageShell } from "@/components/tool-page-shell";
+import { useSharedGasHhv } from "@/components/use-shared-engineering-assumptions";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { calculateConverter, CONVERTER_UNIT_OPTIONS, type ConverterUnit, type EnergyReference } from "@/lib/converter";
-import { formatCurrency, formatFixed, formatWhole } from "@/lib/format";
+import { formatFixed, formatWhole } from "@/lib/format";
 
-const CATEGORY_STYLES = {
-  Residential: "text-emerald-600",
-  Commercial: "text-amber-600",
-  Industrial: "text-rose-600",
-} as const;
+const DEFAULTS = { value: "250000", unit: "BTU/hr" as ConverterUnit, reference: "input" as EnergyReference, efficiency: "90", hhv: "1.035", hours: "400" };
 
-export function ConverterTool() {
-  const [value, setValue] = useState("9000000");
-  const [unit, setUnit] = useState<ConverterUnit>("BTU/hr");
-  const [energyReference, setEnergyReference] = useState<EnergyReference>("output");
-  const [efficiencyPercent, setEfficiencyPercent] = useState("90");
-  const [hhv, setHhv] = useState("1.035");
-  const [hours, setHours] = useState("500");
-
-  const result = useMemo(
-    () =>
-      calculateConverter({
-        value,
-        unit,
-        energyReference,
-        efficiencyPercent,
-        hhv,
-        hours,
-      }),
-    [energyReference, efficiencyPercent, hhv, hours, unit, value],
-  );
+export function ConverterTool({ view = "demand" }: { view?: "demand" | "flow" }) {
+  const [value, setValue] = useState(DEFAULTS.value);
+  const [unit, setUnit] = useState<ConverterUnit>(DEFAULTS.unit);
+  const [energyReference, setEnergyReference] = useState<EnergyReference>(DEFAULTS.reference);
+  const [efficiencyPercent, setEfficiencyPercent] = useState(DEFAULTS.efficiency);
+  const [hhv, setHhv] = useSharedGasHhv(DEFAULTS.hhv);
+  const [hours, setHours] = useState(DEFAULTS.hours);
+  const result = useMemo(() => calculateConverter({ value, unit, energyReference, efficiencyPercent, hhv, hours }), [energyReference, efficiencyPercent, hhv, hours, unit, value]);
+  const valid = Number(value.replace(/,/g, "")) > 0 && Number(efficiencyPercent) > 0 && Number(efficiencyPercent) <= 100 && Number(hhv) > 0;
+  const reset = () => { setValue(DEFAULTS.value); setUnit(DEFAULTS.unit); setEnergyReference(DEFAULTS.reference); setEfficiencyPercent(DEFAULTS.efficiency); setHhv(DEFAULTS.hhv); setHours(DEFAULTS.hours); };
+  const copyText = `UtilityCalc gas demand\nInput: ${formatWhole(result.inputBtuh)} BTU/hr\nDelivered output: ${formatWhole(result.outputBtuh)} BTU/hr\nGas flow: ${formatWhole(result.cfh)} CFH (${formatFixed(result.mcfh, 3)} MCFH)\nUse: ${formatFixed(result.totalDth, 2)} Dth over ${formatWhole(result.hours)} hours`;
 
   return (
-    <TooltipProvider>
-      <ToolPageShell
-        eyebrow="Primary Tool"
-        title="Load Converter"
-        description="Translate between fuel input, delivered output, and common thermal demand units. Totals update from the operating-hour assumption so the page can support quick annualized estimates."
-      >
-        <div className="flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground sm:flex-row">
-          <div className="flex items-center gap-2 text-foreground">
-            <Flame className="h-4 w-4" />
-            <span>Input fuel</span>
-          </div>
-          <ArrowDown className="h-4 w-4 sm:hidden" />
-          <ArrowRight className="hidden h-4 w-4 sm:block" />
-          <div className="rounded-full border border-border/70 bg-muted/40 px-3 py-1 font-medium text-foreground">
-            Efficiency {formatWhole(result.efficiencyPercent)}%
-          </div>
-          <ArrowDown className="h-4 w-4 sm:hidden" />
-          <ArrowRight className="hidden h-4 w-4 sm:block" />
-          <div className="flex items-center gap-2 text-foreground">
-            <Zap className="h-4 w-4" />
-            <span>Delivered output</span>
-          </div>
-        </div>
+    <ToolPageShell eyebrow="Gas demand" title={view === "flow" ? "Gas Flow & Demand" : "Gas Demand & Conversions"} description="Enter either equipment input or useful output. Gas demand, delivered load, and operating totals update together.">
+      <div className="flex gap-2" aria-label="Gas demand workflow views">
+        <Link href="/load-converter" prefetch={false} className={`inline-flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium ${view === "demand" ? "bg-primary text-primary-foreground" : "bg-card"}`}>Load &amp; energy</Link>
+        <Link href="/gas-flow" prefetch={false} className={`inline-flex min-h-11 items-center rounded-lg border px-4 text-sm font-medium ${view === "flow" ? "bg-primary text-primary-foreground" : "bg-card"}`}>Gas flow</Link>
+      </div>
 
-        <Card>
-          <CardContent className="grid gap-4 p-6 sm:grid-cols-2 xl:grid-cols-5">
-            <div className="space-y-2">
-              <Label htmlFor="converter-value">Value</Label>
-              <Input id="converter-value" value={value} onChange={(event) => setValue(event.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="converter-unit">Unit</Label>
-              <Select value={unit} onValueChange={(next) => setUnit(next as ConverterUnit)}>
-                <SelectTrigger id="converter-unit">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONVERTER_UNIT_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="converter-reference">Reference</Label>
-              <Select value={energyReference} onValueChange={(next) => setEnergyReference(next as EnergyReference)}>
-                <SelectTrigger id="converter-reference">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="input">Input fuel</SelectItem>
-                  <SelectItem value="output">Delivered output</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="converter-efficiency">Efficiency (%)</Label>
-              <Input
-                id="converter-efficiency"
-                value={efficiencyPercent}
-                onChange={(event) => setEfficiencyPercent(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Application type</Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="text-muted-foreground">
-                      <Info className="h-4 w-4" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs text-xs leading-6">
-                    Residential under 300,000 BTU/hr, commercial between 300,000 and 3,000,000 BTU/hr, industrial above
-                    3,000,000 BTU/hr.
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <div
-                className={`rounded-xl border border-border/70 px-4 py-3 text-sm font-semibold ${CATEGORY_STYLES[result.category]}`}
-              >
-                {result.category}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <Card><CardContent className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-5">
+        <div className="space-y-1.5"><Label htmlFor="converter-value">Demand value</Label><Input id="converter-value" inputMode="decimal" value={value} onChange={(event) => setValue(event.target.value)} aria-invalid={!valid} /></div>
+        <div className="space-y-1.5"><Label htmlFor="converter-unit">Unit</Label><Select value={unit} onValueChange={(next) => setUnit(next as ConverterUnit)}><SelectTrigger id="converter-unit"><SelectValue /></SelectTrigger><SelectContent>{CONVERTER_UNIT_OPTIONS.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent></Select></div>
+        <div className="space-y-1.5"><Label htmlFor="converter-reference">Value represents</Label><Select value={energyReference} onValueChange={(next) => setEnergyReference(next as EnergyReference)}><SelectTrigger id="converter-reference"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="input">Equipment fuel input</SelectItem><SelectItem value="output">Useful delivered output</SelectItem></SelectContent></Select></div>
+        <div className="space-y-1.5"><Label htmlFor="converter-efficiency">Thermal efficiency (%)</Label><Input id="converter-efficiency" inputMode="decimal" value={efficiencyPercent} onChange={(event) => setEfficiencyPercent(event.target.value)} aria-invalid={!valid} /></div>
+        <div className="flex items-end rounded-xl border bg-muted/25 p-3 text-sm"><div><span className="text-xs text-muted-foreground">Application band</span><p className="font-semibold">{result.category}</p></div></div>
+      </CardContent></Card>
 
-        <Card>
-          <CardContent className="p-0">
-            <Accordion type="single" collapsible>
-              <AccordionItem value="advanced" className="border-0">
-                <AccordionTrigger className="px-6">Advanced assumptions</AccordionTrigger>
-                <AccordionContent className="grid gap-4 px-6 pb-6 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="converter-hhv">Gas HHV (MMBtu/MCF)</Label>
-                    <Input id="converter-hhv" value={hhv} onChange={(event) => setHhv(event.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="converter-hours">Hours of operation</Label>
-                    <Input id="converter-hours" value={hours} onChange={(event) => setHours(event.target.value)} />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
+      {!valid ? <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">Enter a positive demand and gas heating value; efficiency must be greater than 0% and no more than 100%.</p> : null}
 
-        <section className="grid gap-4 lg:grid-cols-2">
-          <Card>
-            <CardContent className="space-y-4 p-6">
-              <h2 className="text-lg font-semibold">Input demand</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <MetricCard label="BTU/hr" value={formatWhole(result.inputBtuh)} />
-                <MetricCard label="MBtu/hr" value={formatWhole(result.inputMbtuPerHour)} />
-                <MetricCard label="CFH" value={formatWhole(result.cfh)} />
-                <MetricCard label="Therm/hr" value={formatFixed(result.thermsPerHour, 2)} />
-                <MetricCard label="Dth/hr" value={formatFixed(result.dthPerHour, 3)} />
-                <MetricCard label="MCFH" value={formatFixed(result.mcfh, 3)} />
-              </div>
-            </CardContent>
-          </Card>
+      <ResultSummary label="Required gas flow" value={valid ? formatWhole(result.cfh) : "—"} unit="CFH" detail={`${formatFixed(result.mcfh, 3)} MCFH · ${formatFixed(result.dthPerHour, 3)} Dth/h · ${formatWhole(result.inputBtuh)} BTU/h input`} actions={<CalculationActions compact copyText={copyText} onReset={reset} />} />
 
-          <Card>
-            <CardContent className="space-y-4 p-6">
-              <h2 className="text-lg font-semibold">Delivered output</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <MetricCard label="BTU/hr" value={formatWhole(result.outputBtuh)} />
-                <MetricCard label="kW" value={formatFixed(result.kw, 1)} />
-                <MetricCard label="Tons" value={formatFixed(result.tons, 2)} />
-                <MetricCard label="HP" value={formatFixed(result.hp, 1)} />
-                <MetricCard label="Steam MLB/hr" value={formatFixed(result.mlbPerHour, 3)} />
-                <MetricCard
-                  label="Fuel to output ratio"
-                  value={formatFixed(result.inputBtuh / Math.max(result.outputBtuh, 1), 2)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Metric icon={<Flame />} label="Fuel input" value={`${formatWhole(result.inputBtuh)} BTU/h`} />
+        <Metric icon={<ArrowRight />} label="Useful output" value={`${formatWhole(result.outputBtuh)} BTU/h`} />
+        <Metric icon={<Gauge />} label="Therms per hour" value={formatFixed(result.thermsPerHour, 2)} />
+        <Metric icon={<Gauge />} label="Dth over modeled hours" value={formatFixed(result.totalDth, 2)} />
+      </section>
 
-        <section className="grid gap-4 lg:grid-cols-2">
-          <Card>
-            <CardContent className="space-y-4 p-6">
-              <h2 className="text-lg font-semibold">Fuel totals over time</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <MetricCard label="BTU" value={formatWhole(result.totalInputBtus)} />
-                <MetricCard label="MBtu" value={formatWhole(result.totalInputMbtu)} />
-                <MetricCard label="MCF" value={formatFixed(result.totalMcf, 2)} />
-                <MetricCard label="Therms" value={formatFixed(result.totalTherms, 1)} />
-                <MetricCard label="Dth" value={formatFixed(result.totalDth, 2)} />
-                <MetricCard label="Hours modeled" value={formatFixed(result.hours, 0)} />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="space-y-4 p-6">
-              <h2 className="text-lg font-semibold">Delivered totals over time</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <MetricCard label="BTU" value={formatWhole(result.totalOutputBtus)} />
-                <MetricCard label="kWh" value={formatWhole(result.totalKwh)} />
-                <MetricCard label="Ton-hours" value={formatFixed(result.totalTonHours, 1)} />
-                <MetricCard label="Steam MLB" value={formatFixed(result.totalMlb, 2)} />
-                <MetricCard
-                  label="Estimated fuel cost"
-                  value={formatCurrency(0)}
-                  detail="Cost inputs are handled on the energy comparison route."
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-      </ToolPageShell>
-    </TooltipProvider>
+      <Card><CardContent className="p-0"><Accordion type="multiple">
+        <AccordionItem value="assumptions"><AccordionTrigger className="px-5">Operating and gas assumptions</AccordionTrigger><AccordionContent className="grid gap-4 px-5 pb-5 sm:grid-cols-2">
+          <div className="space-y-1.5"><Label htmlFor="converter-hhv">Gas HHV (MMBtu/MCF)</Label><Input id="converter-hhv" inputMode="decimal" value={hhv} onChange={(event) => setHhv(event.target.value)} /><p className="text-xs text-muted-foreground">Reused locally in compatible calculators.</p></div>
+          <div className="space-y-1.5"><Label htmlFor="converter-hours">Modeled operating hours</Label><Input id="converter-hours" inputMode="numeric" value={hours} onChange={(event) => setHours(event.target.value)} /></div>
+        </AccordionContent></AccordionItem>
+        <AccordionItem value="detail"><AccordionTrigger className="px-5">Detailed conversions</AccordionTrigger><AccordionContent className="grid gap-3 px-5 pb-5 sm:grid-cols-2 lg:grid-cols-4">
+          <Line label="Input MBH" value={formatWhole(result.inputMbtuPerHour)} /><Line label="Output kW thermal" value={formatFixed(result.kw, 1)} /><Line label="Cooling tons" value={formatFixed(result.tons, 2)} /><Line label="Steam MLB/h" value={formatFixed(result.mlbPerHour, 3)} /><Line label="Total MCF" value={formatFixed(result.totalMcf, 2)} /><Line label="Total therms" value={formatFixed(result.totalTherms, 1)} /><Line label="Total input MMBtu" value={formatFixed(result.totalInputBtus / 1_000_000, 2)} /><Line label="Total useful MMBtu" value={formatFixed(result.totalOutputBtus / 1_000_000, 2)} />
+        </AccordionContent></AccordionItem>
+        <AccordionItem value="method"><AccordionTrigger className="px-5">How this is calculated</AccordionTrigger><AccordionContent className="space-y-2 px-5 pb-5 text-sm leading-6 text-muted-foreground"><p>Useful output equals fuel input multiplied by thermal efficiency. When useful output is entered, required fuel input is useful output divided by efficiency.</p><p>Gas flow divides input BTU/h by the editable higher heating value. The default 1.035 MMBtu/MCF is a screening value; use the applicable billing factor when known.</p><p>This result is connected load only and does not size service pipe, regulators, pressure drop, or diversity.</p></AccordionContent></AccordionItem>
+      </Accordion></CardContent></Card>
+    </ToolPageShell>
   );
 }
+
+function Metric({ icon, label, value }: { icon: ReactNode; label: string; value: string }) { return <div className="rounded-xl border bg-card p-4"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground"><span className="text-primary [&_svg]:h-4 [&_svg]:w-4">{icon}</span>{label}</div><p className="mt-2 font-mono text-lg font-semibold">{value}</p></div>; }
+function Line({ label, value }: { label: string; value: string }) { return <div className="flex justify-between gap-3 border-b pb-2 text-sm"><span className="text-muted-foreground">{label}</span><span className="font-mono font-medium">{value}</span></div>; }

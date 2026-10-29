@@ -2,45 +2,68 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Calculator, ChartNoAxesCombined, Factory, Flame, Home } from "lucide-react";
 
 import { TOOL_ROUTES } from "@/lib/site";
 
+const MOBILE_ROUTES = [
+  { href: "/", label: "Home", icon: Home },
+  { href: "/load-converter", label: "Gas", icon: Flame },
+  { href: "/energy-cost-comparison", label: "Compare", icon: ChartNoAxesCombined },
+  { href: "/chp", label: "CHP", icon: Factory },
+  { href: "/unit-conversions", label: "Convert", icon: Calculator },
+] as const;
+
 export function SiteNav() {
   const pathname = usePathname();
-  const activeTool = TOOL_ROUTES.find((tool) => tool.href === pathname) ?? TOOL_ROUTES[0];
-
-  const links = TOOL_ROUTES.map((tool) => {
-    const isActive = pathname === tool.href;
-    return (
-      <Link
-        key={tool.href}
-        href={tool.href}
-        prefetch={false}
-        aria-current={isActive ? "page" : undefined}
-        className={[
-          "rounded-full border px-3 py-1.5 text-sm transition",
-          isActive
-            ? "border-slate-900 bg-slate-900 text-slate-50 dark:border-slate-100 dark:bg-slate-100 dark:text-slate-950"
-            : "border-border bg-background text-foreground hover:border-slate-400 hover:bg-muted/60",
-        ].join(" ")}
-      >
-        {tool.shortLabel}
-      </Link>
-    );
-  });
-
   return (
-    <nav aria-label="Calculator tools">
-      <div className="hidden flex-wrap gap-2 sm:flex">{links}</div>
-      <details className="group sm:hidden">
-        <summary className="flex cursor-pointer list-none items-center justify-between rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium [&::-webkit-details-marker]:hidden">
-          <span>{activeTool.shortLabel}</span>
-          <span aria-hidden="true" className="text-muted-foreground transition group-open:rotate-180">⌄</span>
-        </summary>
-        <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl border border-border bg-background p-2 shadow-lg">
-          {links}
-        </div>
-      </details>
+    <nav aria-label="Calculator tools" className="hidden items-center gap-1 lg:flex">
+      {TOOL_ROUTES.map((tool) => {
+        const active = pathname === tool.href;
+        return (
+          <Link
+            key={tool.href}
+            href={tool.href}
+            prefetch={false}
+            aria-current={active ? "page" : undefined}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+              active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            {tool.shortLabel}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function MobileBottomNav() {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+  if (isHome) return null;
+  return (
+    <nav
+      aria-label="Primary mobile navigation"
+      className="safe-bottom fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-border/80 bg-background/95 px-1 backdrop-blur lg:hidden"
+    >
+      {MOBILE_ROUTES.map(({ href, label, icon: Icon }) => {
+        const active = pathname === href || (href === "/load-converter" && pathname === "/gas-flow");
+        return (
+          <Link
+            key={href}
+            href={href}
+            prefetch={false}
+            aria-current={active ? "page" : undefined}
+            className={`flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium ${
+              active ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <Icon className="h-5 w-5" aria-hidden="true" />
+            <span>{label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }

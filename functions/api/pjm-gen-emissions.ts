@@ -1,7 +1,7 @@
 interface FunctionEnv {
+  PJM_DATAMINER_API_KEY?: string;
   PJM_API_KEY?: string;
   PJM_DATA_MINER_API_KEY?: string;
-  PJM_DATAMINER_API_KEY?: string;
 }
 
 type PjmRecord = {
@@ -63,7 +63,10 @@ function prettyFuelLabel(fuelKey: string) {
 }
 
 function getApiKey(env: FunctionEnv) {
-  return env.PJM_API_KEY ?? env.PJM_DATA_MINER_API_KEY ?? env.PJM_DATAMINER_API_KEY ?? null;
+  const raw = env.PJM_DATAMINER_API_KEY ?? env.PJM_API_KEY ?? env.PJM_DATA_MINER_API_KEY ?? null;
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 function getUtcTimestamp(record: PjmRecord) {
@@ -88,7 +91,7 @@ export async function onRequestGet(context: FunctionContext) {
       return json(
         {
           error:
-            "Missing PJM API key on the server. Configure PJM_API_KEY, PJM_DATA_MINER_API_KEY, or PJM_DATAMINER_API_KEY in Cloudflare Pages.",
+            "Missing PJM API key on the server. Configure PJM_DATAMINER_API_KEY in Cloudflare Pages.",
         },
         500,
       );
@@ -102,7 +105,11 @@ export async function onRequestGet(context: FunctionContext) {
       rowCount: "200",
     });
 
-    const response = await fetch(`${PJM_GEN_BY_FUEL_URL}?${params.toString()}`, {
+    const authParams = new URLSearchParams(params);
+    // PJM API gateway supports subscription key in header; keep query fallback for compatibility.
+    authParams.set("subscription-key", apiKey);
+
+    const response = await fetch(`${PJM_GEN_BY_FUEL_URL}?${authParams.toString()}`, {
       headers: {
         Accept: "application/json",
         "Ocp-Apim-Subscription-Key": apiKey,
@@ -111,7 +118,15 @@ export async function onRequestGet(context: FunctionContext) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      return json({ error: errorText || `PJM request failed with status ${response.status}` }, response.status);
+      const normalized = errorText?.trim();
+      return json(
+        {
+          error:
+            normalized ||
+            `PJM request failed with status ${response.status}. Verify that PJM_DATAMINER_API_KEY is active and authorized for /api/v1/gen_by_fuel.`,
+        },
+        response.status,
+      );
     }
 
     const payload = (await response.json()) as {
