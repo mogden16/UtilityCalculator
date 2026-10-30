@@ -7,7 +7,6 @@ const routes = [
   ["/chp", "CHP Feasibility"],
   ["/emissions", "Emissions & Grid Analysis"],
   ["/load-estimator", "Facility Load Screening"],
-  ["/gas-flow", "Gas Flow & Demand"],
   ["/unit-conversions", "Unit Conversions"],
 ] as const;
 
@@ -31,7 +30,7 @@ test("core calculation baselines remain correct", async ({ page }) => {
   await page.getByRole("button", { name: "Compare building-condition scenarios" }).click();
   await expect(page.getByText("Tight / New", { exact: true })).toBeVisible();
 
-  await page.goto("/gas-flow");
+  await page.goto("/load-converter");
   await expect(page.getByText("Required gas flow").locator("..")).toContainText("242");
 
   await page.goto("/gas-equipment-sizing");
@@ -81,7 +80,7 @@ test("route links do not prefetch unrelated calculator payloads", async ({ page 
   const prefetchedRoutes: string[] = [];
   page.on("request", (request) => {
     const url = request.url();
-    if (url.includes("_rsc") || /\/(?:chp|emissions|gas-flow|load-estimator|unit-conversions|energy-cost-comparison)\.txt/.test(url)) {
+    if (url.includes("_rsc") || /\/(?:chp|emissions|load-estimator|unit-conversions|energy-cost-comparison)\.txt/.test(url)) {
       prefetchedRoutes.push(url);
     }
   });
@@ -135,25 +134,46 @@ test("homepage search finds calculators by calculation term", async ({ page }) =
   await page.getByLabel("Find a calculator or calculation").fill("COP");
   await expect(page.getByRole("heading", { name: "Search results" })).toBeVisible();
   await expect(page.locator("main").getByRole("link", { name: /Energy Savings/ })).toBeVisible();
-  await expect(page.locator("main").getByRole("link", { name: /Gas Demand/ })).toHaveCount(0);
+  await expect(page.locator("main").getByRole("link", { name: /Load Converter/ })).toHaveCount(0);
 });
 
 test("homepage follows the shared light and dark color scheme", async ({ page }) => {
   await page.goto("/");
-  const gasDemandCard = page.locator("main").getByRole("link", { name: /Gas Demand/ });
-  const lightCardColor = await gasDemandCard.evaluate((element) => getComputedStyle(element).backgroundColor);
+  const loadConverterCard = page.locator("main").getByRole("link", { name: /Load Converter/ }).first();
+  const lightCardColor = await loadConverterCard.evaluate((element) => getComputedStyle(element).backgroundColor);
   expect(lightCardColor).not.toBe("rgb(0, 0, 0)");
 
   await page.getByRole("button", { name: "Toggle theme" }).click();
   await expect(page.locator("html")).toHaveClass(/dark/);
-  const darkCardColor = await gasDemandCard.evaluate((element) => getComputedStyle(element).backgroundColor);
+  const darkCardColor = await loadConverterCard.evaluate((element) => getComputedStyle(element).backgroundColor);
   expect(darkCardColor).not.toBe(lightCardColor);
 });
 
-test("gas demand routes do not show the retired workflow switcher", async ({ page }) => {
-  for (const path of ["/load-converter", "/gas-flow"]) {
-    await page.goto(path);
-    await expect(page.getByRole("navigation", { name: "Gas demand workflow views" })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Load & energy", exact: true })).toHaveCount(0);
-  }
+test("homepage promotes exactly the four requested primary tools", async ({ page }) => {
+  await page.goto("/");
+  const primarySection = page.getByRole("heading", { name: "What do you want to calculate?" }).locator("..");
+  const primaryHrefs = await primarySection.locator("a").evaluateAll((links) => links.map((link) => link.getAttribute("href")?.replace(/\/$/, "")));
+  expect(primaryHrefs).toEqual(["/load-converter", "/gas-equipment-sizing", "/energy-cost-comparison", "/unit-conversions"]);
+
+  const moreSection = page.getByRole("heading", { name: "More engineering tools" }).locator("..");
+  const moreHrefs = await moreSection.locator("a").evaluateAll((links) => links.map((link) => link.getAttribute("href")?.replace(/\/$/, "")));
+  expect(moreHrefs).toEqual(["/chp", "/emissions", "/load-estimator"]);
+  await expect(page.locator('main a[href="/gas-flow"]')).toHaveCount(0);
+});
+
+test("top navigation uses Load Converter in position two and omits Gas Flow", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.goto("/load-converter");
+  const desktopNav = page.getByRole("navigation", { name: "Calculator tools" });
+  const navLinks = desktopNav.getByRole("link");
+  await expect(navLinks.nth(1)).toHaveText("Load Converter");
+  await expect(desktopNav.getByRole("link", { name: "Gas Flow", exact: true })).toHaveCount(0);
+  await context.close();
+});
+
+test("legacy gas-flow URL renders the unified load converter", async ({ page }) => {
+  await page.goto("/gas-flow");
+  await expect(page.getByRole("heading", { name: "Gas Demand & Conversions", exact: true })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Gas demand workflow views" })).toHaveCount(0);
 });

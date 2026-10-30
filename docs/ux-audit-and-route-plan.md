@@ -22,7 +22,7 @@
 
 - `/`: five one-action workflow shortcuts; developer status content moved to README.
 - `/load-converter`: unified gas-demand workflow, live CFH result, validation, reusable HHV, copy/reset/print, collapsed detail.
-- `/gas-flow`: same unified workflow with gas-flow emphasis; URL retained.
+- `/gas-flow`: backward-compatible alias of `/load-converter`; URL retained but omitted from navigation.
 - `/energy-cost-comparison`: equal-useful-heat basis retained; MCF, Dth, therm, oil gallon, propane gallon, and kWh; efficiency/COP labels; capital and payback.
 - `/chp`: typed domain model and tests; useful heat utilization, avoided/residual boiler fuel, incremental gas, maintenance, demand, standby, capital, explicit incentives, and screening warning.
 - `/emissions`: unknown fuel is not zero; direct/upstream/grid-average separated; equal-delivered-heat comparison; COP and efficiency; stale/unavailable/licensing states; no marginal claim.

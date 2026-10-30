@@ -17,7 +17,7 @@ import { formatFixed, formatWhole } from "@/lib/format";
 
 const DEFAULTS = { value: "250000", unit: "BTU/hr" as ConverterUnit, reference: "input" as EnergyReference, efficiency: "90", hhv: "1.035", hours: "400" };
 
-export function ConverterTool({ view = "demand" }: { view?: "demand" | "flow" }) {
+export function ConverterTool() {
   const [value, setValue] = useState(DEFAULTS.value);
   const [unit, setUnit] = useState<ConverterUnit>(DEFAULTS.unit);
   const [energyReference, setEnergyReference] = useState<EnergyReference>(DEFAULTS.reference);
@@ -30,7 +30,7 @@ export function ConverterTool({ view = "demand" }: { view?: "demand" | "flow" })
   const copyText = `UtilityCalc gas demand\nInput: ${formatWhole(result.inputBtuh)} BTU/hr\nDelivered output: ${formatWhole(result.outputBtuh)} BTU/hr\nGas flow: ${formatWhole(result.cfh)} CFH (${formatFixed(result.mcfh, 3)} MCFH)\nUse: ${formatFixed(result.totalDth, 2)} Dth over ${formatWhole(result.hours)} hours`;
 
   return (
-    <ToolPageShell eyebrow="Gas demand" title={view === "flow" ? "Gas Flow & Demand" : "Gas Demand & Conversions"} description="Enter either equipment input or useful output. Gas demand, delivered load, and operating totals update together.">
+    <ToolPageShell eyebrow="Gas demand" title="Gas Demand & Conversions" description="Enter either equipment input or useful output. Gas demand, delivered load, and operating totals update together.">
       <Card><CardContent className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-5">
         <div className="space-y-1.5"><Label htmlFor="converter-value">Demand value</Label><Input id="converter-value" inputMode="decimal" value={value} onChange={(event) => setValue(event.target.value)} aria-invalid={!valid} /></div>
         <div className="space-y-1.5"><Label htmlFor="converter-unit">Unit</Label><Select value={unit} onValueChange={(next) => setUnit(next as ConverterUnit)}><SelectTrigger id="converter-unit"><SelectValue /></SelectTrigger><SelectContent>{CONVERTER_UNIT_OPTIONS.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent></Select></div>

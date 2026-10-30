@@ -8,7 +8,6 @@ import {
   Building2,
   CircleDollarSign,
   Flame,
-  Gauge,
   Home,
   LayoutGrid,
   Leaf,
@@ -26,14 +25,13 @@ const TOOLS: Array<{
   icon: LucideIcon;
   primary?: boolean;
 }> = [
-  { href: "/load-converter", name: "Gas Demand", description: "BTU, MCF, CFH", keywords: "load converter mbh therm dth flow", icon: Flame, primary: true },
+  { href: "/load-converter", name: "Load Converter", description: "BTU, MCF, CFH", keywords: "gas demand mbh therm dth flow", icon: Flame, primary: true },
+  { href: "/gas-equipment-sizing", name: "Gas Equipment Sizing", description: "Service, meter, regulator", keywords: "pipe service capacity diaphragm rotary turbine regulator threaded welded", icon: Settings2, primary: true },
   { href: "/energy-cost-comparison", name: "Energy Savings", description: "Compare fuel costs", keywords: "cost payback electric oil propane heat pump cop", icon: CircleDollarSign, primary: true },
-  { href: "/chp", name: "Onsite Power", description: "CHP and generation", keywords: "cogeneration engine turbine payback", icon: Zap, primary: true },
-  { href: "/emissions", name: "Emissions", description: "Carbon comparison", keywords: "co2 grid pjm gas heat pump", icon: Leaf, primary: true },
+  { href: "/unit-conversions", name: "Conversions", description: "Energy, power and pressure", keywords: "unit temperature flow btu kwh mmbtu", icon: ArrowLeftRight, primary: true },
+  { href: "/chp", name: "Onsite Power", description: "CHP and generation", keywords: "cogeneration engine turbine payback", icon: Zap },
+  { href: "/emissions", name: "Emissions", description: "Carbon comparison", keywords: "co2 grid pjm gas heat pump", icon: Leaf },
   { href: "/load-estimator", name: "Facility Load", description: "Heating and cooling screen", keywords: "square feet tons mbh building", icon: Building2 },
-  { href: "/gas-flow", name: "Gas Flow", description: "CFH, MCFH, therms", keywords: "demand natural gas", icon: Gauge },
-  { href: "/gas-equipment-sizing", name: "Gas Equipment Sizing", description: "Service, meter, regulator", keywords: "pipe service capacity diaphragm rotary turbine regulator threaded welded", icon: Settings2 },
-  { href: "/unit-conversions", name: "Unit Conversions", description: "Energy, power and pressure", keywords: "temperature flow btu kwh mmbtu", icon: ArrowLeftRight },
 ];
 
 export function HomeDashboard() {

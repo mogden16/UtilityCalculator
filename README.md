@@ -21,7 +21,7 @@ The public application is task-oriented. Repository history, architecture, and v
 - `/chp` screens CHP sizing and economics for onsite generation projects.
 - `/emissions` reviews live PJM grid emissions, fuel mix, and electric-versus-gas comparisons.
 - `/load-estimator` provides a rule-of-thumb heating and cooling estimate with explicit heuristic language.
-- `/gas-flow` retains the legacy URL and opens the same unified gas-demand workflow with gas-flow emphasis.
+- `/gas-flow` is a backward-compatible alias of `/load-converter` and is intentionally omitted from navigation.
 - `/unit-conversions` handles general engineering conversions.
 
 ## Local development

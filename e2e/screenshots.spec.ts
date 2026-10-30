@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
 
-const routes = ["home", "load-converter", "gas-equipment-sizing", "energy-cost-comparison", "chp", "emissions", "load-estimator", "gas-flow", "unit-conversions"];
+const routes = ["home", "load-converter", "gas-equipment-sizing", "energy-cost-comparison", "chp", "emissions", "load-estimator", "unit-conversions"];
 
 for (const width of [390, 1440]) {
   test(`capture primary routes at ${width}px`, async ({ browser }) => {

@@ -9,11 +9,13 @@ test("core routes render and navigation works", async ({ page }) => {
     }),
   ).toBeVisible();
 
-  await page.locator("main").getByRole("link", { name: /Gas Demand/ }).first().click();
+  await page.locator("main").getByRole("link", { name: /Load Converter/ }).first().click();
   await expect(page).toHaveURL(/\/load-converter\/?$/);
   await expect(page.getByRole("heading", { name: "Gas Demand & Conversions" })).toBeVisible();
 
   const nav = page.locator("header nav");
+  await expect(nav.getByRole("link").nth(1)).toHaveText("Load Converter");
+  await expect(nav.getByRole("link", { name: "Gas Flow", exact: true })).toHaveCount(0);
 
   await nav.getByRole("link", { name: "CHP", exact: true }).click();
   await expect(page).toHaveURL(/\/chp\/?$/);
@@ -22,10 +24,6 @@ test("core routes render and navigation works", async ({ page }) => {
   await nav.getByRole("link", { name: "Emissions", exact: true }).click();
   await expect(page).toHaveURL(/\/emissions\/?$/);
   await expect(page.getByRole("heading", { name: "Emissions & Grid Analysis", exact: true })).toBeVisible();
-
-  await nav.getByRole("link", { name: "Gas Flow", exact: true }).click();
-  await expect(page).toHaveURL(/\/gas-flow\/?$/);
-  await expect(page.getByRole("heading", { name: "Gas Flow & Demand" })).toBeVisible();
 
   await nav.getByRole("link", { name: "Conversions", exact: true }).click();
   await expect(page).toHaveURL(/\/unit-conversions\/?$/);

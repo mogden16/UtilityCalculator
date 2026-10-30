@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 
-import { GasFlowTool } from "@/components/tools/gas-flow-tool";
+import { ConverterTool } from "@/components/tools/converter-tool";
 
 export const metadata: Metadata = {
-  title: "Gas Flow & Demand",
-  description: "Translate thermal demand into CFH, MCFH, therm per hour, and Dth per hour for gas planning.",
+  title: "Load Converter",
+  description: "Legacy URL for the unified load converter.",
+  alternates: { canonical: "/load-converter" },
 };
 
 export default function GasFlowPage() {
-  return <GasFlowTool />;
+  return <ConverterTool />;
 }
