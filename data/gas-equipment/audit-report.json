@@ -1,0 +1,113 @@
+{
+  "summary": {
+    "serviceTableCount": 12,
+    "serviceCapacityRecordCount": 1760,
+    "meterRecordCount": 665,
+    "regulatorArrangementCount": 150,
+    "findingCount": 11
+  },
+  "findings": [
+    {
+      "severity": "review",
+      "type": "nonmonotonic-length-capacity",
+      "table": "plastic-existing-low",
+      "size": "1\" CTS",
+      "previous": {
+        "lengthFt": 95,
+        "capacityCfh": 194
+      },
+      "current": {
+        "lengthFt": 100,
+        "capacityCfh": 198
+      },
+      "action": "Original source values preserved; engineering approval required before correction."
+    },
+    {
+      "severity": "review",
+      "type": "nonmonotonic-length-capacity",
+      "table": "plastic-existing-low",
+      "size": "1 1/4\" IPS",
+      "previous": {
+        "lengthFt": 40,
+        "capacityCfh": 708
+      },
+      "current": {
+        "lengthFt": 45,
+        "capacityCfh": 746
+      },
+      "action": "Original source values preserved; engineering approval required before correction."
+    },
+    {
+      "severity": "review",
+      "type": "nonmonotonic-length-capacity",
+      "table": "plastic-new-intermediate",
+      "size": "2\" IPS",
+      "previous": {
+        "lengthFt": 50,
+        "capacityCfh": 8030
+      },
+      "current": {
+        "lengthFt": 55,
+        "capacityCfh": 8037
+      },
+      "action": "Original source values preserved; engineering approval required before correction."
+    },
+    {
+      "severity": "review",
+      "type": "nonmonotonic-length-capacity",
+      "table": "steel-existing-low",
+      "size": "3\" IPS",
+      "previous": {
+        "lengthFt": 85,
+        "capacityCfh": 3949
+      },
+      "current": {
+        "lengthFt": 90,
+        "capacityCfh": 3998
+      },
+      "action": "Original source values preserved; engineering approval required before correction."
+    },
+    {
+      "severity": "info",
+      "type": "duplicate-source",
+      "detail": "Diaphragm (2021) and Full version contain the same numeric capacity table with different model-label formatting.",
+      "action": "Diaphragm (2021) selected as the public source."
+    },
+    {
+      "severity": "review",
+      "type": "duplicate-source-conflict",
+      "detail": "Earlier FSD rotary/turbine worksheets use rounded pressure factors and differ slightly from the later Final Revision workbook.",
+      "action": "Final Revision workbook selected as the public rotary/turbine source; earlier values are not silently merged."
+    },
+    {
+      "severity": "restricted",
+      "type": "excluded-public-data",
+      "detail": "The Final Revision pricing worksheet and industrial-regulator stock numbers are excluded from public JSON.",
+      "action": "Use authenticated server-side storage for any future internal view."
+    },
+    {
+      "severity": "review",
+      "type": "missing-source-limit",
+      "detail": "The diaphragm table does not publish minimum-flow limits.",
+      "action": "Diaphragm results are maximum-capacity screening only."
+    },
+    {
+      "severity": "review",
+      "type": "overlapping-inlet-range",
+      "detail": "Regulator inlet categories overlap at 30-35 psig and at 60 psig.",
+      "action": "The UI requires explicit source-category selection."
+    },
+    {
+      "severity": "review",
+      "type": "connection-rule-gap",
+      "detail": "The DS14.9 connection image leaves some boundary combinations unstated and has overlapping general/specific rules.",
+      "action": "Return engineering review when the rule match is absent or conflicting."
+    },
+    {
+      "severity": "info",
+      "type": "revision-metadata",
+      "detail": "The guideline workbook has DS14.11/DS14.9 identifiers but no single stated workbook revision.",
+      "action": "Manifest records worksheet identifiers and the workbook modified timestamp."
+    }
+  ]
+}

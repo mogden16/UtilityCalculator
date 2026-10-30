@@ -16,6 +16,7 @@ The public application is task-oriented. Repository history, architecture, and v
 ## Routes
 
 - `/load-converter` is the primary gas-demand and load-conversion workflow.
+- `/gas-equipment-sizing` performs preliminary source-table service, meter, and regulator screening.
 - `/energy-cost-comparison` normalizes unlike energy sources to delivered MMBtu.
 - `/chp` screens CHP sizing and economics for onsite generation projects.
 - `/emissions` reviews live PJM grid emissions, fuel mix, and electric-versus-gas comparisons.
@@ -75,3 +76,15 @@ The load estimator is intentionally labeled as heuristic. Use it for early scree
 CHP results are preliminary screening estimates. The model separately calculates CHP fuel, available and utilized recovered heat, avoided boiler fuel, residual boiler fuel, electric energy and demand savings, maintenance, standby charges, capital, explicit incentives, and simple payback. Incentives default to zero and are never assumed eligible automatically.
 
 Shared engineering defaults are centralized in `lib/assumptions.ts`. The UI keeps important defaults editable and stores only the gas HHV assumption in browser-local storage; customer usage and cost inputs are not persisted.
+
+Gas-equipment reference data is generated ahead of time and requires no PDF or Excel parsing in the deployed site. See [`docs/gas-equipment-sizing-architecture.md`](docs/gas-equipment-sizing-architecture.md) for lookup rules and [`docs/gas-equipment-source-audit.md`](docs/gas-equipment-source-audit.md) for source discrepancies and public-data exclusions. The source generator is `scripts/extract_gas_equipment_data.py`; it intentionally excludes pricing and regulator stock numbers.
+
+Regenerate the static reference data only from authorized local copies of the three source documents:
+
+```bash
+python scripts/extract_gas_equipment_data.py \
+  --service-pdf path/to/maximum-service-capacity.pdf \
+  --guidelines-xlsx path/to/meter-regulator-guidelines.xlsx \
+  --meter-xlsx path/to/rotary-turbine-final.xlsx \
+  --output-dir data/gas-equipment
+```

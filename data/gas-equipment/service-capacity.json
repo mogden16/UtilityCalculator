@@ -1,0 +1,5608 @@
+{
+  "engineeringConditions": {
+    "formula": "IGT improved formula",
+    "efficiency": 0.95,
+    "elevationChangeFt": 0,
+    "temperatureF": 60,
+    "basePressurePsia": 14.7,
+    "viscosityLbmPerFtSec": 7e-06,
+    "specificGravity": 0.6,
+    "specificHeatRatio": 1.3,
+    "sourceHeatingValueBtuPerCf": 1000,
+    "serviceLengthIncludesEquivalentLength": true
+  },
+  "tables": [
+    {
+      "id": "plastic-existing-low",
+      "material": "plastic",
+      "status": "existing",
+      "pressureClass": "low",
+      "sizes": [
+        {
+          "id": "1-inch-cts",
+          "label": "1\" CTS",
+          "sourceColumn": "1\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-cts",
+          "label": "1 1/4\" CTS",
+          "sourceColumn": "1 1/4\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Plastic"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Plastic"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Plastic"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Plastic"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Plastic"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Plastic"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "1-inch-cts": 453,
+            "1-1-4-inch-cts": 783,
+            "1-1-4-inch-ips": 1270,
+            "2-inch-ips": 3301,
+            "3-inch-ips": 7257,
+            "4-inch-ips": 19793,
+            "6-inch-ips": 52218,
+            "8-inch-ips": 89521
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "1-inch-cts": 409,
+            "1-1-4-inch-cts": 707,
+            "1-1-4-inch-ips": 1147,
+            "2-inch-ips": 2983,
+            "3-inch-ips": 6786,
+            "4-inch-ips": 17949,
+            "6-inch-ips": 47798,
+            "8-inch-ips": 83714
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "1-inch-cts": 376,
+            "1-1-4-inch-cts": 649,
+            "1-1-4-inch-ips": 1053,
+            "2-inch-ips": 2738,
+            "3-inch-ips": 6392,
+            "4-inch-ips": 16517,
+            "6-inch-ips": 44288,
+            "8-inch-ips": 78851
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "1-inch-cts": 349,
+            "1-1-4-inch-cts": 603,
+            "1-1-4-inch-ips": 978,
+            "2-inch-ips": 2542,
+            "3-inch-ips": 6055,
+            "4-inch-ips": 15365,
+            "6-inch-ips": 41415,
+            "8-inch-ips": 74704
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "1-inch-cts": 327,
+            "1-1-4-inch-cts": 565,
+            "1-1-4-inch-ips": 916,
+            "2-inch-ips": 2381,
+            "3-inch-ips": 5764,
+            "4-inch-ips": 14412,
+            "6-inch-ips": 39009,
+            "8-inch-ips": 71115
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "1-inch-cts": 308,
+            "1-1-4-inch-cts": 532,
+            "1-1-4-inch-ips": 863,
+            "2-inch-ips": 2245,
+            "3-inch-ips": 5510,
+            "4-inch-ips": 13609,
+            "6-inch-ips": 36958,
+            "8-inch-ips": 67970
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "1-inch-cts": 292,
+            "1-1-4-inch-cts": 505,
+            "1-1-4-inch-ips": 819,
+            "2-inch-ips": 2129,
+            "3-inch-ips": 5284,
+            "4-inch-ips": 12919,
+            "6-inch-ips": 35182,
+            "8-inch-ips": 65186
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "1-inch-cts": 278,
+            "1-1-4-inch-cts": 481,
+            "1-1-4-inch-ips": 708,
+            "2-inch-ips": 2029,
+            "3-inch-ips": 5082,
+            "4-inch-ips": 12319,
+            "6-inch-ips": 33626,
+            "8-inch-ips": 62699
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "1-inch-cts": 266,
+            "1-1-4-inch-cts": 460,
+            "1-1-4-inch-ips": 746,
+            "2-inch-ips": 1940,
+            "3-inch-ips": 4901,
+            "4-inch-ips": 11791,
+            "6-inch-ips": 32249,
+            "8-inch-ips": 60461
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "1-inch-cts": 255,
+            "1-1-4-inch-cts": 441,
+            "1-1-4-inch-ips": 716,
+            "2-inch-ips": 1862,
+            "3-inch-ips": 4736,
+            "4-inch-ips": 11322,
+            "6-inch-ips": 31018,
+            "8-inch-ips": 58433
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "1-inch-cts": 246,
+            "1-1-4-inch-cts": 425,
+            "1-1-4-inch-ips": 689,
+            "2-inch-ips": 1792,
+            "3-inch-ips": 4587,
+            "4-inch-ips": 10902,
+            "6-inch-ips": 29911,
+            "8-inch-ips": 56584
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "1-inch-cts": 237,
+            "1-1-4-inch-cts": 410,
+            "1-1-4-inch-ips": 665,
+            "2-inch-ips": 1729,
+            "3-inch-ips": 4449,
+            "4-inch-ips": 10522,
+            "6-inch-ips": 28908,
+            "8-inch-ips": 54890
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "1-inch-cts": 229,
+            "1-1-4-inch-cts": 396,
+            "1-1-4-inch-ips": 643,
+            "2-inch-ips": 1672,
+            "3-inch-ips": 4323,
+            "4-inch-ips": 10177,
+            "6-inch-ips": 27993,
+            "8-inch-ips": 53331
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "1-inch-cts": 222,
+            "1-1-4-inch-cts": 384,
+            "1-1-4-inch-ips": 623,
+            "2-inch-ips": 1619,
+            "3-inch-ips": 4206,
+            "4-inch-ips": 9863,
+            "6-inch-ips": 27155,
+            "8-inch-ips": 51890
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "1-inch-cts": 215,
+            "1-1-4-inch-cts": 372,
+            "1-1-4-inch-ips": 604,
+            "2-inch-ips": 1571,
+            "3-inch-ips": 4098,
+            "4-inch-ips": 9574,
+            "6-inch-ips": 26384,
+            "8-inch-ips": 50553
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "1-inch-cts": 209,
+            "1-1-4-inch-cts": 362,
+            "1-1-4-inch-ips": 587,
+            "2-inch-ips": 1527,
+            "3-inch-ips": 3997,
+            "4-inch-ips": 9307,
+            "6-inch-ips": 25671,
+            "8-inch-ips": 49308
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "1-inch-cts": 204,
+            "1-1-4-inch-cts": 352,
+            "1-1-4-inch-ips": 571,
+            "2-inch-ips": 1486,
+            "3-inch-ips": 3902,
+            "4-inch-ips": 9060,
+            "6-inch-ips": 25009,
+            "8-inch-ips": 48145
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "1-inch-cts": 198,
+            "1-1-4-inch-cts": 343,
+            "1-1-4-inch-ips": 557,
+            "2-inch-ips": 1448,
+            "3-inch-ips": 3814,
+            "4-inch-ips": 8831,
+            "6-inch-ips": 24393,
+            "8-inch-ips": 47056
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "1-inch-cts": 194,
+            "1-1-4-inch-cts": 335,
+            "1-1-4-inch-ips": 543,
+            "2-inch-ips": 1413,
+            "3-inch-ips": 3747,
+            "4-inch-ips": 8617,
+            "6-inch-ips": 23818,
+            "8-inch-ips": 46033
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "1-inch-cts": 198,
+            "1-1-4-inch-cts": 327,
+            "1-1-4-inch-ips": 530,
+            "2-inch-ips": 1380,
+            "3-inch-ips": 3653,
+            "4-inch-ips": 8418,
+            "6-inch-ips": 23279,
+            "8-inch-ips": 45070
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Low Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 5.5,
+          "unit": "inWC"
+        },
+        "allowablePressureLoss": {
+          "value": 1,
+          "unit": "inWC"
+        }
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 2
+      }
+    },
+    {
+      "id": "plastic-existing-intermediate",
+      "material": "plastic",
+      "status": "existing",
+      "pressureClass": "intermediate",
+      "sizes": [
+        {
+          "id": "3-4-inch-cts",
+          "label": "3/4\" CTS",
+          "sourceColumn": "3/4\" CTS Plastic"
+        },
+        {
+          "id": "1-inch-cts",
+          "label": "1\" CTS",
+          "sourceColumn": "1\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-cts",
+          "label": "1 1/4\" CTS",
+          "sourceColumn": "1 1/4\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Plastic"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Plastic"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Plastic"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Plastic"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Plastic"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Plastic"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1000,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1000,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1000,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1000,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1000,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 945,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 896,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 854,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 817,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 784,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 754,
+            "1-inch-cts": 1608,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 727,
+            "1-inch-cts": 1551,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 703,
+            "1-inch-cts": 1499,
+            "1-1-4-inch-cts": 2591,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 681,
+            "1-inch-cts": 1453,
+            "1-1-4-inch-cts": 2510,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 661,
+            "1-inch-cts": 1410,
+            "1-1-4-inch-cts": 2435,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 643,
+            "1-inch-cts": 1370,
+            "1-1-4-inch-cts": 2367,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 625,
+            "1-inch-cts": 1333,
+            "1-1-4-inch-cts": 2304,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 609,
+            "1-inch-cts": 1299,
+            "1-1-4-inch-cts": 2245,
+            "1-1-4-inch-ips": 3639,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 594,
+            "1-inch-cts": 1267,
+            "1-1-4-inch-cts": 2190,
+            "1-1-4-inch-ips": 3550,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 581,
+            "1-inch-cts": 1238,
+            "1-1-4-inch-cts": 2139,
+            "1-1-4-inch-ips": 3467,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - Intermediate Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 1.5,
+          "unit": "psig"
+        },
+        "allowablePressureLoss": {
+          "value": 1,
+          "unit": "psig"
+        },
+        "maximumVelocityFps": 100
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 2
+      }
+    },
+    {
+      "id": "plastic-existing-high",
+      "material": "plastic",
+      "status": "existing",
+      "pressureClass": "high",
+      "sizes": [
+        {
+          "id": "3-4-inch-cts",
+          "label": "3/4\" CTS",
+          "sourceColumn": "3/4\" CTS Plastic"
+        },
+        {
+          "id": "1-inch-cts",
+          "label": "1\" CTS",
+          "sourceColumn": "1\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-cts",
+          "label": "1 1/4\" CTS",
+          "sourceColumn": "1 1/4\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Plastic"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Plastic"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Plastic"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Plastic"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Plastic"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Plastic"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1394,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1345,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1300,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1259,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1222,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1188,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1156,
+            "1-inch-cts": 2464,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1126,
+            "1-inch-cts": 2401,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1099,
+            "1-inch-cts": 2342,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1073,
+            "1-inch-cts": 2288,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "Existing Plastic Services - High Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 10,
+          "unit": "psig"
+        },
+        "allowablePressureLoss": {
+          "value": 2,
+          "unit": "psig"
+        },
+        "maximumVelocityFps": 100
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 2
+      }
+    },
+    {
+      "id": "plastic-new-low",
+      "material": "plastic",
+      "status": "new",
+      "pressureClass": "low",
+      "sizes": [
+        {
+          "id": "1-inch-cts",
+          "label": "1\" CTS",
+          "sourceColumn": "1\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-cts",
+          "label": "1 1/4\" CTS",
+          "sourceColumn": "1 1/4\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Plastic"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Plastic"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Plastic"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Plastic"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Plastic"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Plastic"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "1-inch-cts": 308,
+            "1-1-4-inch-cts": 533,
+            "1-1-4-inch-ips": 864,
+            "2-inch-ips": 2246,
+            "3-inch-ips": 4937,
+            "4-inch-ips": 13187,
+            "6-inch-ips": 35530,
+            "8-inch-ips": 60911
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "1-inch-cts": 278,
+            "1-1-4-inch-cts": 481,
+            "1-1-4-inch-ips": 780,
+            "2-inch-ips": 2029,
+            "3-inch-ips": 4617,
+            "4-inch-ips": 11999,
+            "6-inch-ips": 32523,
+            "8-inch-ips": 56960
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "1-inch-cts": 255,
+            "1-1-4-inch-cts": 442,
+            "1-1-4-inch-ips": 716,
+            "2-inch-ips": 1863,
+            "3-inch-ips": 4349,
+            "4-inch-ips": 11068,
+            "6-inch-ips": 30134,
+            "8-inch-ips": 53651
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "1-inch-cts": 237,
+            "1-1-4-inch-cts": 410,
+            "1-1-4-inch-ips": 665,
+            "2-inch-ips": 1729,
+            "3-inch-ips": 4120,
+            "4-inch-ips": 10315,
+            "6-inch-ips": 28179,
+            "8-inch-ips": 50830
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "1-inch-cts": 222,
+            "1-1-4-inch-cts": 384,
+            "1-1-4-inch-ips": 623,
+            "2-inch-ips": 1620,
+            "3-inch-ips": 3922,
+            "4-inch-ips": 9690,
+            "6-inch-ips": 26542,
+            "8-inch-ips": 48388
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "1-inch-cts": 209,
+            "1-1-4-inch-cts": 362,
+            "1-1-4-inch-ips": 587,
+            "2-inch-ips": 1528,
+            "3-inch-ips": 3749,
+            "4-inch-ips": 9160,
+            "6-inch-ips": 25146,
+            "8-inch-ips": 46248
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "1-inch-cts": 199,
+            "1-1-4-inch-cts": 343,
+            "1-1-4-inch-ips": 557,
+            "2-inch-ips": 1449,
+            "3-inch-ips": 3595,
+            "4-inch-ips": 8704,
+            "6-inch-ips": 23938,
+            "8-inch-ips": 44353
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "1-inch-cts": 189,
+            "1-1-4-inch-cts": 327,
+            "1-1-4-inch-ips": 531,
+            "2-inch-ips": 1380,
+            "3-inch-ips": 3458,
+            "4-inch-ips": 8307,
+            "6-inch-ips": 22880,
+            "8-inch-ips": 42661
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "1-inch-cts": 181,
+            "1-1-4-inch-cts": 313,
+            "1-1-4-inch-ips": 508,
+            "2-inch-ips": 1320,
+            "3-inch-ips": 3334,
+            "4-inch-ips": 7956,
+            "6-inch-ips": 21942,
+            "8-inch-ips": 41138
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "1-inch-cts": 174,
+            "1-1-4-inch-cts": 300,
+            "1-1-4-inch-ips": 487,
+            "2-inch-ips": 1267,
+            "3-inch-ips": 3223,
+            "4-inch-ips": 7644,
+            "6-inch-ips": 21105,
+            "8-inch-ips": 39758
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "1-inch-cts": 167,
+            "1-1-4-inch-cts": 289,
+            "1-1-4-inch-ips": 469,
+            "2-inch-ips": 1220,
+            "3-inch-ips": 3121,
+            "4-inch-ips": 7364,
+            "6-inch-ips": 20352,
+            "8-inch-ips": 38500
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "1-inch-cts": 161,
+            "1-1-4-inch-cts": 279,
+            "1-1-4-inch-ips": 452,
+            "2-inch-ips": 1177,
+            "3-inch-ips": 3027,
+            "4-inch-ips": 7111,
+            "6-inch-ips": 19669,
+            "8-inch-ips": 37348
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "1-inch-cts": 156,
+            "1-1-4-inch-cts": 269,
+            "1-1-4-inch-ips": 437,
+            "2-inch-ips": 1138,
+            "3-inch-ips": 2941,
+            "4-inch-ips": 6880,
+            "6-inch-ips": 19047,
+            "8-inch-ips": 36287
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "1-inch-cts": 151,
+            "1-1-4-inch-cts": 261,
+            "1-1-4-inch-ips": 423,
+            "2-inch-ips": 1102,
+            "3-inch-ips": 2862,
+            "4-inch-ips": 6670,
+            "6-inch-ips": 18477,
+            "8-inch-ips": 35307
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "1-inch-cts": 146,
+            "1-1-4-inch-cts": 253,
+            "1-1-4-inch-ips": 411,
+            "2-inch-ips": 1069,
+            "3-inch-ips": 2788,
+            "4-inch-ips": 6467,
+            "6-inch-ips": 17952,
+            "8-inch-ips": 34397
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "1-inch-cts": 142,
+            "1-1-4-inch-cts": 246,
+            "1-1-4-inch-ips": 399,
+            "2-inch-ips": 1040,
+            "3-inch-ips": 2719,
+            "4-inch-ips": 6298,
+            "6-inch-ips": 17467,
+            "8-inch-ips": 33550
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "1-inch-cts": 138,
+            "1-1-4-inch-cts": 240,
+            "1-1-4-inch-ips": 389,
+            "2-inch-ips": 1012,
+            "3-inch-ips": 2655,
+            "4-inch-ips": 6133,
+            "6-inch-ips": 17017,
+            "8-inch-ips": 32758
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "1-inch-cts": 135,
+            "1-1-4-inch-cts": 233,
+            "1-1-4-inch-ips": 379,
+            "2-inch-ips": 986,
+            "3-inch-ips": 2595,
+            "4-inch-ips": 5979,
+            "6-inch-ips": 16597,
+            "8-inch-ips": 32017
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "1-inch-cts": 132,
+            "1-1-4-inch-cts": 228,
+            "1-1-4-inch-ips": 369,
+            "2-inch-ips": 962,
+            "3-inch-ips": 2539,
+            "4-inch-ips": 5835,
+            "6-inch-ips": 16206,
+            "8-inch-ips": 31321
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "1-inch-cts": 128,
+            "1-1-4-inch-cts": 222,
+            "1-1-4-inch-ips": 361,
+            "2-inch-ips": 940,
+            "3-inch-ips": 2485,
+            "4-inch-ips": 5701,
+            "6-inch-ips": 15839,
+            "8-inch-ips": 30666
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Low Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 5.5,
+          "unit": "inWC"
+        },
+        "allowablePressureLoss": {
+          "value": 0.5,
+          "unit": "inWC"
+        }
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 2
+      }
+    },
+    {
+      "id": "plastic-new-intermediate",
+      "material": "plastic",
+      "status": "new",
+      "pressureClass": "intermediate",
+      "sizes": [
+        {
+          "id": "3-4-inch-cts",
+          "label": "3/4\" CTS",
+          "sourceColumn": "3/4\" CTS Plastic"
+        },
+        {
+          "id": "1-inch-cts",
+          "label": "1\" CTS",
+          "sourceColumn": "1\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-cts",
+          "label": "1 1/4\" CTS",
+          "sourceColumn": "1 1/4\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Plastic"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Plastic"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Plastic"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Plastic"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Plastic"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Plastic"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 953,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 861,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 790,
+            "1-inch-cts": 1685,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 734,
+            "1-inch-cts": 1565,
+            "1-1-4-inch-cts": 2703,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 687,
+            "1-inch-cts": 1465,
+            "1-1-4-inch-cts": 2523,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 648,
+            "1-inch-cts": 1382,
+            "1-1-4-inch-cts": 2388,
+            "1-1-4-inch-ips": 3871,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 615,
+            "1-inch-cts": 1311,
+            "1-1-4-inch-cts": 2264,
+            "1-1-4-inch-ips": 3671,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 586,
+            "1-inch-cts": 1249,
+            "1-1-4-inch-cts": 2158,
+            "1-1-4-inch-ips": 3498,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 560,
+            "1-inch-cts": 1194,
+            "1-1-4-inch-cts": 2064,
+            "1-1-4-inch-ips": 3346,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 537,
+            "1-inch-cts": 1146,
+            "1-1-4-inch-cts": 1980,
+            "1-1-4-inch-ips": 3211,
+            "2-inch-ips": 8030,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 517,
+            "1-inch-cts": 1103,
+            "1-1-4-inch-cts": 1906,
+            "1-1-4-inch-ips": 3090,
+            "2-inch-ips": 8037,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 499,
+            "1-inch-cts": 1064,
+            "1-1-4-inch-cts": 1839,
+            "1-1-4-inch-ips": 2981,
+            "2-inch-ips": 7750,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 482,
+            "1-inch-cts": 1029,
+            "1-1-4-inch-cts": 1778,
+            "1-1-4-inch-ips": 2882,
+            "2-inch-ips": 7493,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 467,
+            "1-inch-cts": 997,
+            "1-1-4-inch-cts": 1722,
+            "1-1-4-inch-ips": 2792,
+            "2-inch-ips": 7258,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 453,
+            "1-inch-cts": 967,
+            "1-1-4-inch-cts": 1671,
+            "1-1-4-inch-ips": 2709,
+            "2-inch-ips": 7043,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 441,
+            "1-inch-cts": 940,
+            "1-1-4-inch-cts": 1624,
+            "1-1-4-inch-ips": 2633,
+            "2-inch-ips": 6845,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 429,
+            "1-inch-cts": 915,
+            "1-1-4-inch-cts": 1580,
+            "1-1-4-inch-ips": 2562,
+            "2-inch-ips": 6662,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 418,
+            "1-inch-cts": 891,
+            "1-1-4-inch-cts": 1540,
+            "1-1-4-inch-ips": 2497,
+            "2-inch-ips": 6492,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 408,
+            "1-inch-cts": 870,
+            "1-1-4-inch-cts": 1503,
+            "1-1-4-inch-ips": 2436,
+            "2-inch-ips": 6334,
+            "3-inch-ips": 17260,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 117540
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 398,
+            "1-inch-cts": 849,
+            "1-1-4-inch-cts": 1467,
+            "1-1-4-inch-ips": 2379,
+            "2-inch-ips": 6185,
+            "3-inch-ips": 17240,
+            "4-inch-ips": 31360,
+            "6-inch-ips": 68000,
+            "8-inch-ips": 115088
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - Intermediate Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 1.5,
+          "unit": "psig"
+        },
+        "allowablePressureLoss": {
+          "value": 0.5,
+          "unit": "psig"
+        },
+        "maximumVelocityFps": 100
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 2
+      }
+    },
+    {
+      "id": "plastic-new-high",
+      "material": "plastic",
+      "status": "new",
+      "pressureClass": "high",
+      "sizes": [
+        {
+          "id": "3-4-inch-cts",
+          "label": "3/4\" CTS",
+          "sourceColumn": "3/4\" CTS Plastic"
+        },
+        {
+          "id": "1-inch-cts",
+          "label": "1\" CTS",
+          "sourceColumn": "1\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-cts",
+          "label": "1 1/4\" CTS",
+          "sourceColumn": "1 1/4\" CTS Plastic"
+        },
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Plastic"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Plastic"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Plastic"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Plastic"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Plastic"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Plastic"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1465,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1360,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1274,
+            "1-inch-cts": 2716,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1201,
+            "1-inch-cts": 2561,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1139,
+            "1-inch-cts": 2429,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1086,
+            "1-inch-cts": 2314,
+            "1-1-4-inch-cts": 3998,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 1038,
+            "1-inch-cts": 2213,
+            "1-1-4-inch-cts": 3824,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 996,
+            "1-inch-cts": 2124,
+            "1-1-4-inch-cts": 3670,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 959,
+            "1-inch-cts": 2044,
+            "1-1-4-inch-cts": 3532,
+            "1-1-4-inch-ips": 5726,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 925,
+            "1-inch-cts": 1975,
+            "1-1-4-inch-cts": 3407,
+            "1-1-4-inch-ips": 5524,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 894,
+            "1-inch-cts": 1907,
+            "1-1-4-inch-cts": 3294,
+            "1-1-4-inch-ips": 5341,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 866,
+            "1-inch-cts": 1847,
+            "1-1-4-inch-cts": 3191,
+            "1-1-4-inch-ips": 5174,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 841,
+            "1-inch-cts": 1792,
+            "1-1-4-inch-cts": 3097,
+            "1-1-4-inch-ips": 5020,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 817,
+            "1-inch-cts": 1742,
+            "1-1-4-inch-cts": 3010,
+            "1-1-4-inch-ips": 4879,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 795,
+            "1-inch-cts": 1695,
+            "1-1-4-inch-cts": 2929,
+            "1-1-4-inch-ips": 4749,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 775,
+            "1-inch-cts": 1652,
+            "1-1-4-inch-cts": 2854,
+            "1-1-4-inch-ips": 4627,
+            "2-inch-ips": 12030,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 756,
+            "1-inch-cts": 1612,
+            "1-1-4-inch-cts": 2785,
+            "1-1-4-inch-ips": 4514,
+            "2-inch-ips": 11737,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "3-4-inch-cts": 738,
+            "1-inch-cts": 1574,
+            "1-1-4-inch-cts": 2719,
+            "1-1-4-inch-ips": 4409,
+            "2-inch-ips": 11462,
+            "3-inch-ips": 26118,
+            "4-inch-ips": 47600,
+            "6-inch-ips": 105100,
+            "8-inch-ips": 174646
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 2,
+            "table": "New Plastic Services - High Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 10,
+          "unit": "psig"
+        },
+        "allowablePressureLoss": {
+          "value": 1,
+          "unit": "psig"
+        },
+        "maximumVelocityFps": 100
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 2
+      }
+    },
+    {
+      "id": "steel-existing-low",
+      "material": "steel",
+      "status": "existing",
+      "pressureClass": "low",
+      "sizes": [
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Steel"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Steel"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Steel"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Steel"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Steel"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Steel"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 968,
+            "2-inch-ips": 2957,
+            "3-inch-ips": 5767,
+            "4-inch-ips": 10970,
+            "6-inch-ips": 29859,
+            "8-inch-ips": 44859
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 911,
+            "2-inch-ips": 2774,
+            "3-inch-ips": 5581,
+            "4-inch-ips": 10662,
+            "6-inch-ips": 29143,
+            "8-inch-ips": 44250
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 863,
+            "2-inch-ips": 2619,
+            "3-inch-ips": 5410,
+            "4-inch-ips": 10376,
+            "6-inch-ips": 28473,
+            "8-inch-ips": 43664
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 822,
+            "2-inch-ips": 2486,
+            "3-inch-ips": 5253,
+            "4-inch-ips": 10111,
+            "6-inch-ips": 27844,
+            "8-inch-ips": 43099
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 786,
+            "2-inch-ips": 2371,
+            "3-inch-ips": 5108,
+            "4-inch-ips": 9864,
+            "6-inch-ips": 27252,
+            "8-inch-ips": 42554
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 753,
+            "2-inch-ips": 2269,
+            "3-inch-ips": 4974,
+            "4-inch-ips": 9634,
+            "6-inch-ips": 26695,
+            "8-inch-ips": 42028
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 725,
+            "2-inch-ips": 2179,
+            "3-inch-ips": 4849,
+            "4-inch-ips": 9418,
+            "6-inch-ips": 26168,
+            "8-inch-ips": 41520
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 699,
+            "2-inch-ips": 2098,
+            "3-inch-ips": 4733,
+            "4-inch-ips": 9214,
+            "6-inch-ips": 25669,
+            "8-inch-ips": 41028
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 675,
+            "2-inch-ips": 2025,
+            "3-inch-ips": 4624,
+            "4-inch-ips": 9023,
+            "6-inch-ips": 25196,
+            "8-inch-ips": 40553
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 654,
+            "2-inch-ips": 1959,
+            "3-inch-ips": 4522,
+            "4-inch-ips": 8842,
+            "6-inch-ips": 24747,
+            "8-inch-ips": 40093
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 634,
+            "2-inch-ips": 1898,
+            "3-inch-ips": 4426,
+            "4-inch-ips": 8672,
+            "6-inch-ips": 24319,
+            "8-inch-ips": 39647
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 616,
+            "2-inch-ips": 1842,
+            "3-inch-ips": 4335,
+            "4-inch-ips": 8510,
+            "6-inch-ips": 23912,
+            "8-inch-ips": 39214
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 600,
+            "2-inch-ips": 1791,
+            "3-inch-ips": 4250,
+            "4-inch-ips": 8356,
+            "6-inch-ips": 23523,
+            "8-inch-ips": 38795
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 584,
+            "2-inch-ips": 1744,
+            "3-inch-ips": 4169,
+            "4-inch-ips": 8210,
+            "6-inch-ips": 23151,
+            "8-inch-ips": 38388
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 570,
+            "2-inch-ips": 1700,
+            "3-inch-ips": 4092,
+            "4-inch-ips": 8070,
+            "6-inch-ips": 22795,
+            "8-inch-ips": 37992
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 556,
+            "2-inch-ips": 1658,
+            "3-inch-ips": 4019,
+            "4-inch-ips": 7938,
+            "6-inch-ips": 22454,
+            "8-inch-ips": 37608
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 544,
+            "2-inch-ips": 1620,
+            "3-inch-ips": 3949,
+            "4-inch-ips": 7811,
+            "6-inch-ips": 22127,
+            "8-inch-ips": 37234
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 532,
+            "2-inch-ips": 1584,
+            "3-inch-ips": 3998,
+            "4-inch-ips": 7689,
+            "6-inch-ips": 21813,
+            "8-inch-ips": 36871
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 521,
+            "2-inch-ips": 1550,
+            "3-inch-ips": 3820,
+            "4-inch-ips": 7573,
+            "6-inch-ips": 21511,
+            "8-inch-ips": 36517
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 510,
+            "2-inch-ips": 1518,
+            "3-inch-ips": 3760,
+            "4-inch-ips": 7461,
+            "6-inch-ips": 21221,
+            "8-inch-ips": 36173
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Low Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 5.5,
+          "unit": "inWC"
+        },
+        "allowablePressureLoss": {
+          "value": 1,
+          "unit": "inWC"
+        }
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 3
+      }
+    },
+    {
+      "id": "steel-existing-intermediate",
+      "material": "steel",
+      "status": "existing",
+      "pressureClass": "intermediate",
+      "sizes": [
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Steel"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Steel"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Steel"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Steel"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Steel"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Steel"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3724,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3636,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3554,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3477,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3404,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3335,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 18845,
+            "4-inch-ips": 33840,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - Intermediate Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 1.5,
+          "unit": "psig"
+        },
+        "allowablePressureLoss": {
+          "value": 1,
+          "unit": "psig"
+        },
+        "maximumVelocityFps": 100
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 3
+      }
+    },
+    {
+      "id": "steel-existing-high",
+      "material": "steel",
+      "status": "existing",
+      "pressureClass": "high",
+      "sizes": [
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Steel"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Steel"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Steel"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Steel"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Steel"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Steel"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "Existing Steel Services - High Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 10,
+          "unit": "psig"
+        },
+        "allowablePressureLoss": {
+          "value": 2,
+          "unit": "psig"
+        },
+        "maximumVelocityFps": 100
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 3
+      }
+    },
+    {
+      "id": "steel-new-low",
+      "material": "steel",
+      "status": "new",
+      "pressureClass": "low",
+      "sizes": [
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Steel"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Steel"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Steel"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Steel"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Steel"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Steel"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 658,
+            "2-inch-ips": 2012,
+            "3-inch-ips": 3924,
+            "4-inch-ips": 7464,
+            "6-inch-ips": 20317,
+            "8-inch-ips": 30522
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 620,
+            "2-inch-ips": 1887,
+            "3-inch-ips": 3797,
+            "4-inch-ips": 7254,
+            "6-inch-ips": 19829,
+            "8-inch-ips": 30108
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 587,
+            "2-inch-ips": 1782,
+            "3-inch-ips": 3681,
+            "4-inch-ips": 7060,
+            "6-inch-ips": 19373,
+            "8-inch-ips": 29709
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 559,
+            "2-inch-ips": 1692,
+            "3-inch-ips": 3574,
+            "4-inch-ips": 6880,
+            "6-inch-ips": 18945,
+            "8-inch-ips": 29325
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 534,
+            "2-inch-ips": 1613,
+            "3-inch-ips": 3475,
+            "4-inch-ips": 6712,
+            "6-inch-ips": 18543,
+            "8-inch-ips": 28954
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 512,
+            "2-inch-ips": 1544,
+            "3-inch-ips": 3384,
+            "4-inch-ips": 6555,
+            "6-inch-ips": 18163,
+            "8-inch-ips": 28596
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 493,
+            "2-inch-ips": 1482,
+            "3-inch-ips": 3299,
+            "4-inch-ips": 6408,
+            "6-inch-ips": 17805,
+            "8-inch-ips": 28251
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 475,
+            "2-inch-ips": 1427,
+            "3-inch-ips": 3220,
+            "4-inch-ips": 6269,
+            "6-inch-ips": 17466,
+            "8-inch-ips": 27916
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 459,
+            "2-inch-ips": 1378,
+            "3-inch-ips": 3146,
+            "4-inch-ips": 6139,
+            "6-inch-ips": 17144,
+            "8-inch-ips": 27593
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 445,
+            "2-inch-ips": 1333,
+            "3-inch-ips": 3077,
+            "4-inch-ips": 6016,
+            "6-inch-ips": 16838,
+            "8-inch-ips": 27279
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 431,
+            "2-inch-ips": 1291,
+            "3-inch-ips": 3011,
+            "4-inch-ips": 5900,
+            "6-inch-ips": 16547,
+            "8-inch-ips": 26976
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 419,
+            "2-inch-ips": 1253,
+            "3-inch-ips": 2950,
+            "4-inch-ips": 5790,
+            "6-inch-ips": 16270,
+            "8-inch-ips": 26682
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 408,
+            "2-inch-ips": 1219,
+            "3-inch-ips": 2891,
+            "4-inch-ips": 5685,
+            "6-inch-ips": 16005,
+            "8-inch-ips": 26396
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 397,
+            "2-inch-ips": 1186,
+            "3-inch-ips": 2836,
+            "4-inch-ips": 5586,
+            "6-inch-ips": 15752,
+            "8-inch-ips": 26119
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 388,
+            "2-inch-ips": 1156,
+            "3-inch-ips": 2784,
+            "4-inch-ips": 5491,
+            "6-inch-ips": 15510,
+            "8-inch-ips": 25850
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 379,
+            "2-inch-ips": 1128,
+            "3-inch-ips": 2734,
+            "4-inch-ips": 5401,
+            "6-inch-ips": 15278,
+            "8-inch-ips": 25589
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 370,
+            "2-inch-ips": 1102,
+            "3-inch-ips": 2687,
+            "4-inch-ips": 5314,
+            "6-inch-ips": 15056,
+            "8-inch-ips": 25335
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 362,
+            "2-inch-ips": 1087,
+            "3-inch-ips": 2642,
+            "4-inch-ips": 5232,
+            "6-inch-ips": 14842,
+            "8-inch-ips": 25087
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 354,
+            "2-inch-ips": 1054,
+            "3-inch-ips": 2608,
+            "4-inch-ips": 5153,
+            "6-inch-ips": 14636,
+            "8-inch-ips": 24847
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 347,
+            "2-inch-ips": 1033,
+            "3-inch-ips": 2558,
+            "4-inch-ips": 5077,
+            "6-inch-ips": 14439,
+            "8-inch-ips": 24613
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Low Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 5.5,
+          "unit": "inWC"
+        },
+        "allowablePressureLoss": {
+          "value": 0.5,
+          "unit": "inWC"
+        }
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 3
+      }
+    },
+    {
+      "id": "steel-new-intermediate",
+      "material": "steel",
+      "status": "new",
+      "pressureClass": "intermediate",
+      "sizes": [
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Steel"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Steel"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Steel"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Steel"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Steel"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Steel"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3996,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3685,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3522,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3378,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3249,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3133,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 3028,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2932,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2844,
+            "2-inch-ips": 8791,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2764,
+            "2-inch-ips": 8259,
+            "3-inch-ips": 19431,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2689,
+            "2-inch-ips": 8029,
+            "3-inch-ips": 19047,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2620,
+            "2-inch-ips": 7816,
+            "3-inch-ips": 18684,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2555,
+            "2-inch-ips": 7618,
+            "3-inch-ips": 18340,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2495,
+            "2-inch-ips": 7434,
+            "3-inch-ips": 18013,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2438,
+            "2-inch-ips": 7262,
+            "3-inch-ips": 17702,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2385,
+            "2-inch-ips": 7100,
+            "3-inch-ips": 17405,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2335,
+            "2-inch-ips": 6948,
+            "3-inch-ips": 17122,
+            "4-inch-ips": 33941,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 2288,
+            "2-inch-ips": 6805,
+            "3-inch-ips": 16851,
+            "4-inch-ips": 33441,
+            "6-inch-ips": 78200,
+            "8-inch-ips": 131191
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - Intermediate Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 1.5,
+          "unit": "psig"
+        },
+        "allowablePressureLoss": {
+          "value": 0.5,
+          "unit": "psig"
+        },
+        "maximumVelocityFps": 100
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 3
+      }
+    },
+    {
+      "id": "steel-new-high",
+      "material": "steel",
+      "status": "new",
+      "pressureClass": "high",
+      "sizes": [
+        {
+          "id": "1-1-4-inch-ips",
+          "label": "1 1/4\" IPS",
+          "sourceColumn": "1 1/4\" IPS Steel"
+        },
+        {
+          "id": "2-inch-ips",
+          "label": "2\" IPS",
+          "sourceColumn": "2\" IPS Steel"
+        },
+        {
+          "id": "3-inch-ips",
+          "label": "3\" IPS",
+          "sourceColumn": "3\" IPS Steel"
+        },
+        {
+          "id": "4-inch-ips",
+          "label": "4\" IPS",
+          "sourceColumn": "4\" IPS Steel"
+        },
+        {
+          "id": "6-inch-ips",
+          "label": "6\" IPS",
+          "sourceColumn": "6\" IPS Steel"
+        },
+        {
+          "id": "8-inch-ips",
+          "label": "8\" IPS",
+          "sourceColumn": "8\" IPS Steel"
+        }
+      ],
+      "rows": [
+        {
+          "lengthFt": 5,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "5 ft"
+          }
+        },
+        {
+          "lengthFt": 10,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "10 ft"
+          }
+        },
+        {
+          "lengthFt": 15,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "15 ft"
+          }
+        },
+        {
+          "lengthFt": 20,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "20 ft"
+          }
+        },
+        {
+          "lengthFt": 25,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "25 ft"
+          }
+        },
+        {
+          "lengthFt": 30,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "30 ft"
+          }
+        },
+        {
+          "lengthFt": 35,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 6021,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "35 ft"
+          }
+        },
+        {
+          "lengthFt": 40,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 5806,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "40 ft"
+          }
+        },
+        {
+          "lengthFt": 45,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 5611,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "45 ft"
+          }
+        },
+        {
+          "lengthFt": 50,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 5434,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "50 ft"
+          }
+        },
+        {
+          "lengthFt": 55,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 5271,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "55 ft"
+          }
+        },
+        {
+          "lengthFt": 60,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 5121,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "60 ft"
+          }
+        },
+        {
+          "lengthFt": 65,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 4983,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "65 ft"
+          }
+        },
+        {
+          "lengthFt": 70,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 4855,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "70 ft"
+          }
+        },
+        {
+          "lengthFt": 75,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 4735,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "75 ft"
+          }
+        },
+        {
+          "lengthFt": 80,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 4623,
+            "2-inch-ips": 13776,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "80 ft"
+          }
+        },
+        {
+          "lengthFt": 85,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 4519,
+            "2-inch-ips": 13465,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "85 ft"
+          }
+        },
+        {
+          "lengthFt": 90,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 4421,
+            "2-inch-ips": 13166,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "90 ft"
+          }
+        },
+        {
+          "lengthFt": 95,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 4328,
+            "2-inch-ips": 12885,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "95 ft"
+          }
+        },
+        {
+          "lengthFt": 100,
+          "capacitiesCfh": {
+            "1-1-4-inch-ips": 4241,
+            "2-inch-ips": 12620,
+            "3-inch-ips": 29483,
+            "4-inch-ips": 51144,
+            "6-inch-ips": 117561,
+            "8-inch-ips": 118874
+          },
+          "source": {
+            "document": "maximum-service-capacity",
+            "page": 3,
+            "table": "New Steel Services - High Pressure System",
+            "rowLabel": "100 ft"
+          }
+        }
+      ],
+      "assumptions": {
+        "mainPressure": {
+          "value": 10,
+          "unit": "psig"
+        },
+        "allowablePressureLoss": {
+          "value": 1,
+          "unit": "psig"
+        },
+        "maximumVelocityFps": 100
+      },
+      "source": {
+        "document": "maximum-service-capacity",
+        "page": 3
+      }
+    }
+  ],
+  "mixedPlastic": {
+    "id": "plastic-new-low-mixed-1-cts-1-1-4-ips",
+    "material": "plastic",
+    "status": "new",
+    "pressureClass": "low",
+    "oneInchCtsSizeLabel": "1\" CTS",
+    "remainderSizeLabel": "1 1/4\" IPS",
+    "loadColumnsCfh": [
+      250,
+      300,
+      350,
+      400,
+      450,
+      500,
+      550,
+      600,
+      650,
+      700
+    ],
+    "rows": [
+      {
+        "lengthFt": 15,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 15,
+          "300": 15,
+          "350": 15,
+          "400": 14,
+          "450": 12,
+          "500": 10,
+          "550": 7,
+          "600": 5,
+          "650": 3,
+          "700": 1
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "15 ft"
+        }
+      },
+      {
+        "lengthFt": 20,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 20,
+          "300": 20,
+          "350": 20,
+          "400": 13,
+          "450": 12,
+          "500": 10,
+          "550": 6,
+          "600": 4,
+          "650": 2,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "20 ft"
+        }
+      },
+      {
+        "lengthFt": 25,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 25,
+          "300": 25,
+          "350": 21,
+          "400": 13,
+          "450": 12,
+          "500": 10,
+          "550": 6,
+          "600": 3,
+          "650": 1,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "25 ft"
+        }
+      },
+      {
+        "lengthFt": 30,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 30,
+          "300": 30,
+          "350": 21,
+          "400": 12,
+          "450": 12,
+          "500": 9,
+          "550": 4,
+          "600": 2,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "30 ft"
+        }
+      },
+      {
+        "lengthFt": 35,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 35,
+          "300": 31,
+          "350": 20,
+          "400": 12,
+          "450": 12,
+          "500": 8,
+          "550": 4,
+          "600": 1,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "35 ft"
+        }
+      },
+      {
+        "lengthFt": 40,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 40,
+          "300": 30,
+          "350": 19,
+          "400": 11,
+          "450": 11,
+          "500": 7,
+          "550": 3,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "40 ft"
+        }
+      },
+      {
+        "lengthFt": 45,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 45,
+          "300": 30,
+          "350": 17,
+          "400": 11,
+          "450": 10,
+          "500": 7,
+          "550": 2,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "45 ft"
+        }
+      },
+      {
+        "lengthFt": 50,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 47,
+          "300": 29,
+          "350": 17,
+          "400": 9,
+          "450": 9,
+          "500": 6,
+          "550": 1,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "50 ft"
+        }
+      },
+      {
+        "lengthFt": 55,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 47,
+          "300": 29,
+          "350": 16,
+          "400": 8,
+          "450": 8,
+          "500": 5,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "55 ft"
+        }
+      },
+      {
+        "lengthFt": 60,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 47,
+          "300": 29,
+          "350": 16,
+          "400": 8,
+          "450": 7,
+          "500": 4,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "60 ft"
+        }
+      },
+      {
+        "lengthFt": 65,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 47,
+          "300": 29,
+          "350": 15,
+          "400": 7,
+          "450": 6,
+          "500": 3,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "65 ft"
+        }
+      },
+      {
+        "lengthFt": 70,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 47,
+          "300": 28,
+          "350": 14,
+          "400": 6,
+          "450": 6,
+          "500": 2,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "70 ft"
+        }
+      },
+      {
+        "lengthFt": 75,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 47,
+          "300": 27,
+          "350": 14,
+          "400": 5,
+          "450": 5,
+          "500": 1,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "75 ft"
+        }
+      },
+      {
+        "lengthFt": 80,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 46,
+          "300": 26,
+          "350": 13,
+          "400": 4,
+          "450": 4,
+          "500": 0,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "80 ft"
+        }
+      },
+      {
+        "lengthFt": 85,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 45,
+          "300": 26,
+          "350": 12,
+          "400": 3,
+          "450": 3,
+          "500": 0,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "85 ft"
+        }
+      },
+      {
+        "lengthFt": 90,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 44,
+          "300": 25,
+          "350": 11,
+          "400": 2,
+          "450": 2,
+          "500": 0,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "90 ft"
+        }
+      },
+      {
+        "lengthFt": 95,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 43,
+          "300": 24,
+          "350": 10,
+          "400": 1,
+          "450": 1,
+          "500": 0,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "95 ft"
+        }
+      },
+      {
+        "lengthFt": 100,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 43,
+          "300": 23,
+          "350": 10,
+          "400": 1,
+          "450": 1,
+          "500": 0,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "100 ft"
+        }
+      },
+      {
+        "lengthFt": 105,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 42,
+          "300": 23,
+          "350": 9,
+          "400": 0,
+          "450": 0,
+          "500": 0,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "105 ft"
+        }
+      },
+      {
+        "lengthFt": 110,
+        "allowedOneInchCtsFtByLoadCfh": {
+          "250": 41,
+          "300": 22,
+          "350": 7,
+          "400": 0,
+          "450": 0,
+          "500": 0,
+          "550": 0,
+          "600": 0,
+          "650": 0,
+          "700": 0
+        },
+        "source": {
+          "document": "maximum-service-capacity",
+          "page": 2,
+          "table": "New Plastic Services - Mixed 1-inch CTS and 1-1/4-inch IPS",
+          "rowLabel": "110 ft"
+        }
+      }
+    ],
+    "assumptions": {
+      "mainPressure": {
+        "value": 5.5,
+        "unit": "inWC"
+      },
+      "allowablePressureLoss": {
+        "value": 1,
+        "unit": "inWC"
+      }
+    },
+    "source": {
+      "document": "maximum-service-capacity",
+      "page": 2
+    }
+  }
+}

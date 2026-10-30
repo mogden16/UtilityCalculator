@@ -1,0 +1,210 @@
+{
+  "connectionRules": [
+    {
+      "id": "threaded-low-ip-hp-up-to-14-inwc-3-in-or-less",
+      "inletClasses": [
+        "low",
+        "intermediate",
+        "high"
+      ],
+      "maximumOutlet": {
+        "value": 14,
+        "unit": "inWC",
+        "inclusive": true
+      },
+      "maximumMeterSizeInches": 3,
+      "connection": "threaded",
+      "note": null
+    },
+    {
+      "id": "threaded-high-up-to-2-psig-2-in-or-less",
+      "inletClasses": [
+        "high"
+      ],
+      "maximumOutlet": {
+        "value": 2,
+        "unit": "psig",
+        "inclusive": true
+      },
+      "maximumMeterSizeInches": 2,
+      "connection": "threaded",
+      "note": null
+    },
+    {
+      "id": "threaded-over-35-under-20-psig-1-in-or-less",
+      "minimumInletPsig": 35,
+      "minimumInletExclusive": true,
+      "maximumOutlet": {
+        "value": 20,
+        "unit": "psig",
+        "inclusive": false
+      },
+      "maximumMeterSizeInches": 1,
+      "connection": "threaded",
+      "note": "Schedule 80 required"
+    },
+    {
+      "id": "welded-all-pressures-4-in-and-above",
+      "minimumMeterSizeInches": 4,
+      "connection": "welded",
+      "note": null
+    },
+    {
+      "id": "welded-ip-hp-over-14-inwc-3-in-and-above",
+      "inletClasses": [
+        "intermediate",
+        "high"
+      ],
+      "minimumOutlet": {
+        "value": 14,
+        "unit": "inWC",
+        "exclusive": true
+      },
+      "minimumMeterSizeInches": 3,
+      "connection": "welded",
+      "note": null
+    },
+    {
+      "id": "welded-high-over-2-psig-2-in-and-above",
+      "inletClasses": [
+        "high"
+      ],
+      "minimumOutlet": {
+        "value": 2,
+        "unit": "psig",
+        "exclusive": true
+      },
+      "minimumMeterSizeInches": 2,
+      "connection": "welded",
+      "note": null
+    },
+    {
+      "id": "welded-over-35-all-pressures-2-in-and-above",
+      "minimumInletPsig": 35,
+      "minimumInletExclusive": true,
+      "minimumMeterSizeInches": 2,
+      "connection": "welded",
+      "note": "Source states: we do not weld less than 2 inches"
+    }
+  ],
+  "overpressureSettings": [
+    {
+      "customerDelivery": {
+        "value": 4.5,
+        "unit": "inWC"
+      },
+      "recommendedMonitor": {
+        "value": 9,
+        "unit": "inWC"
+      },
+      "maximumMonitor": {
+        "value": 1,
+        "unit": "psig",
+        "exclusive": true
+      }
+    },
+    {
+      "customerDelivery": {
+        "value": 9,
+        "unit": "inWC"
+      },
+      "recommendedMonitor": {
+        "value": 14,
+        "unit": "inWC"
+      },
+      "maximumMonitor": {
+        "value": 1,
+        "unit": "psig",
+        "exclusive": true
+      }
+    },
+    {
+      "customerDelivery": {
+        "value": 11,
+        "unit": "inWC"
+      },
+      "recommendedMonitor": {
+        "value": 16,
+        "unit": "inWC"
+      },
+      "maximumMonitor": {
+        "value": 1,
+        "unit": "psig",
+        "exclusive": true
+      }
+    },
+    {
+      "customerDelivery": {
+        "value": 14,
+        "unit": "inWC"
+      },
+      "recommendedMonitor": {
+        "value": 21,
+        "unit": "inWC"
+      },
+      "maximumMonitor": {
+        "value": 1,
+        "unit": "psig",
+        "exclusive": true
+      }
+    },
+    {
+      "customerDelivery": {
+        "value": 1,
+        "unit": "psig"
+      },
+      "recommendedMonitor": {
+        "value": 1.25,
+        "unit": "psig"
+      },
+      "maximumMonitor": {
+        "value": 1.5,
+        "unit": "psig"
+      }
+    },
+    {
+      "customerDelivery": {
+        "value": 2,
+        "unit": "psig"
+      },
+      "recommendedMonitor": {
+        "value": 2.5,
+        "unit": "psig"
+      },
+      "maximumMonitor": {
+        "value": 3,
+        "unit": "psig"
+      }
+    },
+    {
+      "customerDelivery": {
+        "value": 5,
+        "unit": "psig"
+      },
+      "recommendedMonitor": {
+        "value": 6,
+        "unit": "psig"
+      },
+      "maximumMonitor": {
+        "value": 7.5,
+        "unit": "psig"
+      }
+    }
+  ],
+  "source": {
+    "document": "meter-regulator-guidelines",
+    "worksheet": "Threaded vs Welded DS14.9",
+    "embeddedImages": [
+      {
+        "anchorCell": "C2",
+        "topic": "connection guidelines",
+        "revision": "SAG 11/03/2010"
+      },
+      {
+        "anchorCell": "Q1",
+        "topic": "overpressure protection settings",
+        "revision": "not stated"
+      }
+    ]
+  }
+}

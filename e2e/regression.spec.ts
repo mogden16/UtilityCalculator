@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const routes = [
   ["/load-converter", "Gas Demand & Conversions"],
+  ["/gas-equipment-sizing", "Gas Service, Meter & Regulator Sizing"],
   ["/energy-cost-comparison", "Customer Energy Comparison"],
   ["/chp", "CHP Feasibility"],
   ["/emissions", "Emissions & Grid Analysis"],
@@ -32,6 +33,13 @@ test("core calculation baselines remain correct", async ({ page }) => {
 
   await page.goto("/gas-flow");
   await expect(page.getByText("Required gas flow").locator("..")).toContainText("242");
+
+  await page.goto("/gas-equipment-sizing");
+  await expect(page.getByText("Qualifying service").locator("..")).toContainText('1 1/4" IPS');
+  await expect(page.getByText("452 CFH", { exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: "Meter" }).click();
+  await expect(page.getByText("Turbine · 45° rotor")).toBeVisible();
+  await expect(page.getByText("18,000 CFH", { exact: true }).first()).toBeVisible();
 
   await page.goto("/unit-conversions");
   await page.getByLabel("Input value").fill("100000");
@@ -94,6 +102,7 @@ test("mobile navigation stays compact and usable", async ({ browser }) => {
 
   const mobileNav = page.getByRole("navigation", { name: "Primary mobile navigation" });
   await expect(mobileNav.getByRole("link", { name: "Gas", exact: true })).toBeVisible();
+  await expect(mobileNav.getByRole("link", { name: "Size", exact: true })).toBeVisible();
   await mobileNav.getByRole("link", { name: "Gas", exact: true }).click();
   await expect(page).toHaveURL(/\/load-converter\/?$/);
   await expect(page.getByRole("heading", { name: "Gas Demand & Conversions", exact: true })).toBeVisible();

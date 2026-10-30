@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   Leaf,
   Search,
+  Settings2,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -31,6 +32,7 @@ const TOOLS: Array<{
   { href: "/emissions", name: "Emissions", description: "Carbon comparison", keywords: "co2 grid pjm gas heat pump", icon: Leaf, primary: true },
   { href: "/load-estimator", name: "Facility Load", description: "Heating and cooling screen", keywords: "square feet tons mbh building", icon: Building2 },
   { href: "/gas-flow", name: "Gas Flow", description: "CFH, MCFH, therms", keywords: "demand natural gas", icon: Gauge },
+  { href: "/gas-equipment-sizing", name: "Gas Equipment Sizing", description: "Service, meter, regulator", keywords: "pipe service capacity diaphragm rotary turbine regulator threaded welded", icon: Settings2 },
   { href: "/unit-conversions", name: "Unit Conversions", description: "Energy, power and pressure", keywords: "temperature flow btu kwh mmbtu", icon: ArrowLeftRight },
 ];
 

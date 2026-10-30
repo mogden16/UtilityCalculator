@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calculator, ChartNoAxesCombined, Factory, Flame, Home } from "lucide-react";
+import { Calculator, ChartNoAxesCombined, Factory, Flame, Home, Settings2 } from "lucide-react";
 
 import { TOOL_ROUTES } from "@/lib/site";
 
 const MOBILE_ROUTES = [
   { href: "/", label: "Home", icon: Home },
   { href: "/load-converter", label: "Gas", icon: Flame },
+  { href: "/gas-equipment-sizing", label: "Size", icon: Settings2 },
   { href: "/energy-cost-comparison", label: "Compare", icon: ChartNoAxesCombined },
   { href: "/chp", label: "CHP", icon: Factory },
   { href: "/unit-conversions", label: "Convert", icon: Calculator },
@@ -45,7 +46,7 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Primary mobile navigation"
-      className="safe-bottom fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-border/80 bg-background/95 px-1 backdrop-blur lg:hidden"
+      className="safe-bottom fixed inset-x-0 bottom-0 z-50 grid grid-cols-6 border-t border-border/80 bg-background/95 px-1 backdrop-blur lg:hidden"
     >
       {MOBILE_ROUTES.map(({ href, label, icon: Icon }) => {
         const active = pathname === href || (href === "/load-converter" && pathname === "/gas-flow");

@@ -14,6 +14,13 @@ export const TOOL_ROUTES = [
     icon: "calculator",
   },
   {
+    href: "/gas-equipment-sizing",
+    label: "Gas Equipment Sizing",
+    shortLabel: "Gas Size",
+    description: "Screen service capacity and source-listed meter and regulator arrangements.",
+    icon: "gauge",
+  },
+  {
     href: "/energy-cost-comparison",
     label: "Energy Cost Comparison",
     shortLabel: "Cost Compare",

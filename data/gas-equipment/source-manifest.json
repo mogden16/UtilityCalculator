@@ -1,0 +1,39 @@
+{
+  "documents": [
+    {
+      "id": "maximum-service-capacity",
+      "title": "Maximum Service Capacity Table (5913_0)",
+      "format": "PDF",
+      "revision": "Last updated 2022-03-22",
+      "sha256": "07509fb69b42580fb34563032378c232c7c0168205106a148c0cce4374976ab7",
+      "publicFileIncluded": false
+    },
+    {
+      "id": "meter-regulator-guidelines",
+      "title": "Meter & Regulator Selection Guidelines (DS14.11 / DS14.9)",
+      "format": "XLSX",
+      "revision": "Workbook modified 2025-03-26; worksheet identifiers DS14.11 and DS14.9",
+      "sha256": "49a09438cc7bfb40273ff8bdbb8a0d2b7dc255dc2f3872bf1dc2d06f39501309",
+      "publicFileIncluded": false,
+      "publicExclusions": [
+        "stock numbers",
+        "embedded source workbook"
+      ]
+    },
+    {
+      "id": "rotary-turbine-final",
+      "title": "Rotary & Turbine Meter Capacity Table (Final Revision)",
+      "format": "XLSX",
+      "revision": "Workbook modified 2022-11-09",
+      "sha256": "034b6d72f784f6e6b0256806360c00e60ebaa47978d39293cbd94733c46ddbae",
+      "publicFileIncluded": false,
+      "publicExclusions": [
+        "pricing worksheet",
+        "embedded source workbook"
+      ]
+    }
+  ],
+  "websiteDemandHeatingValueBtuPerCf": 1035,
+  "servicePdfExampleHeatingValueBtuPerCf": 1000,
+  "runtimeSourceParsingRequired": false
+}
