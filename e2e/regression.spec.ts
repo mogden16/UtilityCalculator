@@ -4,6 +4,7 @@ const routes = [
   ["/load-converter", "Gas Demand & Conversions"],
   ["/gas-equipment-sizing", "Gas Service, Meter & Regulator Sizing"],
   ["/energy-cost-comparison", "Customer Energy Comparison"],
+  ["/feasibility-studio", "Feasibility Studio"],
   ["/chp", "CHP Feasibility"],
   ["/emissions", "Emissions & Grid Analysis"],
   ["/load-estimator", "Facility Load Screening"],
@@ -52,6 +53,30 @@ test("core calculation baselines remain correct", async ({ page }) => {
   await page.goto("/emissions");
   await expect(page.getByText("Direct gas combustion")).toBeVisible();
   await expect(page.getByText("Grid-average heat pump")).toBeVisible();
+});
+
+test("feasibility studio completes a traceable fuel-conversion screening", async ({ page }) => {
+  await page.goto("/feasibility-studio");
+  await page.getByLabel("Project name *").fill("Boiler conversion");
+  await page.getByLabel("Facility name *").fill("Test facility");
+  await page.getByRole("button", { name: /Continue/ }).click();
+
+  await page.getByLabel("Account name / ID").fill("Oil account");
+  await page.getByLabel("Utility", { exact: true }).selectOption("fuel_oil_no2");
+  await page.getByLabel("Period start").fill("2025-01-01");
+  await page.getByLabel("Period end").fill("2025-12-31");
+  await page.getByLabel("Usage", { exact: true }).fill("10000");
+  await page.getByLabel("Total charges").fill("40000");
+  await page.getByRole("button", { name: "Add billing period" }).click();
+  await expect(page.getByText("1 billing period", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: /Continue/ }).click();
+
+  await page.getByRole("button", { name: /No\. 2 fuel oil → natural gas/ }).click();
+  await page.getByRole("button", { name: /Continue/ }).click();
+  await page.getByRole("button", { name: "Use 1 bill" }).click();
+  await page.getByRole("button", { name: /Continue/ }).click();
+  await expect(page.getByText("Expected annual net operating savings")).toBeVisible();
+  await expect(page.getByText("1,160 MCF/yr")).toBeVisible();
 });
 
 test("visible calculator controls have accessible names", async ({ page }) => {
@@ -157,7 +182,7 @@ test("homepage promotes exactly the four requested primary tools", async ({ page
 
   const moreSection = page.getByRole("heading", { name: "More engineering tools" }).locator("..");
   const moreHrefs = await moreSection.locator("a").evaluateAll((links) => links.map((link) => link.getAttribute("href")?.replace(/\/$/, "")));
-  expect(moreHrefs).toEqual(["/chp", "/emissions", "/load-estimator"]);
+  expect(moreHrefs).toEqual(["/feasibility-studio", "/chp", "/emissions", "/load-estimator"]);
   await expect(page.locator('main a[href="/gas-flow"]')).toHaveCount(0);
 });
 

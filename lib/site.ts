@@ -28,6 +28,13 @@ export const TOOL_ROUTES = [
     icon: "scale",
   },
   {
+    href: "/feasibility-studio",
+    label: "Feasibility Studio",
+    shortLabel: "Studio",
+    description: "Review utility data, screen projects, and prepare preliminary engineering reports.",
+    icon: "clipboard",
+  },
+  {
     href: "/chp",
     label: "Onsite Generation",
     shortLabel: "CHP",

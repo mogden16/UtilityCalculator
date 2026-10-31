@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calculator, ChartNoAxesCombined, Factory, Flame, Home, Settings2 } from "lucide-react";
+import { Calculator, ChartNoAxesCombined, ClipboardList, Flame, Home, Settings2 } from "lucide-react";
 
 import { TOOL_ROUTES } from "@/lib/site";
 
@@ -11,7 +11,7 @@ const MOBILE_ROUTES = [
   { href: "/load-converter", label: "Gas", icon: Flame },
   { href: "/gas-equipment-sizing", label: "Size", icon: Settings2 },
   { href: "/energy-cost-comparison", label: "Compare", icon: ChartNoAxesCombined },
-  { href: "/chp", label: "CHP", icon: Factory },
+  { href: "/feasibility-studio", label: "Studio", icon: ClipboardList },
   { href: "/unit-conversions", label: "Convert", icon: Calculator },
 ] as const;
 

@@ -125,6 +125,43 @@
   input[type="number"] { font-variant-numeric: tabular-nums; }
 }
 
+@media print {
+  @page {
+    size: letter;
+    margin: 0.55in;
+  }
+
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  body,
+  main {
+    background: white !important;
+    color: #0f172a !important;
+  }
+
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  #feasibility-report {
+    display: block !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .break-inside-avoid {
+    break-inside: avoid;
+  }
+}
+
 .safe-top {
   padding-top: env(safe-area-inset-top);
 }

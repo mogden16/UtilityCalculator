@@ -1,6 +1,6 @@
 # Utility Calculator
 
-A mobile-first utility engineering and customer-solutions toolkit for gas demand, equal-useful-heat cost comparison, CHP screening, facility loads, emissions, and general unit conversion.
+A mobile-first utility engineering and customer-solutions toolkit for feasibility studies, gas demand, equal-useful-heat cost comparison, CHP screening, facility loads, emissions, and general unit conversion.
 
 The public application is task-oriented. Repository history, architecture, and validation details live here rather than on the homepage. The full route audit is in [`docs/ux-audit-and-route-plan.md`](docs/ux-audit-and-route-plan.md).
 
@@ -15,6 +15,7 @@ The public application is task-oriented. Repository history, architecture, and v
 
 ## Routes
 
+- `/feasibility-studio` provides local-first utility-data review, fuel-conversion engineering, financial sensitivity analysis, and print-ready preliminary reports.
 - `/load-converter` is the primary gas-demand and load-conversion workflow.
 - `/gas-equipment-sizing` performs preliminary source-table service, meter, and regulator screening.
 - `/energy-cost-comparison` normalizes unlike energy sources to delivered MMBtu.
@@ -76,6 +77,8 @@ The load estimator is intentionally labeled as heuristic. Use it for early scree
 CHP results are preliminary screening estimates. The model separately calculates CHP fuel, available and utilized recovered heat, avoided boiler fuel, residual boiler fuel, electric energy and demand savings, maintenance, standby charges, capital, explicit incentives, and simple payback. Incentives default to zero and are never assumed eligible automatically.
 
 Shared engineering defaults are centralized in `lib/assumptions.ts`. The UI keeps important defaults editable and stores only the gas HHV assumption in browser-local storage; customer usage and cost inputs are not persisted.
+
+Feasibility Studio project and billing data remain in React state for the current browser tab. The MVP does not upload, persist, or send customer data to an AI service. CSV import retains source row locators; PDF and native XLSX extraction remain gated pending parser, security, and accuracy review. See [`docs/feasibility-studio-architecture.md`](docs/feasibility-studio-architecture.md) and [`docs/feasibility-studio-backlog.md`](docs/feasibility-studio-backlog.md).
 
 Gas-equipment reference data is generated ahead of time and requires no PDF or Excel parsing in the deployed site. See [`docs/gas-equipment-sizing-architecture.md`](docs/gas-equipment-sizing-architecture.md) for lookup rules and [`docs/gas-equipment-source-audit.md`](docs/gas-equipment-source-audit.md) for source discrepancies and public-data exclusions. The source generator is `scripts/extract_gas_equipment_data.py`; it intentionally excludes pricing and regulator stock numbers.
 
