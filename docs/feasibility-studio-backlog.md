@@ -25,7 +25,7 @@
 
 ## Milestone 5 — refinement
 
-- Add project JSON import/export after privacy and schema-version review.
+- Add project JSON import and explicit schema migrations; versioned local JSON export is implemented.
 - Add automated report-page visual regression and PDF metadata.
 - Add calculation version, assumption source versions, and reviewer sign-off fields.
 - Complete accessibility review with keyboard-only and screen-reader passes.

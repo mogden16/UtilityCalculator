@@ -7,6 +7,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Download,
+  FileJson2,
   FileSpreadsheet,
   FileText,
   Plus,
@@ -37,6 +38,12 @@ import {
   type UtilityType,
   type UtilityUnit,
 } from "@/lib/feasibility";
+import {
+  createFeasibilityProjectDocument,
+  createFeasibilityProvenance,
+  FEASIBILITY_ASSUMPTION_REFERENCES,
+  type FeasibilityProvenance,
+} from "@/lib/feasibility-version";
 import { formatCurrency, formatFixed, formatWhole } from "@/lib/format";
 
 const STEPS = ["Project", "Utility data", "Feasibility", "Assumptions", "Results", "Report"] as const;
@@ -108,6 +115,7 @@ export default function FeasibilityStudio() {
   const [importMessages, setImportMessages] = useState<string[]>([]);
   const [inputs, setInputs] = useState<EditableInputs>({ ...FEASIBILITY_DEFAULTS });
   const [recommendation, setRecommendation] = useState("Proceed to tariff review, site survey, load analysis, and budgetary vendor pricing before making an investment decision.");
+  const [reportGeneratedAt, setReportGeneratedAt] = useState(() => new Date().toISOString());
   const fileInput = useRef<HTMLInputElement>(null);
 
   const issues = useMemo(() => validateUtilityRecords(records), [records]);
@@ -123,6 +131,29 @@ export default function FeasibilityStudio() {
     }
   }, [calculationInputs]);
   const blockingIssues = issues.filter((issue) => issue.severity === "error").length;
+
+  function provenanceAt(generatedAt: string) {
+    return createFeasibilityProvenance({
+      project,
+      records,
+      inputs: calculationInputs,
+      recommendation,
+      generatedAt,
+    });
+  }
+
+  const reportProvenance = provenanceAt(reportGeneratedAt);
+
+  function goToStep(nextStep: number) {
+    const bounded = Math.max(0, Math.min(STEPS.length - 1, nextStep));
+    if (bounded === 5) setReportGeneratedAt(new Date().toISOString());
+    setStep(bounded);
+  }
+
+  function exportReviewedData() {
+    const provenance = provenanceAt(new Date().toISOString());
+    downloadText("utilitycalc-reviewed-utility-data.csv", recordsToCsv(records, provenance));
+  }
 
   function updateInput<K extends keyof EditableInputs>(key: K, value: EditableInputs[K]) {
     setInputs((current) => ({ ...current, [key]: value }));
@@ -213,7 +244,7 @@ export default function FeasibilityStudio() {
             <button
               key={label}
               type="button"
-              onClick={() => setStep(index)}
+              onClick={() => goToStep(index)}
               aria-current={step === index ? "step" : undefined}
               className={`min-h-12 rounded-lg px-2 text-xs font-medium transition sm:text-sm ${step === index ? "bg-primary text-primary-foreground" : index < step ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
             >
@@ -241,6 +272,7 @@ export default function FeasibilityStudio() {
           onImport={importCsv}
           onUpdate={updateRecord}
           onDelete={(id) => setRecords((current) => current.filter((record) => record.id !== id))}
+          onExport={exportReviewedData}
         />
       ) : null}
       {step === 2 ? <ScenarioStep selected={inputs.conversionType} onSelect={selectScenario} records={records} /> : null}
@@ -258,18 +290,19 @@ export default function FeasibilityStudio() {
         <ReportStep
           project={project}
           records={records}
-          inputs={inputs}
+          inputs={calculationInputs}
           result={result.value}
           issues={issues}
           recommendation={recommendation}
           setRecommendation={setRecommendation}
           ready={reportReady}
+          provenance={reportProvenance}
         />
       ) : null}
 
       <div className="no-print flex items-center justify-between gap-3">
-        <Button variant="outline" disabled={step === 0} onClick={() => setStep((current) => Math.max(0, current - 1))}><ArrowLeft className="h-4 w-4" /> Back</Button>
-        <Button disabled={step === STEPS.length - 1 || !canContinue} onClick={() => setStep((current) => Math.min(STEPS.length - 1, current + 1))}>Continue <ArrowRight className="h-4 w-4" /></Button>
+        <Button variant="outline" disabled={step === 0} onClick={() => goToStep(step - 1)}><ArrowLeft className="h-4 w-4" /> Back</Button>
+        <Button disabled={step === STEPS.length - 1 || !canContinue} onClick={() => goToStep(step + 1)}>Continue <ArrowRight className="h-4 w-4" /></Button>
       </div>
     </ToolPageShell>
   );
@@ -288,7 +321,7 @@ function ProjectStep({ project, setProject }: { project: { name: string; facilit
   );
 }
 
-function UtilityDataStep({ manual, setManual, records, issues, messages, fileInput, onAdd, onImport, onUpdate, onDelete }: {
+function UtilityDataStep({ manual, setManual, records, issues, messages, fileInput, onAdd, onImport, onUpdate, onDelete, onExport }: {
   manual: ManualRecord;
   setManual: React.Dispatch<React.SetStateAction<ManualRecord>>;
   records: UtilityRecord[];
@@ -299,6 +332,7 @@ function UtilityDataStep({ manual, setManual, records, issues, messages, fileInp
   onImport: (file: File) => void;
   onUpdate: (id: string, patch: Partial<UtilityRecord>) => void;
   onDelete: (id: string) => void;
+  onExport: () => void;
 }) {
   const update = <K extends keyof ManualRecord>(key: K, value: ManualRecord[K]) => setManual((current) => ({ ...current, [key]: value }));
   function changeUtility(value: UtilityType) {
@@ -327,12 +361,12 @@ function UtilityDataStep({ manual, setManual, records, issues, messages, fileInp
     </CardContent></Card>
 
     {messages.length ? <div className="rounded-xl border bg-muted/40 p-3 text-sm"><ul className="space-y-1">{messages.map((message) => <li key={message}>{message}</li>)}</ul></div> : null}
-    <UtilityReviewTable records={records} issues={issues} onUpdate={onUpdate} onDelete={onDelete} />
+    <UtilityReviewTable records={records} issues={issues} onUpdate={onUpdate} onDelete={onDelete} onExport={onExport} />
   </div>;
 }
 
-function UtilityReviewTable({ records, issues, onUpdate, onDelete }: { records: UtilityRecord[]; issues: ReturnType<typeof validateUtilityRecords>; onUpdate: (id: string, patch: Partial<UtilityRecord>) => void; onDelete: (id: string) => void }) {
-  return <Card><CardHeader className="flex-row items-center justify-between gap-3"><div><CardTitle>Review standardized utility data</CardTitle><p className="mt-1 text-sm text-muted-foreground">{records.length} billing period{records.length === 1 ? "" : "s"} · {issues.length} review flag{issues.length === 1 ? "" : "s"}</p></div>{records.length ? <Button variant="outline" onClick={() => downloadText("utilitycalc-reviewed-utility-data.csv", recordsToCsv(records))}><Download className="h-4 w-4" /> Export CSV</Button> : null}</CardHeader><CardContent className="space-y-4">
+function UtilityReviewTable({ records, issues, onUpdate, onDelete, onExport }: { records: UtilityRecord[]; issues: ReturnType<typeof validateUtilityRecords>; onUpdate: (id: string, patch: Partial<UtilityRecord>) => void; onDelete: (id: string) => void; onExport: () => void }) {
+  return <Card><CardHeader className="flex-row items-center justify-between gap-3"><div><CardTitle>Review standardized utility data</CardTitle><p className="mt-1 text-sm text-muted-foreground">{records.length} billing period{records.length === 1 ? "" : "s"} · {issues.length} review flag{issues.length === 1 ? "" : "s"}</p></div>{records.length ? <Button variant="outline" onClick={onExport}><Download className="h-4 w-4" /> Export versioned CSV</Button> : null}</CardHeader><CardContent className="space-y-4">
     {records.length ? <div className="overflow-x-auto"><table className="w-full min-w-[980px] text-left text-sm"><thead className="border-b text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="p-2">Account</th><th className="p-2">Utility</th><th className="p-2">Period</th><th className="p-2">Usage</th><th className="p-2">Total</th><th className="p-2">Tariff</th><th className="p-2">Source</th><th className="p-2">Confirm</th><th className="p-2"><span className="sr-only">Actions</span></th></tr></thead><tbody>{records.map((record) => <tr key={record.id} className="border-b align-top"><td className="p-2"><Input aria-label={`Account for ${record.source.locator}`} value={record.accountId} onChange={(event) => onUpdate(record.id, { accountId: event.target.value })} className="min-w-36" /></td><td className="p-2">{UTILITY_LABELS[record.utilityType]}</td><td className="p-2"><div className="whitespace-nowrap">{record.periodStart}</div><div className="whitespace-nowrap text-muted-foreground">to {record.periodEnd}</div></td><td className="p-2"><Input aria-label={`Usage for ${record.source.locator}`} type="number" value={record.usage} onChange={(event) => onUpdate(record.id, { usage: Number(event.target.value) })} className="w-28" /><span className="mt-1 block text-xs uppercase text-muted-foreground">{record.usageUnit}</span></td><td className="p-2"><Input aria-label={`Total cost for ${record.source.locator}`} type="number" value={record.totalCost} onChange={(event) => onUpdate(record.id, { totalCost: Number(event.target.value) })} className="w-28" /></td><td className="p-2"><Input aria-label={`Tariff for ${record.source.locator}`} value={record.tariffName ?? ""} onChange={(event) => onUpdate(record.id, { tariffName: event.target.value })} className="w-28" /></td><td className="p-2 text-xs text-muted-foreground">{record.source.locator}</td><td className="p-2"><label className="flex items-center gap-2"><input type="checkbox" checked={record.source.confidence === "confirmed"} onChange={(event) => onUpdate(record.id, { source: { ...record.source, confidence: event.target.checked ? "confirmed" : "review" } })} /> <span className="text-xs">Verified</span></label></td><td className="p-2"><Button variant="ghost" size="icon" aria-label={`Delete ${record.source.locator}`} onClick={() => onDelete(record.id)}><Trash2 className="h-4 w-4" /></Button></td></tr>)}</tbody></table></div> : <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">Add a bill manually or import the CSV template. No sample customer data is inserted automatically.</div>}
     {issues.length ? <div className="grid gap-2 sm:grid-cols-2">{issues.slice(0, 12).map((issue, index) => <div key={`${issue.code}-${index}`} className={`rounded-lg border p-3 text-sm ${issue.severity === "error" ? "border-red-300 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100" : issue.severity === "warning" ? "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100" : "bg-muted/40 text-muted-foreground"}`}>{issue.message}</div>)}</div> : records.length ? <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300"><CheckCircle2 className="h-4 w-4" /> No reconciliation flags found in the current rows.</div> : null}
   </CardContent></Card>;
@@ -371,10 +405,11 @@ function ResultsStep({ result, records, inputs, issues }: { result: { value: Ret
   </div>;
 }
 
-function ReportStep({ project, records, inputs, result, issues, recommendation, setRecommendation, ready }: { project: { name: string; facility: string; location: string; description: string }; records: UtilityRecord[]; inputs: EditableInputs; result: ReturnType<typeof calculateFuelConversion> | null; issues: ReturnType<typeof validateUtilityRecords>; recommendation: string; setRecommendation: (value: string) => void; ready: boolean }) {
-  return <div className="space-y-4"><div className="no-print flex flex-wrap items-center gap-2"><Button disabled={!ready} onClick={() => window.print()}><Printer className="h-4 w-4" /> Print / save PDF</Button><Button variant="outline" disabled={!records.length} onClick={() => downloadText("utilitycalc-feasibility-supporting-data.csv", recordsToCsv(records))}><Download className="h-4 w-4" /> Supporting CSV</Button>{!ready ? <span className="text-sm text-muted-foreground">Add a positive annual source quantity and resolve duplicate/overlap errors to issue the report.</span> : null}</div><div className="no-print space-y-1"><Label htmlFor="report-recommendation">Engineering recommendation draft</Label><textarea id="report-recommendation" value={recommendation} onChange={(event) => setRecommendation(event.target.value)} className="min-h-24 w-full rounded-lg border bg-background p-3 text-sm" /></div>
+function ReportStep({ project, records, inputs, result, issues, recommendation, setRecommendation, ready, provenance }: { project: { name: string; facility: string; location: string; description: string }; records: UtilityRecord[]; inputs: FuelConversionInputs; result: ReturnType<typeof calculateFuelConversion> | null; issues: ReturnType<typeof validateUtilityRecords>; recommendation: string; setRecommendation: (value: string) => void; ready: boolean; provenance: FeasibilityProvenance }) {
+  const projectDocument = createFeasibilityProjectDocument({ project, records, inputs, recommendation, provenance });
+  return <div className="space-y-4"><div className="no-print flex flex-wrap items-center gap-2"><Button disabled={!ready} onClick={() => window.print()}><Printer className="h-4 w-4" /> Print / save PDF</Button><Button variant="outline" disabled={!records.length} onClick={() => downloadText("utilitycalc-feasibility-supporting-data.csv", recordsToCsv(records, provenance))}><Download className="h-4 w-4" /> Supporting CSV</Button><Button variant="outline" onClick={() => downloadText("utilitycalc-feasibility-project.json", JSON.stringify(projectDocument, null, 2), "application/json;charset=utf-8")}><FileJson2 className="h-4 w-4" /> Versioned project JSON</Button>{!ready ? <span className="text-sm text-muted-foreground">Add a positive annual source quantity and resolve duplicate/overlap errors to issue the report.</span> : null}</div><div className="no-print space-y-1"><Label htmlFor="report-recommendation">Engineering recommendation draft</Label><textarea id="report-recommendation" value={recommendation} onChange={(event) => setRecommendation(event.target.value)} className="min-h-24 w-full rounded-lg border bg-background p-3 text-sm" /></div>
     <article id="feasibility-report" className="report-sheet space-y-7 rounded-2xl border bg-white p-6 text-slate-950 shadow-sm sm:p-10">
-      <header className="border-b border-slate-300 pb-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">UtilityCalc Feasibility Studio</p><h2 className="mt-2 text-3xl font-semibold">Preliminary Engineering Feasibility Report</h2><dl className="mt-5 grid gap-2 text-sm sm:grid-cols-2"><ReportItem label="Project" value={project.name || "Not provided"} /><ReportItem label="Facility" value={project.facility || "Not provided"} /><ReportItem label="Location" value={project.location || "Not provided"} /><ReportItem label="Study basis" value="Monthly utility-bill screening" /></dl></header>
+      <header className="border-b border-slate-300 pb-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">UtilityCalc Feasibility Studio</p><h2 className="mt-2 text-3xl font-semibold">Preliminary Engineering Feasibility Report</h2><dl className="mt-5 grid gap-2 text-sm sm:grid-cols-2"><ReportItem label="Project" value={project.name || "Not provided"} /><ReportItem label="Facility" value={project.facility || "Not provided"} /><ReportItem label="Location" value={project.location || "Not provided"} /><ReportItem label="Study basis" value="Monthly utility-bill screening" /><ReportItem label="Generated" value={new Date(provenance.generatedAt).toLocaleString()} /><ReportItem label="Input fingerprint" value={provenance.inputFingerprint} /></dl></header>
       <ReportSection number="1" title="Executive summary"><p>This preliminary screening evaluates {SCENARIO_META[inputs.conversionType].label.toLowerCase()} on an equal-useful-heat basis. {result ? `The expected case estimates ${money(result.annualNetSavings)} in annual net operating savings, ${money(result.netCapitalCost)} net capital cost, and ${payback(result.simplePaybackYears)}.` : "Complete the engineering assumptions before relying on financial results."}</p><p className="font-medium">This is a feasibility screen, not design engineering, a tariff determination, or a construction estimate.</p></ReportSection>
       <ReportSection number="2" title="Facility description"><p>{project.description || "No facility description was provided. Document occupancy, operating schedule, heating systems, distribution temperatures, redundancy, and planned changes during the site survey."}</p></ReportSection>
       <ReportSection number="3" title="Existing utility consumption"><p>{records.length ? `${records.length} billing periods across ${new Set(records.map((record) => record.accountId)).size} account(s) were reviewed.` : "No supporting utility bills were entered; annual use is an unsupported owner-entered assumption."}</p><ReportTable rows={Object.entries(UTILITY_LABELS).map(([type, label]) => { const utilityRecords = records.filter((record) => record.utilityType === type); const totals = annualUtilityTotals(utilityRecords); return [label, String(utilityRecords.length), utilityRecords.length ? `${formatWhole(totals.usage)} ${utilityRecords[0].usageUnit.toUpperCase()}` : "—", money(totals.totalCost)]; })} /></ReportSection>
@@ -389,8 +424,8 @@ function ReportStep({ project, records, inputs, result, issues, recommendation, 
       <ReportSection number="12" title="Missing information and field verification"><ul className="list-disc space-y-1 pl-5">{issues.length ? issues.map((issue, index) => <li key={`${issue.code}-${index}`}>{issue.message}</li>) : <li>No automated billing-period flags remain; tariff and field verification are still required.</li>}<li>Obtain interval or daily load data where capacity, demand reduction, or operating schedule matters.</li><li>Reconcile fuel oil delivery volumes to tank inventory and consumption where applicable.</li></ul></ReportSection>
       <ReportSection number="13" title="Engineering recommendation"><p>{recommendation}</p></ReportSection>
       <ReportSection number="14" title="Recommended next steps"><ol className="list-decimal space-y-1 pl-5"><li>Complete twelve or more consecutive months of bill and tariff review.</li><li>Perform a site survey and equipment inventory.</li><li>Develop a design-day load calculation independent of annual fuel use.</li><li>Confirm gas service, permitting, emissions, and utility requirements.</li><li>Obtain budgetary vendor proposals and update lifecycle economics.</li></ol></ReportSection>
-      <ReportSection number="15" title="Calculation methodology and supporting data"><p>Existing purchased energy is converted to MMBtu and multiplied by existing efficiency to estimate useful heat. Proposed gas input equals useful heat divided by proposed efficiency; MCF equals gas MMBtu divided by the editable HHV. Net savings include energy and maintenance differences. NPV discounts constant annual savings over {inputs.analysisYears} years at {inputs.discountRatePercent}% and subtracts net capital cost. Conservative and optimistic cases apply ±20% savings and +15%/−10% capital sensitivity.</p><p>Supporting billing rows and source locators are available in the companion CSV export.</p></ReportSection>
-      <footer className="border-t border-slate-300 pt-4 text-xs text-slate-600">Prepared with UtilityCalc Feasibility Studio · Preliminary screening for review by a qualified engineer · No professional seal or design certification is implied.</footer>
+      <ReportSection number="15" title="Calculation methodology and supporting data"><p>Existing purchased energy is converted to MMBtu and multiplied by existing efficiency to estimate useful heat. Proposed gas input equals useful heat divided by proposed efficiency; MCF equals gas MMBtu divided by the editable HHV. Net savings include energy and maintenance differences. NPV discounts constant annual savings over {inputs.analysisYears} years at {inputs.discountRatePercent}% and subtracts net capital cost. Conservative and optimistic cases apply ±20% savings and +15%/−10% capital sensitivity.</p><p>Supporting billing rows and source locators are available in the companion versioned CSV and project JSON exports.</p><h4 className="font-semibold">Version provenance</h4><ReportTable headings={["Version track", "Identifier", "Purpose"]} rows={[["Application", provenance.applicationVersion, "UtilityCalc release"], ["Project schema", provenance.projectSchemaVersion, "Saved project structure"], ["Calculation engine", provenance.calculationEngineVersion, "Equations and financial behavior"], ["Assumption set", provenance.assumptionSetVersion, "Default engineering values and references"], ["Report template", provenance.reportTemplateVersion, "Report structure and disclosures"], ["Build commit", provenance.buildCommit, "Deployed source revision when available"]]} /><h4 className="font-semibold">Default assumption references</h4><ReportTable headings={["Assumption ID", "Default", "Reference / applicability"]} rows={FEASIBILITY_ASSUMPTION_REFERENCES.map((assumption) => [assumption.id, `${assumption.defaultValue} ${assumption.unit}`, `${assumption.sourceTitle}; ${assumption.sourceRevision}. ${assumption.applicability}`])} /><p>The input fingerprint is a deterministic reproducibility checksum of project context, utility records, calculation inputs, recommendation, and version identifiers. It is not a cryptographic signature or tamper-evidence control.</p></ReportSection>
+      <footer className="border-t border-slate-300 pt-4 text-xs text-slate-600">Prepared with UtilityCalc Feasibility Studio {provenance.applicationVersion} · Engine {provenance.calculationEngineVersion} · {provenance.inputFingerprint} · Preliminary screening for review by a qualified engineer · No professional seal or design certification is implied.</footer>
     </article></div>;
 }
 

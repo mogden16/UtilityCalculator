@@ -1,4 +1,5 @@
 import { ENGINEERING_ASSUMPTIONS } from "@/lib/assumptions";
+import type { FeasibilityProvenance } from "@/lib/feasibility-version";
 
 export type UtilityType = "electricity" | "natural_gas" | "purchased_steam" | "fuel_oil_no2";
 export type UtilityUnit = "kwh" | "kw" | "mcf" | "dth" | "therm" | "mlb" | "gallon";
@@ -399,9 +400,12 @@ export function calculateFuelConversion(inputs: FuelConversionInputs): FuelConve
   };
 }
 
-export function recordsToCsv(records: UtilityRecord[]): string {
+export function recordsToCsv(records: UtilityRecord[], provenance?: FeasibilityProvenance): string {
   const escape = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
-  const header = "account_id,utility_type,period_start,period_end,usage,unit,total_cost,energy_cost,demand_cost,other_cost,demand_kw,estimated,tariff_name,notes,source";
+  const versionHeaders = provenance
+    ? ",project_schema_version,calculation_engine_version,assumption_set_version,report_template_version,application_version,build_commit,input_fingerprint,calculation_mode,generated_at"
+    : "";
+  const header = `account_id,utility_type,period_start,period_end,usage,unit,total_cost,energy_cost,demand_cost,other_cost,demand_kw,estimated,tariff_name,notes,source${versionHeaders}`;
   return [header, ...records.map((record) => [
     record.accountId,
     record.utilityType,
@@ -418,5 +422,16 @@ export function recordsToCsv(records: UtilityRecord[]): string {
     record.tariffName,
     record.notes,
     record.source.locator,
+    ...(provenance ? [
+      provenance.projectSchemaVersion,
+      provenance.calculationEngineVersion,
+      provenance.assumptionSetVersion,
+      provenance.reportTemplateVersion,
+      provenance.applicationVersion,
+      provenance.buildCommit,
+      provenance.inputFingerprint,
+      provenance.calculationMode,
+      provenance.generatedAt,
+    ] : []),
   ].map(escape).join(","))].join("\n");
 }

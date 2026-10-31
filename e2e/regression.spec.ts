@@ -77,6 +77,11 @@ test("feasibility studio completes a traceable fuel-conversion screening", async
   await page.getByRole("button", { name: /Continue/ }).click();
   await expect(page.getByText("Expected annual net operating savings")).toBeVisible();
   await expect(page.getByText("1,160 MCF/yr")).toBeVisible();
+  await page.getByRole("button", { name: /Continue/ }).click();
+  await expect(page.getByRole("heading", { name: "Version provenance" })).toBeVisible();
+  await expect(page.getByRole("row", { name: /Calculation engine 1\.0\.0/ })).toBeVisible();
+  await expect(page.getByText(/UCFS-[0-9A-F]{8}/).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Versioned project JSON" })).toBeEnabled();
 });
 
 test("visible calculator controls have accessible names", async ({ page }) => {

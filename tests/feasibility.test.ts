@@ -4,9 +4,16 @@ import {
   calculateFuelConversion,
   FEASIBILITY_DEFAULTS,
   parseUtilityCsv,
+  recordsToCsv,
   validateUtilityRecords,
   type UtilityRecord,
 } from "@/lib/feasibility";
+import {
+  createFeasibilityProjectDocument,
+  createFeasibilityProvenance,
+  FEASIBILITY_ASSUMPTION_REFERENCES,
+  FEASIBILITY_VERSIONS,
+} from "@/lib/feasibility-version";
 
 function record(overrides: Partial<UtilityRecord> = {}): UtilityRecord {
   return {
@@ -143,5 +150,55 @@ describe("fuel conversion engineering", () => {
   it("rejects impossible efficiencies and steam enthalpy assumptions", () => {
     expect(() => calculateFuelConversion({ ...FEASIBILITY_DEFAULTS, proposedEfficiency: 0 })).toThrow(/efficiencies/);
     expect(() => calculateFuelConversion({ ...FEASIBILITY_DEFAULTS, conversionType: "steam_to_gas", sourceUnit: "mlb", steamSupplyEnthalpyBtuPerLb: 100 })).toThrow(/enthalpy/);
+  });
+});
+
+describe("feasibility versioning and provenance", () => {
+  const project = { name: "Conversion study", facility: "Synthetic facility", location: "Test city", description: "Synthetic benchmark" };
+  const inputs = { ...FEASIBILITY_DEFAULTS, annualSourceQuantity: 10_000 };
+  const recommendation = "Continue to detailed engineering.";
+
+  it("creates a stable fingerprint independent of transient record IDs and row order", () => {
+    const firstRecords = [
+      record({ id: "transient-a", accountId: "A", source: { kind: "manual", locator: "A row", confidence: "confirmed" } }),
+      record({ id: "transient-b", accountId: "B", source: { kind: "manual", locator: "B row", confidence: "confirmed" } }),
+    ];
+    const secondRecords = [
+      { ...firstRecords[1], id: "different-b" },
+      { ...firstRecords[0], id: "different-a" },
+    ];
+    const first = createFeasibilityProvenance({ project, records: firstRecords, inputs, recommendation, generatedAt: "2026-10-30T12:00:00.000Z" });
+    const second = createFeasibilityProvenance({ project, records: secondRecords, inputs, recommendation, generatedAt: "2027-01-01T00:00:00.000Z" });
+    expect(first.inputFingerprint).toMatch(/^UCFS-[0-9A-F]{8}$/);
+    expect(second.inputFingerprint).toBe(first.inputFingerprint);
+  });
+
+  it("changes the fingerprint when an engineering input changes", () => {
+    const baseline = createFeasibilityProvenance({ project, records: [record()], inputs, recommendation, generatedAt: "2026-10-30T12:00:00.000Z" });
+    const revised = createFeasibilityProvenance({ project, records: [record()], inputs: { ...inputs, proposedEfficiency: 0.91 }, recommendation, generatedAt: "2026-10-30T12:00:00.000Z" });
+    expect(revised.inputFingerprint).not.toBe(baseline.inputFingerprint);
+  });
+
+  it("embeds version provenance in CSV and project JSON exports", () => {
+    const records = [record()];
+    const provenance = createFeasibilityProvenance({ project, records, inputs, recommendation, generatedAt: "2026-10-30T12:00:00.000Z" });
+    const csv = recordsToCsv(records, provenance);
+    expect(csv).toContain("calculation_engine_version");
+    expect(csv).toContain(`"${FEASIBILITY_VERSIONS.calculationEngineVersion}"`);
+    expect(csv).toContain(`"${provenance.inputFingerprint}"`);
+
+    const document = createFeasibilityProjectDocument({ project, records, inputs, recommendation, provenance });
+    expect(document.documentType).toBe("utilitycalc-feasibility-project");
+    expect(document.schemaVersion).toBe(FEASIBILITY_VERSIONS.projectSchemaVersion);
+    expect(document.provenance.inputFingerprint).toBe(provenance.inputFingerprint);
+    expect(document.assumptionReferences.length).toBeGreaterThan(3);
+  });
+
+  it("keeps versioned fuel defaults synchronized with the calculation defaults", () => {
+    const references = Object.fromEntries(FEASIBILITY_ASSUMPTION_REFERENCES.map((item) => [item.id, item.defaultValue]));
+    expect(references["natural-gas-hhv"]).toBe(FEASIBILITY_DEFAULTS.naturalGasHhvMmbtuPerMcf);
+    expect(references["no2-oil-hhv"]).toBe(FEASIBILITY_DEFAULTS.oilHhvMmbtuPerGallon);
+    expect(references["steam-supply-enthalpy"]).toBe(FEASIBILITY_DEFAULTS.steamSupplyEnthalpyBtuPerLb);
+    expect(references["steam-condensate-enthalpy"]).toBe(FEASIBILITY_DEFAULTS.steamCondensateEnthalpyBtuPerLb);
   });
 });

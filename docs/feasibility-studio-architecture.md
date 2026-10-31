@@ -14,6 +14,8 @@ The current release covers Milestone 1 and the Fuel Conversion MVP from Mileston
 - oil-to-gas, purchased-steam-to-gas, and gas-equipment-upgrade energy balances;
 - expected, conservative, and optimistic financial cases with simple payback and NPV;
 - supporting CSV export and a print stylesheet for browser PDF generation.
+- independent project-schema, calculation-engine, assumption-set, and report-template version tracks;
+- reproducibility fingerprints plus versioned CSV and local project JSON exports.
 
 ## Domain boundaries
 
@@ -39,6 +41,8 @@ PDF and native XLSX parsing are not enabled. The UI explains the CSV bridge and 
 ## Reporting
 
 The report is semantic HTML with print-specific Letter sizing. “Print / save PDF” invokes the browser print dialog so the user can create a PDF without sending data to a server. Supporting billing data and source locators are separately downloadable as CSV.
+
+Every report and export includes version provenance and a deterministic `UCFS-XXXXXXXX` input checksum. The checksum detects whether two artifacts were generated from the same canonical inputs and version identifiers; it is not a cryptographic signature. See [`feasibility-studio-versioning.md`](feasibility-studio-versioning.md).
 
 ## Validation
 
