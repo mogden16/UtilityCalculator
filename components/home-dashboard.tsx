@@ -30,10 +30,10 @@ const TOOLS: Array<{
   { href: "/gas-equipment-sizing", name: "Gas Equipment Sizing", description: "Service, meter, regulator", keywords: "pipe service capacity diaphragm rotary turbine regulator threaded welded", icon: Settings2, primary: true },
   { href: "/energy-cost-comparison", name: "Energy Savings", description: "Compare fuel costs", keywords: "cost payback electric oil propane heat pump cop", icon: CircleDollarSign, primary: true },
   { href: "/unit-conversions", name: "Conversions", description: "Energy, power and pressure", keywords: "unit temperature flow btu kwh mmbtu", icon: ArrowLeftRight, primary: true },
-  { href: "/feasibility-studio", name: "Feasibility Studio", description: "Bills, scenarios and reports", keywords: "fuel conversion utility bills csv report feasibility project steam oil gas", icon: ClipboardList },
   { href: "/chp", name: "Onsite Power", description: "CHP and generation", keywords: "cogeneration engine turbine payback", icon: Zap },
   { href: "/emissions", name: "Emissions", description: "Carbon comparison", keywords: "co2 grid pjm gas heat pump", icon: Leaf },
   { href: "/load-estimator", name: "Facility Load", description: "Heating and cooling screen", keywords: "square feet tons mbh building", icon: Building2 },
+  { href: "/feasibility-studio", name: "Feasibility Studio", description: "Bills, scenarios and reports", keywords: "fuel conversion utility bills csv report feasibility project steam oil gas", icon: ClipboardList },
 ];
 
 export function HomeDashboard() {

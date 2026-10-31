@@ -187,7 +187,7 @@ test("homepage promotes exactly the four requested primary tools", async ({ page
 
   const moreSection = page.getByRole("heading", { name: "More engineering tools" }).locator("..");
   const moreHrefs = await moreSection.locator("a").evaluateAll((links) => links.map((link) => link.getAttribute("href")?.replace(/\/$/, "")));
-  expect(moreHrefs).toEqual(["/feasibility-studio", "/chp", "/emissions", "/load-estimator"]);
+  expect(moreHrefs).toEqual(["/chp", "/emissions", "/load-estimator", "/feasibility-studio"]);
   await expect(page.locator('main a[href="/gas-flow"]')).toHaveCount(0);
 });
 
