@@ -9,9 +9,10 @@
 
 ## Milestone 3 — Utility Bill Intelligence
 
-- Select a maintained browser PDF parser only after dependency, licensing, bundle-size, worker, and security review.
-- Define utility-specific extraction profiles and retain page/coordinate evidence for every extracted value.
-- Require human confirmation for extracted values; never infer missing usage, dates, charges, rates, or units.
+- Browser PDF.js parsing, dependency/security review, lazy worker loading, editable drafts, and page/line evidence are implemented for searchable PDFs.
+- Expand utility-specific extraction profiles against a versioned, synthetic cross-utility fixture library; retain coordinates in addition to the implemented page/line excerpts when visual bill overlays are added.
+- Human review is required for PDF-derived values; continue to reject missing usage, dates, charges, rates, or units rather than inferring them.
+- Add local OCR only after a separate performance, security, accuracy, mobile-memory, and licensing review. Image-only PDFs currently fall back to manual entry.
 - Add native XLSX parsing only after the same dependency and formula-safety review. Until then, Excel can save the provided template as CSV UTF-8.
 - Add bill-period proration and explicit inventory reconciliation for delivered fuels.
 

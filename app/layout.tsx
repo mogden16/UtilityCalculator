@@ -38,16 +38,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full`}>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full overflow-x-clip`}>
       <head>
         <link rel="manifest" href="/manifest.webmanifest" />
         <ThemeScript />
       </head>
-      <body className="min-h-screen bg-background text-foreground antialiased">
+      <body className="min-h-screen overflow-x-clip bg-background text-foreground antialiased">
         <div className="flex min-h-screen flex-col">
           <AppHeader />
-          <main className="flex-1 px-3 pb-20 pt-4 sm:px-6 sm:pt-6 lg:pb-8">
-            <div className="mx-auto w-full max-w-7xl">{children}</div>
+          <main className="min-w-0 flex-1 overflow-x-clip px-3 pb-20 pt-4 sm:px-6 sm:pt-6 lg:pb-8">
+            <div className="mx-auto min-w-0 w-full max-w-7xl">{children}</div>
           </main>
           <footer className="hidden border-t border-border/70 px-6 py-5 lg:block">
             <div className="mx-auto flex max-w-7xl justify-between gap-6 text-xs text-muted-foreground">

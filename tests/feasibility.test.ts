@@ -14,6 +14,7 @@ import {
   FEASIBILITY_ASSUMPTION_REFERENCES,
   FEASIBILITY_VERSIONS,
 } from "@/lib/feasibility-version";
+import { parsePdfBillText, pdfDraftToUtilityRecord, validatePdfBillDraft } from "@/lib/utility-bill-pdf";
 
 function record(overrides: Partial<UtilityRecord> = {}): UtilityRecord {
   return {
@@ -80,6 +81,94 @@ describe("utility intake and reconciliation", () => {
     expect(codes).toContain("mixed_units");
     expect(codes).toContain("missing_tariff");
     expect(codes).toContain("delivery_not_consumption");
+  });
+});
+
+describe("browser-local PDF bill extraction", () => {
+  const lines = [
+    { page: 1, line: 1, text: "Account Number: ELEC-1001" },
+    { page: 1, line: 2, text: "Billing Period: 01/01/2025 - 01/31/2025" },
+    { page: 1, line: 3, text: "Current Usage 120,000 kWh" },
+    { page: 1, line: 4, text: "Billing Demand 420 kW" },
+    { page: 1, line: 5, text: "Energy Charges $12,000.00" },
+    { page: 1, line: 6, text: "Demand Charges $5,000.00" },
+    { page: 1, line: 7, text: "Total Amount Due $18,500.00" },
+    { page: 1, line: 8, text: "Rate Class: GS-2" },
+    { page: 1, line: 9, text: "Estimated Reading" },
+  ];
+
+  it("extracts supported fields with page-and-line evidence but keeps the record review-required", () => {
+    const draft = parsePdfBillText({ fileName: "synthetic-electric.pdf", pageCount: 1, lines, id: "draft-1" });
+    expect(draft).toMatchObject({
+      accountId: "ELEC-1001",
+      utilityType: "electricity",
+      periodStart: "2025-01-01",
+      periodEnd: "2025-01-31",
+      usage: "120000",
+      usageUnit: "kwh",
+      totalCost: "18500",
+      energyCost: "12000",
+      demandCost: "5000",
+      demandKw: "420",
+      estimated: true,
+      tariffName: "GS-2",
+    });
+    expect(draft.evidence.usage).toMatchObject({ page: 1, line: 3, locator: "synthetic-electric.pdf, page 1, line 3" });
+
+    const converted = pdfDraftToUtilityRecord(draft, "pdf-record-1");
+    expect(converted.errors).toEqual([]);
+    expect(converted.record?.source).toMatchObject({ kind: "pdf", confidence: "review", fileName: "synthetic-electric.pdf", parserVersion: "1.0.0" });
+    expect(converted.record?.source.fieldEvidence?.totalCost?.excerpt).toContain("18,500.00");
+  });
+
+  it("does not invent fields for image-only or unsupported-unit bills", () => {
+    const scanned = parsePdfBillText({ fileName: "scan.pdf", pageCount: 2, lines: [], id: "scan" });
+    expect(scanned.accountId).toBe("");
+    expect(scanned.usage).toBe("");
+    expect(scanned.totalCost).toBe("");
+    expect(scanned.warnings.join(" ")).toContain("OCR is not enabled");
+
+    const ccf = parsePdfBillText({
+      fileName: "gas.pdf",
+      pageCount: 1,
+      id: "ccf",
+      lines: [{ page: 1, line: 1, text: "Current usage 850 CCF" }],
+    });
+    expect(ccf.usage).toBe("");
+    expect(ccf.usageUnit).toBe("");
+    expect(ccf.warnings.join(" ")).toContain("No conversion was applied");
+
+    const ambiguousYear = parsePdfBillText({
+      fileName: "short-year.pdf",
+      pageCount: 1,
+      id: "short-year",
+      lines: [{ page: 1, line: 1, text: "Billing Period: 01/01/25 - 01/31/25" }],
+    });
+    expect(ambiguousYear.periodStart).toBe("");
+    expect(ambiguousYear.periodEnd).toBe("");
+  });
+
+  it.each([
+    ["natural gas MCF", "Current consumption 1,250 MCF", "natural_gas", "mcf", "1250"],
+    ["natural gas dekatherms", "Total usage 875 DTH", "natural_gas", "dth", "875"],
+    ["purchased steam", "Metered consumption 2,400 MLB", "purchased_steam", "mlb", "2400"],
+    ["No. 2 fuel oil", "Delivered usage 3,500 gallons", "fuel_oil_no2", "gallon", "3500"],
+  ] as const)("recognizes supported %s quantities without unit conversion", (_label, text, utilityType, usageUnit, usage) => {
+    const draft = parsePdfBillText({ fileName: "supported.pdf", pageCount: 1, id: utilityType, lines: [{ page: 1, line: 1, text }] });
+    expect(draft).toMatchObject({ utilityType, usageUnit, usage });
+    expect(draft.evidence.usage?.excerpt).toBe(text);
+  });
+
+  it("requires a complete, dimensionally valid review before adding a PDF record", () => {
+    const draft = parsePdfBillText({ fileName: "partial.pdf", pageCount: 1, lines: [{ page: 1, line: 1, text: "Account Number: GAS-9" }], id: "partial" });
+    expect(validatePdfBillDraft(draft)).toEqual(expect.arrayContaining([
+      "Select the utility type.",
+      "Enter a valid billing start and end date.",
+      "Enter a nonnegative usage value.",
+      "Select the usage unit.",
+      "Enter nonnegative total charges.",
+    ]));
+    expect(pdfDraftToUtilityRecord(draft, "should-not-exist").record).toBeUndefined();
   });
 });
 

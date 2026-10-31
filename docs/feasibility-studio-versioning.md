@@ -7,7 +7,7 @@ Feasibility artifacts use independent identifiers because a code release, saved-
 | Track | Current | Covers |
 | --- | --- | --- |
 | Application | package version | UtilityCalc release containing the feature |
-| Project schema | `1.0.0` | Structure of versioned project JSON documents |
+| Project schema | `1.1.0` | Structure of versioned project JSON documents, including PDF field evidence |
 | Calculation engine | `1.0.0` | Energy balance, financial equations, validation, and sensitivity behavior |
 | Assumption set | `2026.10.0` | Default engineering values and their references |
 | Report template | `1.0.0` | Report sections, tables, terminology, and disclosures |
@@ -26,6 +26,8 @@ Printed reports, supporting CSV files, and project JSON exports record:
 - deterministic input fingerprint.
 
 The project JSON additionally contains facility/project context, source-traceable utility records, all scenario inputs, the recommendation, and structured assumption references. It is downloaded locally and is not uploaded by UtilityCalc. Because it can contain customer information, it must be handled as a sensitive project file and must never be committed to the public repository.
+
+PDF-derived records include the browser parser version plus page, line, and text-excerpt evidence for each extracted field. Correcting a field does not erase its extraction evidence; the record remains `review` confidence until a user explicitly marks it verified.
 
 ## Input fingerprint
 

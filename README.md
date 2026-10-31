@@ -15,7 +15,7 @@ The public application is task-oriented. Repository history, architecture, and v
 
 ## Routes
 
-- `/feasibility-studio` provides local-first utility-data review, fuel-conversion engineering, financial sensitivity analysis, and print-ready preliminary reports.
+- `/feasibility-studio` provides local-first manual, CSV, and searchable-PDF utility intake; source-traced review; fuel-conversion engineering; financial sensitivity analysis; and print-ready preliminary reports.
 - `/load-converter` is the primary gas-demand and load-conversion workflow.
 - `/gas-equipment-sizing` performs preliminary source-table service, meter, and regulator screening.
 - `/energy-cost-comparison` normalizes unlike energy sources to delivered MMBtu.
