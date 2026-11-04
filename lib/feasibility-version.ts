@@ -51,7 +51,7 @@ const buildCommit = process.env.NEXT_PUBLIC_BUILD_COMMIT_SHA || "local-build";
 
 export const FEASIBILITY_VERSIONS: FeasibilityVersionSet = Object.freeze({
   applicationVersion,
-  projectSchemaVersion: "1.0.0",
+  projectSchemaVersion: "1.1.0",
   calculationEngineVersion: "1.0.0",
   assumptionSetVersion: "2026.10.0",
   reportTemplateVersion: "1.0.0",

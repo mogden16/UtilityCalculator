@@ -9,6 +9,7 @@ The current release covers Milestone 1 and the Fuel Conversion MVP from Mileston
 - named project and facility context;
 - manual and CSV utility intake for electricity, natural gas, purchased steam, and No. 2 fuel oil;
 - multiple accounts and billing periods;
+- browser-local searchable-PDF text extraction with editable drafts and per-field page/line evidence;
 - editable normalized data with source row, confidence, estimated-reading, tariff, energy-charge, demand-charge, and demand fields;
 - reconciliation checks for invalid, duplicate, overlapping, missing, estimated, mixed-unit, unusual, tariff-missing, and oil-delivery records;
 - oil-to-gas, purchased-steam-to-gas, and gas-equipment-upgrade energy balances;
@@ -34,9 +35,9 @@ Annual use is never converted into peak capacity. The report explicitly requires
 
 ## Privacy and source traceability
 
-CSV files are parsed with browser APIs. Each imported value set records its file name and row; manual entries record their origin. Imported rows begin in `review` confidence and can be marked confirmed. Closing or reloading the page clears the project.
+CSV and PDF files are parsed with browser APIs. Each CSV row records its file name and row; each PDF-derived field records its file name, page, line, source excerpt, and parser version. Manual entries record their origin. Imported rows begin in `review` confidence and can be marked confirmed. Closing or reloading the page clears the project.
 
-PDF and native XLSX parsing are not enabled. The UI explains the CSV bridge and the PDF security/accuracy gate rather than silently accepting an unsupported file or transmitting it elsewhere.
+PDF.js `5.5.207` is loaded only when a user selects a PDF. Extraction is limited to 15 MB, 40 pages, and 100,000 text characters per page; JavaScript evaluation is disabled. The browser reads only the embedded text layer and does not render, upload, persist, OCR, or send the bill to an external service. Password-protected and image-only PDFs fall back to manual entry. Native XLSX parsing remains deferred.
 
 ## Reporting
 
@@ -46,4 +47,4 @@ Every report and export includes version provenance and a deterministic `UCFS-XX
 
 ## Validation
 
-Vitest covers CSV parsing, utility reconciliation, independent energy-balance benchmarks, invalid inputs, capital/incentive treatment, NPV, and the peak-sizing disclaimer. Playwright covers the full manual bill → assumptions → result path and includes the route in accessibility and responsive regressions.
+Vitest covers CSV parsing, deterministic PDF field extraction, missing/unsupported PDF fields, source evidence, utility reconciliation, independent energy-balance benchmarks, invalid inputs, capital/incentive treatment, NPV, and the peak-sizing disclaimer. Playwright covers manual and real browser PDF.js intake paths, the full bill → assumptions → result path, accessibility, and responsive regressions.

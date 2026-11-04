@@ -14,9 +14,9 @@ import {
   Printer,
   ShieldCheck,
   Trash2,
-  Upload,
 } from "lucide-react";
 
+import { PdfBillImport } from "@/components/feasibility/PdfBillImport";
 import { ToolPageShell } from "@/components/tool-page-shell";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ import {
   type FeasibilityProvenance,
 } from "@/lib/feasibility-version";
 import { formatCurrency, formatFixed, formatWhole } from "@/lib/format";
+import type { PdfBillDraft } from "@/lib/utility-bill-pdf";
 
 const STEPS = ["Project", "Utility data", "Feasibility", "Assumptions", "Results", "Report"] as const;
 const UTILITY_LABELS: Record<UtilityType, string> = {
@@ -113,6 +114,7 @@ export default function FeasibilityStudio() {
   const [records, setRecords] = useState<UtilityRecord[]>([]);
   const [manual, setManual] = useState<ManualRecord>(DEFAULT_MANUAL);
   const [importMessages, setImportMessages] = useState<string[]>([]);
+  const [pdfDrafts, setPdfDrafts] = useState<PdfBillDraft[]>([]);
   const [inputs, setInputs] = useState<EditableInputs>({ ...FEASIBILITY_DEFAULTS });
   const [recommendation, setRecommendation] = useState("Proceed to tariff review, site survey, load analysis, and budgetary vendor pricing before making an investment decision.");
   const [reportGeneratedAt, setReportGeneratedAt] = useState(() => new Date().toISOString());
@@ -256,7 +258,7 @@ export default function FeasibilityStudio() {
 
       <div className="no-print flex items-center gap-2 rounded-xl border border-emerald-300/60 bg-emerald-50 p-3 text-sm text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-100">
         <ShieldCheck className="h-5 w-5 shrink-0" />
-        <p>Project and bill data stays in this browser tab. This MVP has no account database, cloud upload, analytics payload, or external AI extraction.</p>
+        <p>Project and bill data stays in this browser tab. PDF text extraction runs locally; there is no account database, cloud bill upload, analytics payload, OCR, or external AI extraction.</p>
       </div>
 
       {step === 0 ? <ProjectStep project={project} setProject={setProject} /> : null}
@@ -265,11 +267,15 @@ export default function FeasibilityStudio() {
           manual={manual}
           setManual={setManual}
           records={records}
+          pdfDrafts={pdfDrafts}
+          setPdfDrafts={setPdfDrafts}
           issues={issues}
           messages={importMessages}
           fileInput={fileInput}
           onAdd={addManualRecord}
           onImport={importCsv}
+          onAddPdfRecord={(record) => setRecords((current) => [...current, record])}
+          onPdfMessages={setImportMessages}
           onUpdate={updateRecord}
           onDelete={(id) => setRecords((current) => current.filter((record) => record.id !== id))}
           onExport={exportReviewedData}
@@ -321,15 +327,19 @@ function ProjectStep({ project, setProject }: { project: { name: string; facilit
   );
 }
 
-function UtilityDataStep({ manual, setManual, records, issues, messages, fileInput, onAdd, onImport, onUpdate, onDelete, onExport }: {
+function UtilityDataStep({ manual, setManual, records, pdfDrafts, setPdfDrafts, issues, messages, fileInput, onAdd, onImport, onAddPdfRecord, onPdfMessages, onUpdate, onDelete, onExport }: {
   manual: ManualRecord;
   setManual: React.Dispatch<React.SetStateAction<ManualRecord>>;
   records: UtilityRecord[];
+  pdfDrafts: PdfBillDraft[];
+  setPdfDrafts: React.Dispatch<React.SetStateAction<PdfBillDraft[]>>;
   issues: ReturnType<typeof validateUtilityRecords>;
   messages: string[];
   fileInput: React.RefObject<HTMLInputElement | null>;
   onAdd: () => void;
   onImport: (file: File) => void;
+  onAddPdfRecord: (record: UtilityRecord) => void;
+  onPdfMessages: (messages: string[]) => void;
   onUpdate: (id: string, patch: Partial<UtilityRecord>) => void;
   onDelete: (id: string) => void;
   onExport: () => void;
@@ -342,7 +352,7 @@ function UtilityDataStep({ manual, setManual, records, issues, messages, fileInp
     <div className="grid gap-3 lg:grid-cols-3">
       <Card><CardContent className="space-y-3 p-4"><div className="flex items-center gap-2"><FileSpreadsheet className="h-5 w-5 text-primary" /><h2 className="font-semibold">CSV import</h2></div><p className="text-sm text-muted-foreground">Import multiple accounts and utility types with source-row traceability.</p><input ref={fileInput} type="file" accept=".csv,text/csv" className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground" onChange={(event) => { const file = event.target.files?.[0]; if (file) void onImport(file); }} /><Button type="button" variant="outline" className="w-full" onClick={() => downloadText("utilitycalc-feasibility-template.csv", UTILITY_CSV_TEMPLATE)}><Download className="h-4 w-4" /> Download template</Button></CardContent></Card>
       <Card><CardContent className="space-y-3 p-4"><div className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /><h2 className="font-semibold">Excel workflow</h2></div><p className="text-sm leading-6 text-muted-foreground">Use the CSV template in Excel, then save as CSV UTF-8 before import. Native XLSX parsing is intentionally deferred to avoid adding an unreviewed client dependency.</p><span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-100">CSV bridge available</span></CardContent></Card>
-      <Card><CardContent className="space-y-3 p-4"><div className="flex items-center gap-2"><Upload className="h-5 w-5 text-primary" /><h2 className="font-semibold">PDF bills</h2></div><p className="text-sm leading-6 text-muted-foreground">PDF extraction is not enabled in this local-first release. No bill is transmitted. Enter values manually or use the CSV bridge while the secure parser is validated.</p><span className="inline-flex rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">Milestone 3 backlog</span></CardContent></Card>
+      <PdfBillImport drafts={pdfDrafts} setDrafts={setPdfDrafts} onAddRecord={onAddPdfRecord} onMessages={onPdfMessages} />
     </div>
 
     <Card><CardHeader><CardTitle>Manual bill entry</CardTitle></CardHeader><CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -366,10 +376,31 @@ function UtilityDataStep({ manual, setManual, records, issues, messages, fileInp
 }
 
 function UtilityReviewTable({ records, issues, onUpdate, onDelete, onExport }: { records: UtilityRecord[]; issues: ReturnType<typeof validateUtilityRecords>; onUpdate: (id: string, patch: Partial<UtilityRecord>) => void; onDelete: (id: string) => void; onExport: () => void }) {
-  return <Card><CardHeader className="flex-row items-center justify-between gap-3"><div><CardTitle>Review standardized utility data</CardTitle><p className="mt-1 text-sm text-muted-foreground">{records.length} billing period{records.length === 1 ? "" : "s"} · {issues.length} review flag{issues.length === 1 ? "" : "s"}</p></div>{records.length ? <Button variant="outline" onClick={onExport}><Download className="h-4 w-4" /> Export versioned CSV</Button> : null}</CardHeader><CardContent className="space-y-4">
-    {records.length ? <div className="overflow-x-auto"><table className="w-full min-w-[980px] text-left text-sm"><thead className="border-b text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="p-2">Account</th><th className="p-2">Utility</th><th className="p-2">Period</th><th className="p-2">Usage</th><th className="p-2">Total</th><th className="p-2">Tariff</th><th className="p-2">Source</th><th className="p-2">Confirm</th><th className="p-2"><span className="sr-only">Actions</span></th></tr></thead><tbody>{records.map((record) => <tr key={record.id} className="border-b align-top"><td className="p-2"><Input aria-label={`Account for ${record.source.locator}`} value={record.accountId} onChange={(event) => onUpdate(record.id, { accountId: event.target.value })} className="min-w-36" /></td><td className="p-2">{UTILITY_LABELS[record.utilityType]}</td><td className="p-2"><div className="whitespace-nowrap">{record.periodStart}</div><div className="whitespace-nowrap text-muted-foreground">to {record.periodEnd}</div></td><td className="p-2"><Input aria-label={`Usage for ${record.source.locator}`} type="number" value={record.usage} onChange={(event) => onUpdate(record.id, { usage: Number(event.target.value) })} className="w-28" /><span className="mt-1 block text-xs uppercase text-muted-foreground">{record.usageUnit}</span></td><td className="p-2"><Input aria-label={`Total cost for ${record.source.locator}`} type="number" value={record.totalCost} onChange={(event) => onUpdate(record.id, { totalCost: Number(event.target.value) })} className="w-28" /></td><td className="p-2"><Input aria-label={`Tariff for ${record.source.locator}`} value={record.tariffName ?? ""} onChange={(event) => onUpdate(record.id, { tariffName: event.target.value })} className="w-28" /></td><td className="p-2 text-xs text-muted-foreground">{record.source.locator}</td><td className="p-2"><label className="flex items-center gap-2"><input type="checkbox" checked={record.source.confidence === "confirmed"} onChange={(event) => onUpdate(record.id, { source: { ...record.source, confidence: event.target.checked ? "confirmed" : "review" } })} /> <span className="text-xs">Verified</span></label></td><td className="p-2"><Button variant="ghost" size="icon" aria-label={`Delete ${record.source.locator}`} onClick={() => onDelete(record.id)}><Trash2 className="h-4 w-4" /></Button></td></tr>)}</tbody></table></div> : <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">Add a bill manually or import the CSV template. No sample customer data is inserted automatically.</div>}
-    {issues.length ? <div className="grid gap-2 sm:grid-cols-2">{issues.slice(0, 12).map((issue, index) => <div key={`${issue.code}-${index}`} className={`rounded-lg border p-3 text-sm ${issue.severity === "error" ? "border-red-300 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100" : issue.severity === "warning" ? "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100" : "bg-muted/40 text-muted-foreground"}`}>{issue.message}</div>)}</div> : records.length ? <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300"><CheckCircle2 className="h-4 w-4" /> No reconciliation flags found in the current rows.</div> : null}
-  </CardContent></Card>;
+  return <Card className="min-w-0">
+    <CardHeader className="flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+      <div><CardTitle>Review standardized utility data</CardTitle><p className="mt-1 text-sm text-muted-foreground">{records.length} billing period{records.length === 1 ? "" : "s"} · {issues.length} review flag{issues.length === 1 ? "" : "s"}</p></div>
+      {records.length ? <Button variant="outline" onClick={onExport}><Download className="h-4 w-4" /> Export versioned CSV</Button> : null}
+    </CardHeader>
+    <CardContent className="min-w-0 space-y-4">
+      {records.length ? <>
+        <div className="space-y-3 md:hidden">
+          {records.map((record) => <div key={record.id} className="min-w-0 space-y-3 rounded-xl border p-3">
+            <div className="flex items-start justify-between gap-2"><div><p className="font-medium">{UTILITY_LABELS[record.utilityType]}</p><p className="text-xs text-muted-foreground">{record.periodStart} to {record.periodEnd}</p></div><Button variant="ghost" size="icon" aria-label={`Delete ${record.source.locator}`} onClick={() => onDelete(record.id)}><Trash2 className="h-4 w-4" /></Button></div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1"><Label htmlFor={`mobile-account-${record.id}`}>Account</Label><Input id={`mobile-account-${record.id}`} aria-label={`Account for ${record.source.locator}`} value={record.accountId} onChange={(event) => onUpdate(record.id, { accountId: event.target.value })} /></div>
+              <div className="space-y-1"><Label htmlFor={`mobile-usage-${record.id}`}>Usage ({record.usageUnit.toUpperCase()})</Label><Input id={`mobile-usage-${record.id}`} aria-label={`Usage for ${record.source.locator}`} type="number" value={record.usage} onChange={(event) => onUpdate(record.id, { usage: Number(event.target.value) })} /></div>
+              <div className="space-y-1"><Label htmlFor={`mobile-cost-${record.id}`}>Total charges</Label><Input id={`mobile-cost-${record.id}`} aria-label={`Total cost for ${record.source.locator}`} type="number" value={record.totalCost} onChange={(event) => onUpdate(record.id, { totalCost: Number(event.target.value) })} /></div>
+              <div className="space-y-1"><Label htmlFor={`mobile-tariff-${record.id}`}>Tariff / rate class</Label><Input id={`mobile-tariff-${record.id}`} aria-label={`Tariff for ${record.source.locator}`} value={record.tariffName ?? ""} onChange={(event) => onUpdate(record.id, { tariffName: event.target.value })} /></div>
+            </div>
+            <p className="break-all text-xs text-muted-foreground">{record.source.locator}</p>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={record.source.confidence === "confirmed"} onChange={(event) => onUpdate(record.id, { source: { ...record.source, confidence: event.target.checked ? "confirmed" : "review" } })} /> Verified against source</label>
+          </div>)}
+        </div>
+        <div className="hidden max-w-full overflow-x-auto md:block"><table className="w-full min-w-[980px] text-left text-sm"><thead className="border-b text-xs uppercase tracking-wide text-muted-foreground"><tr><th className="p-2">Account</th><th className="p-2">Utility</th><th className="p-2">Period</th><th className="p-2">Usage</th><th className="p-2">Total</th><th className="p-2">Tariff</th><th className="p-2">Source</th><th className="p-2">Confirm</th><th className="p-2"><span className="sr-only">Actions</span></th></tr></thead><tbody>{records.map((record) => <tr key={record.id} className="border-b align-top"><td className="p-2"><Input aria-label={`Account for ${record.source.locator}`} value={record.accountId} onChange={(event) => onUpdate(record.id, { accountId: event.target.value })} className="min-w-36" /></td><td className="p-2">{UTILITY_LABELS[record.utilityType]}</td><td className="p-2"><div className="whitespace-nowrap">{record.periodStart}</div><div className="whitespace-nowrap text-muted-foreground">to {record.periodEnd}</div></td><td className="p-2"><Input aria-label={`Usage for ${record.source.locator}`} type="number" value={record.usage} onChange={(event) => onUpdate(record.id, { usage: Number(event.target.value) })} className="w-28" /><span className="mt-1 block text-xs uppercase text-muted-foreground">{record.usageUnit}</span></td><td className="p-2"><Input aria-label={`Total cost for ${record.source.locator}`} type="number" value={record.totalCost} onChange={(event) => onUpdate(record.id, { totalCost: Number(event.target.value) })} className="w-28" /></td><td className="p-2"><Input aria-label={`Tariff for ${record.source.locator}`} value={record.tariffName ?? ""} onChange={(event) => onUpdate(record.id, { tariffName: event.target.value })} className="w-28" /></td><td className="p-2 text-xs text-muted-foreground">{record.source.locator}</td><td className="p-2"><label className="flex items-center gap-2"><input type="checkbox" checked={record.source.confidence === "confirmed"} onChange={(event) => onUpdate(record.id, { source: { ...record.source, confidence: event.target.checked ? "confirmed" : "review" } })} /> <span className="text-xs">Verified</span></label></td><td className="p-2"><Button variant="ghost" size="icon" aria-label={`Delete ${record.source.locator}`} onClick={() => onDelete(record.id)}><Trash2 className="h-4 w-4" /></Button></td></tr>)}</tbody></table></div>
+      </> : <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">Add a bill manually or import the CSV template. No sample customer data is inserted automatically.</div>}
+      {issues.length ? <div className="grid gap-2 sm:grid-cols-2">{issues.slice(0, 12).map((issue, index) => <div key={`${issue.code}-${index}`} className={`rounded-lg border p-3 text-sm ${issue.severity === "error" ? "border-red-300 bg-red-50 text-red-950 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100" : issue.severity === "warning" ? "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100" : "bg-muted/40 text-muted-foreground"}`}>{issue.message}</div>)}</div> : records.length ? <div className="flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300"><CheckCircle2 className="h-4 w-4" /> No reconciliation flags found in the current rows.</div> : null}
+    </CardContent>
+  </Card>;
 }
 
 function ScenarioStep({ selected, onSelect, records }: { selected: FuelConversionType; onSelect: (value: FuelConversionType) => void; records: UtilityRecord[] }) {

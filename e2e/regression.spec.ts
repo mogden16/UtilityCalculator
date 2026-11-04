@@ -11,6 +11,30 @@ const routes = [
   ["/unit-conversions", "Unit Conversions"],
 ] as const;
 
+function createSyntheticUtilityPdf(lines: string[]): Buffer {
+  const escapeText = (value: string) => value.replace(/([\\()])/g, "\\$1");
+  const textCommands = lines.map((line, index) => `${index ? "0 -18 Td " : ""}(${escapeText(line)}) Tj`).join("\n");
+  const stream = `BT\n/F1 12 Tf\n72 720 Td\n${textCommands}\nET`;
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    `<< /Length ${Buffer.byteLength(stream, "latin1")} >>\nstream\n${stream}\nendstream`,
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  objects.forEach((object, index) => {
+    offsets.push(Buffer.byteLength(pdf, "latin1"));
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const xrefOffset = Buffer.byteLength(pdf, "latin1");
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  pdf += offsets.slice(1).map((offset) => `${String(offset).padStart(10, "0")} 00000 n \n`).join("");
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+  return Buffer.from(pdf, "latin1");
+}
+
 test("every calculator route renders its primary workflow", async ({ page }) => {
   for (const [path, heading] of routes) {
     await page.goto(path);
@@ -82,6 +106,42 @@ test("feasibility studio completes a traceable fuel-conversion screening", async
   await expect(page.getByRole("row", { name: /Calculation engine 1\.0\.0/ })).toBeVisible();
   await expect(page.getByText(/UCFS-[0-9A-F]{8}/).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Versioned project JSON" })).toBeEnabled();
+});
+
+test("feasibility studio extracts a searchable PDF locally and requires review", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  await page.goto("/feasibility-studio");
+  await page.getByLabel("Project name *").fill("PDF bill intake");
+  await page.getByLabel("Facility name *").fill("Synthetic facility");
+  await page.getByRole("button", { name: /Continue/ }).click();
+
+  const pdf = createSyntheticUtilityPdf([
+    "Account Number: ELEC-1001",
+    "Billing Period: 01/01/2025 - 01/31/2025",
+    "Current Usage 120000 kWh",
+    "Billing Demand 420 kW",
+    "Energy Charges $12000.00",
+    "Demand Charges $5000.00",
+    "Total Amount Due $18500.00",
+    "Rate Class: GS-2",
+  ]);
+  await page.getByLabel("Upload PDF utility bills").setInputFiles({ name: "synthetic-electric.pdf", mimeType: "application/pdf", buffer: pdf });
+
+  await expect(page.getByText("Review PDF extraction", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Account name / ID").first()).toHaveValue("ELEC-1001");
+  await expect(page.getByLabel("Period start").first()).toHaveValue("2025-01-01");
+  await expect(page.getByLabel("Usage", { exact: true }).first()).toHaveValue("120000");
+  await expect(page.getByLabel("Total charges").first()).toHaveValue("18500");
+  await page.getByText("Source evidence for extracted values").click();
+  await expect(page.getByText(/synthetic-electric\.pdf, page 1, line 3/).first()).toBeVisible();
+  await page.getByRole("button", { name: "Add reviewed bill" }).click();
+
+  await expect(page.getByText("1 billing period", { exact: false })).toBeVisible();
+  await expect(page.getByText("synthetic-electric.pdf, page 1", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/requires review before it is treated as confirmed/)).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await context.close();
 });
 
 test("visible calculator controls have accessible names", async ({ page }) => {

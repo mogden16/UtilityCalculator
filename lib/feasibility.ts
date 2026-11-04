@@ -5,12 +5,36 @@ export type UtilityType = "electricity" | "natural_gas" | "purchased_steam" | "f
 export type UtilityUnit = "kwh" | "kw" | "mcf" | "dth" | "therm" | "mlb" | "gallon";
 export type SourceConfidence = "confirmed" | "review" | "uncertain";
 
+export type UtilityFieldKey =
+  | "accountId"
+  | "utilityType"
+  | "periodStart"
+  | "periodEnd"
+  | "usage"
+  | "usageUnit"
+  | "totalCost"
+  | "energyCost"
+  | "demandCost"
+  | "otherCost"
+  | "demandKw"
+  | "estimated"
+  | "tariffName";
+
+export type UtilityFieldEvidence = {
+  page: number;
+  line: number;
+  locator: string;
+  excerpt: string;
+};
+
 export type UtilitySource = {
   kind: "manual" | "csv" | "pdf";
   fileName?: string;
   row?: number;
   locator: string;
   confidence: SourceConfidence;
+  parserVersion?: string;
+  fieldEvidence?: Partial<Record<UtilityFieldKey, UtilityFieldEvidence>>;
 };
 
 export type UtilityRecord = {
@@ -405,7 +429,7 @@ export function recordsToCsv(records: UtilityRecord[], provenance?: FeasibilityP
   const versionHeaders = provenance
     ? ",project_schema_version,calculation_engine_version,assumption_set_version,report_template_version,application_version,build_commit,input_fingerprint,calculation_mode,generated_at"
     : "";
-  const header = `account_id,utility_type,period_start,period_end,usage,unit,total_cost,energy_cost,demand_cost,other_cost,demand_kw,estimated,tariff_name,notes,source${versionHeaders}`;
+  const header = `account_id,utility_type,period_start,period_end,usage,unit,total_cost,energy_cost,demand_cost,other_cost,demand_kw,estimated,tariff_name,notes,source,source_kind,source_confidence,source_details${versionHeaders}`;
   return [header, ...records.map((record) => [
     record.accountId,
     record.utilityType,
@@ -422,6 +446,9 @@ export function recordsToCsv(records: UtilityRecord[], provenance?: FeasibilityP
     record.tariffName,
     record.notes,
     record.source.locator,
+    record.source.kind,
+    record.source.confidence,
+    record.source.fieldEvidence ? JSON.stringify({ parserVersion: record.source.parserVersion, fields: record.source.fieldEvidence }) : "",
     ...(provenance ? [
       provenance.projectSchemaVersion,
       provenance.calculationEngineVersion,
